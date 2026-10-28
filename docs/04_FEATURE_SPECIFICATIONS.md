@@ -57,3 +57,4 @@ To avoid double-booking and synchronize dentist working hours with patient avail
   - Patients can request rescheduling up to a configurable deadline (e.g., 24 hours prior).
   - Cancellation policies and deposit forfeit rules enforced consistently.
 - **Post-Visit Review Submission**: Secure review link triggered after clinic marks an appointment as Completed.
+

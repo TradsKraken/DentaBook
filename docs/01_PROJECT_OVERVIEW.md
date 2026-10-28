@@ -37,3 +37,4 @@
 3. **Booking & Reservation Engine**: Interactive calendar with dentist-specific availability slots and automated conflict prevention.
 4. **Clinic Admin Dashboard**: Protected workspace for clinic administrators and practitioners to review appointments, adjust prices, and manage schedules.
 5. **Appointment Tracking & Notifications**: Status updates for accepted, pending, rescheduled, or completed visits.
+

@@ -44,3 +44,4 @@ Before presenting each milestone to the student/client, verify the following:
 - [ ] **Calculator Formula**: Is the price estimation logic and down-payment policy consistent with the client's guidelines?
 - [ ] **UI Responsiveness**: Will the website function properly on both mobile phones and desktop screens?
 - [ ] **Deliverables Isolation**: Ensure all developer notes, agent transcripts, and experimental files stay contained within this private repository.
+

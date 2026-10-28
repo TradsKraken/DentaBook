@@ -50,3 +50,4 @@ flowchart TD
 
 ### Phase 4: Maintenance & Scalability
 12. **Ongoing Catalog Adjustments**: Clinic staff dynamically adjust pricing, add seasonal promotions, update schedule availability, or register new dentists as the practice expands.
+

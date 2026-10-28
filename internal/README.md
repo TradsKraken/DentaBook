@@ -19,3 +19,4 @@ When the website is completed and ready for submission:
 1. A new, clean Git repository will be created for the client.
 2. Only production-ready source code (`src/`), configuration files, and polished client documentation (`docs/`) will be migrated.
 3. All internal notes, agent prompts, and development logs will remain preserved in this private repository.
+

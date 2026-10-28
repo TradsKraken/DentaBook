@@ -56,3 +56,4 @@ flowchart TD
 ### Phase 5: Post-Booking & Follow-up
 17. **Appointment Management**: Customer can track real-time status, request a reschedule, or cancel in accordance with the clinic's cancellation policy.
 18. **Review & Feedback**: Following completion of the dental visit, the customer is invited to rate the service and provide feedback.
+
