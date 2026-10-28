@@ -13,6 +13,17 @@ DentaBook makes dental services more accessible and convenient by helping patien
 ### Key Features
 ```
 DentaBook/
+├── client/                     # Frontend Application (React + Vite + Nginx)
+│   ├── src/                           # React components & UI
+│   ├── Dockerfile                     # Multi-stage production Docker build
+│   ├── nginx.conf                     # Nginx SPA & API proxy configuration
+│   └── package.json
+├── server/                     # Backend API (Node.js 22 + Express 4)
+│   ├── database/
+│   │   └── init.sql                   # Automatic PostgreSQL schema & seed initialization
+│   ├── Dockerfile                     # Node.js production Dockerfile
+│   ├── index.js                       # Express server & healthcheck endpoint
+│   └── package.json
 ├── docs/                       # Formal project & client documentation
 │   ├── 01_PROJECT_OVERVIEW.md         # Executive summary, problem statement & user roles
 │   ├── 02_PATIENT_WORKFLOW.md         # Complete 18-step customer journey & flowchart
@@ -22,14 +33,40 @@ DentaBook/
 │   └── 06_SYSTEM_ARCHITECTURE.md      # Tailored technology stack, schema & Docker architecture
 ├── internal/                   # Developer & AI staging notes (retained for future migration)
 │   └── README.md
-├── src/                        # Web application source code (to be developed)
-│   └── .gitkeep
+├── docker-compose.yml          # Container orchestration (client, api, db)
+├── .env.example                # Sample environment variables
 ├── sync.bat                    # One-click Windows backup & sync tool (pull + commit + push)
 ├── sync.ps1                    # PowerShell sync script
 ├── Information.txt             # Original client brief
 ├── .gitignore                  # Git ignore rules for dependencies and environment files
 └── README.md                   # Repository guide
 ```
+
+---
+
+## 🐳 Docker Deployment & Quick Start
+
+To launch the full containerized environment (Client, API, PostgreSQL):
+
+1. **Copy the environment configuration**:
+   ```bash
+   cp .env.example .env
+   ```
+2. **Build and start all containers**:
+   ```bash
+   docker compose up -d --build
+   ```
+   *(or `docker-compose up -d --build`)*
+
+3. **Access Services**:
+   - **Frontend**: [http://localhost:3000](http://localhost:3000)
+   - **API Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+   - **Database**: Port `5432` internally managed with persistent data in `dentabook_pgdata`.
+
+4. **Stop Services**:
+   ```bash
+   docker compose down
+   ```
 
 - **Patient Portal**:
   - Browse dental clinics and view clinic credentials, dentists, and locations.
