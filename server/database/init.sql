@@ -166,3 +166,4 @@ CREATE INDEX IF NOT EXISTS idx_services_clinic ON services(clinic_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date, clinic_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_dentist ON appointments(dentist_id, appointment_date);
 CREATE INDEX IF NOT EXISTS idx_appointments_code ON appointments(appointment_code);
+

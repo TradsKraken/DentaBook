@@ -27,3 +27,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 
 # Run the Express server
 CMD ["node", "index.js"]
+
