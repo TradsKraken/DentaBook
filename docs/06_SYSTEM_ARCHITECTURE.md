@@ -238,3 +238,4 @@ docker compose up -d --build
 - [ ] Database schema DDL script preparation.
 - [ ] Docker configuration files creation (`docker-compose.yml`, Dockerfiles, `nginx.conf`).
 - [ ] Frontend & Backend scaffolding (pending user approval).
+
