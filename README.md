@@ -18,7 +18,8 @@ DentaBook/
 │   ├── 02_PATIENT_WORKFLOW.md         # Complete 18-step customer journey & flowchart
 │   ├── 03_CLINIC_ADMIN_WORKFLOW.md    # Complete 13-step clinic/admin lifecycle
 │   ├── 04_FEATURE_SPECIFICATIONS.md   # Estimator logic, booking engine & specifications
-│   └── 05_DELIVERY_ROADMAP.md         # Phases, milestones & client sign-off checklist
+│   ├── 05_DELIVERY_ROADMAP.md         # Phases, milestones & client sign-off checklist
+│   └── 06_SYSTEM_ARCHITECTURE.md      # Tailored technology stack, schema & Docker architecture
 ├── internal/                   # Developer & AI staging notes (retained for future migration)
 │   └── README.md
 ├── src/                        # Web application source code (to be developed)
@@ -74,6 +75,7 @@ git push origin main
 - [**03. Clinic & Administration Workflow (13 Steps)**](docs/03_CLINIC_ADMIN_WORKFLOW.md)
 - [**04. Feature Specifications & Requirements**](docs/04_FEATURE_SPECIFICATIONS.md)
 - [**05. Delivery Roadmap & Milestones**](docs/05_DELIVERY_ROADMAP.md)
+- [**06. System & Technology Architecture**](docs/06_SYSTEM_ARCHITECTURE.md)
 
 ---
 
