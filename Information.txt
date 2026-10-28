@@ -1,0 +1,40 @@
+The website will allow users to browse available dental services, view descriptions and estimated prices, select their desired treatments, and automatically calculate the estimated total cost. Users can also book appointments online by providing their basic information and preferred date and time. The website will include an appointment tracking feature and an admin dashboard where authorized clinic staff can manage appointments, update service prices, and organize schedules. The main goal is to make dental services more accessible and convenient by helping patients estimate their potential expenses and schedule appointments online while improving the efficiency of dental clinic management.
+
+website Name: DentaBook 
+
+Complete Customer Workflow
+
+1. Customer opens the home page.
+2. Customer selects a dental clinic.
+3. Customer views the clinic’s background, location, and contact information.
+4. Customer views the dentists’ backgrounds and credentials.
+5. Customer selects a dental service offered by the chosen clinic.
+6. Customer uses the cost calculator.
+7. Customer selects a dentist.
+8. Customer chooses an available appointment date.
+9. Customer chooses an available time slot.
+10. Customer enters their name, email, phone number, and other required information.
+11. Customer answers the relevant follow-up questions.
+12. Customer reviews and submits the appointment request.
+13. Dentist reviews the request and accepts, declines, or requests more information.
+14. If accepted, the customer pays the required down payment.
+15. The system confirms the appointment after the applicable requirements are satisfied.
+16. Customer receives the confirmed date, time, and appointment details.
+17. Customer can track, cancel, or request to reschedule the appointment according to the applicable policies.
+18. After completing the appointment, the customer can submit feedback.
+
+Complete Clinic Workflow
+
+1. Clinic registers an account.
+2. System administrator reviews the registration.
+3. Clinic receives approval.
+4. Clinic logs in to its dashboard.
+5. Clinic manages its profile, background, location, and contact information.
+6. Clinic adds its available dental services and sets prices.
+7. Clinic adds dentist profiles and relevant credentials.
+8. Clinic assigns services to the appropriate dentists.
+9. Clinic and dentists set their schedules and available dates and times.
+10. Customers begin submitting appointment requests.
+11. Dentists review and manage appointment requests.
+12. Clinic tracks payment statuses and appointment records.
+13. Clinic updates its services, prices, and schedules whenever necessary.
