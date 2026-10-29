@@ -1,6 +1,12 @@
 # Portal routes and security
 
-All portals use `https://dentabook.forgroup.space`.
+Current local testing address: `http://10.10.1.116:3003`. The domain
+`https://dentabook.forgroup.space` is reserved for future hosting.
+
+Local `.env` uses `NODE_ENV=development` and `CLIENT_URL=http://10.10.1.116:3003`.
+This permits the unprefixed session cookie over local HTTP while retaining role,
+CSRF, password, and database authorization controls. Local HTTP traffic is not
+encrypted. For hosting, set `NODE_ENV=production` and the exact HTTPS origin.
 
 | Portal | Sign-in | Private pages | Registration |
 | --- | --- | --- | --- |

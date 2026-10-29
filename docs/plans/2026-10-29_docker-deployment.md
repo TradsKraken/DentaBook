@@ -9,7 +9,7 @@ Date: 2026-10-29. Branch: `main`. Base commit: `7fd4569`.
 | Docker website, API, PostgreSQL | Built and running |
 | Database schema and startup migrations | Applied successfully |
 | Live patient authentication checks | Passed; temporary test data removed |
-| Main domain configuration in API | Set to `https://dentabook.forgroup.space` |
+| Current local API origin | `http://10.10.1.116:3003`, development mode |
 | External Nginx route and certificate | Pending on proxy server `10.10.1.108` |
 | End-to-end browser access through domain | Pending proxy configuration |
 
@@ -50,7 +50,7 @@ Production session cookies require HTTPS. The direct HTTP upstream is useful
 for diagnostics and browsing, but browser sign-in must use the configured HTTPS
 domain. Do not disable secure cookies to make direct HTTP sign-in work.
 
-## Remaining proxy setup
+## Future hosting proxy setup
 
 - [x] User identified the existing proxy as Nginx.
 - [x] Confirmed the website responds on port 3003.
@@ -141,3 +141,13 @@ proxy configuration has been supplied. At-rest database/backup encryption, TLS
 on internal hops, MFA, and persistent shared throttling remain unimplemented.
 
 Final API deployment and real PostgreSQL login passed after the credential-race guard was deployed. All services are healthy.
+
+## Local-access correction (2026-10-29)
+
+The user clarified that the project is not hosted yet. The current supported
+address is `http://10.10.1.116:3003`. `.env` now sets that exact CLIENT_URL and
+NODE_ENV=development. Compose allows NODE_ENV to be configured while retaining
+production as its default. The API was recreated and Nginx reloaded. Role checks,
+session revocation, bcrypt and CSRF checks remain enabled. Future domain/proxy
+steps above are optional hosting work, not blockers for local sign-in. Local
+HTTP is unencrypted; production requires HTTPS and production cookie settings.
