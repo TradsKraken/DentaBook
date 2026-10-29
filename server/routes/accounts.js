@@ -154,11 +154,19 @@ function createAccountRouter(pool) {
         "DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP",
       );
       const duration = role === "system_admin" ? 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
-      await pool.query(
+      const created = await pool.query(
         `INSERT INTO sessions (token_hash, user_id, role, expires_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond')`,
-        [hashToken(token), user.id, role, duration],
+        SELECT $1, u.id, u.role, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond'
+        FROM users u WHERE u.id = $2 AND u.role = $3 AND u.password_hash = $5
+        FOR SHARE RETURNING token_hash`,
+        [hashToken(token), user.id, role, duration, user.password_hash],
       );
+      // Serialize issuance with credential changes so an old password cannot
+      // create a new session after a concurrent reset or privilege change.
+      if (!created.rows.length)
+        return res.status(401).json({
+          error: "The email address or password is incorrect for this portal.",
+        });
       res.cookie(cookieName(), token, {
         ...cookieOptions(),
         maxAge: duration,

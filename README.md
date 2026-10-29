@@ -74,6 +74,8 @@ DentaBook/
 
 ## Documentation
 
+- [Portal routes and security controls](docs/11_PORTAL_SECURITY.md)
+
 - [Project overview](docs/01_PROJECT_OVERVIEW.md)
 - [Patient workflow](docs/02_PATIENT_WORKFLOW.md)
 - [Clinic and administrator workflow](docs/03_CLINIC_ADMIN_WORKFLOW.md)

@@ -134,6 +134,26 @@ test("portal security boundaries and credential lifecycle", async (t) => {
         else process.env.CLIENT_URL = previous;
       }
     });
+    await t.test("a credential change between password verification and session issuance cannot mint a session", async () => {
+      const originalQuery = pool.query;
+      let changed = false;
+      pool.query = async (sql, values) => {
+        if (!changed && sql.includes("INSERT INTO sessions")) {
+          changed = true;
+          await db.query("UPDATE users SET password_hash=$1 WHERE id=$2", [hash + "changed", portals[2].id]);
+        }
+        return originalQuery(sql, values);
+      };
+      try {
+        const response = await login(portals[2]);
+        assert.equal(changed, true);
+        assert.equal(response.status, 401);
+        assert.equal(response.headers.get("set-cookie"), null);
+        assert.equal((await db.query("SELECT * FROM sessions WHERE user_id=$1", [portals[2].id])).rows.length, 0);
+      } finally {
+        pool.query = originalQuery;
+      }
+    });
   } finally {
     await new Promise(resolve => server.close(resolve));
     await db.close();
