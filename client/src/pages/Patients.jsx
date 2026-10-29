@@ -147,7 +147,7 @@ export function PatientRegistration() {
               {error}
             </p>
           )}
-          <button className="button full" disabled={busy}>
+          <button className="button full" disabled={busy} aria-busy={busy}>
             {busy ? "Creating your account…" : "Create patient account"}
           </button>
           <Link className="text-link" to={signIn}>

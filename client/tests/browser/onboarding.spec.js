@@ -158,7 +158,7 @@ test("administrator reviews a registration through a confirmation step", async (
   ).toBeVisible();
   await page.getByLabel("Review notes (optional)").fill("Reference reviewed.");
   await page.getByRole("button", { name: "Confirm decision" }).tap();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.getByRole("status").filter({ hasText: `${clinic.name} approved.` })).toContainText(
     `${clinic.name} approved.`,
   );
   await page.getByLabel("Registration status").selectOption("approved");

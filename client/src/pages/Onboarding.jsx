@@ -229,7 +229,7 @@ export function Registration() {
             </p>
           )}
           <div className="form-actions">
-            <button className="button" disabled={busy}>
+            <button className="button" disabled={busy} aria-busy={busy}>
               {busy ? "Submitting registration…" : "Submit for review"}
             </button>
           </div>
@@ -377,7 +377,7 @@ export function SignIn({ portal = "clinic" }) {
               {error}
             </p>
           )}
-          <button className="button full" disabled={busy}>
+          <button className="button full" disabled={busy} aria-busy={busy}>
             {busy ? "Signing in…" : "Sign in"}
           </button>
           {!administrator && (
@@ -408,7 +408,7 @@ export function SignOut({ destination } = {}) {
     <div>
       <button
         className="button secondary"
-        disabled={busy}
+        disabled={busy} aria-busy={busy}
         onClick={async () => {
           setBusy(true);
           setError("");
@@ -681,7 +681,7 @@ export function AdminWorkspace() {
             <button
               className="button secondary"
               type="button"
-              disabled={busy}
+              disabled={busy} aria-busy={busy}
               onClick={() => {
                 setReview(null);
                 setError("");
@@ -689,7 +689,7 @@ export function AdminWorkspace() {
             >
               Cancel
             </button>
-            <button className="button" disabled={busy}>
+            <button className="button" disabled={busy} aria-busy={busy}>
               {busy ? "Saving decision…" : "Confirm decision"}
             </button>
           </div>

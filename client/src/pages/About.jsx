@@ -68,12 +68,21 @@ export default function About() {
           <div className="faq-item" key={question}>
             <button
               aria-expanded={open === index}
+              aria-controls={`faq-answer-${index}`}
               onClick={() => setOpen(open === index ? -1 : index)}
             >
               {question}
               {open === index ? <Minus size={18} /> : <Plus size={18} />}
             </button>
-            {open === index && <p>{answer}</p>}
+            <div
+              id={`faq-answer-${index}`}
+              className="faq-answer"
+              data-open={open === index}
+              aria-hidden={open !== index}
+              inert={open !== index}
+            >
+              <div><p>{answer}</p></div>
+            </div>
           </div>
         ))}
       </section>

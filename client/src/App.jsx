@@ -16,6 +16,7 @@ import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import About from "./pages/About";
 import { patientAuthSuffix } from "./patientNavigation";
 import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
+import { usePageMotion } from "./hooks/usePageMotion";
 import {
   PatientRegistration,
   PatientAccount,
@@ -44,6 +45,7 @@ function Site() {
   const patient = session?.user.role === "patient";
   const [menu, setMenu] = useState(false);
   const { pathname, search } = useLocation();
+  const motionRef = usePageMotion(pathname);
   const patientSignIn =
     "/patient/sign-in" + patientAuthSuffix({ pathname, search });
   const adminArea = pathname === "/admin" || pathname.startsWith("/admin/");
@@ -128,7 +130,7 @@ function Site() {
           </div>
         </header>
       )}
-      <main id="main" className={adminArea ? "admin-main" : undefined}>
+      <main ref={motionRef} id="main" className={adminArea ? "admin-main" : undefined}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/clinics" element={<Directory />} />
