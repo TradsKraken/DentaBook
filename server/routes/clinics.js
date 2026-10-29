@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 
 const clinicFields = `
   c.id, c.name, c.description, c.address, c.phone, c.email,
@@ -17,24 +17,36 @@ const clinicFields = `
 
 function createClinicRouter(pool) {
   const router = express.Router();
-  router.get('/', async (req, res, next) => {
+  router.get("/", async (req, res, next) => {
     try {
       const result = await pool.query(`SELECT ${clinicFields}
         FROM clinics c WHERE c.status = 'approved'
         ORDER BY c.name, c.id`);
       res.json({ clinics: result.rows });
-    } catch (error) { next(error); }
+    } catch (error) {
+      next(error);
+    }
   });
-  router.get('/:id', async (req, res, next) => {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.id)) {
-      return res.status(404).json({ error: 'Clinic not found.' });
+  router.get("/:id", async (req, res, next) => {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        req.params.id,
+      )
+    ) {
+      return res.status(404).json({ error: "Clinic not found." });
     }
     try {
-      const result = await pool.query(`SELECT ${clinicFields}
-        FROM clinics c WHERE c.status = 'approved' AND c.id = $1`, [req.params.id]);
-      if (!result.rows.length) return res.status(404).json({ error: 'Clinic not found.' });
+      const result = await pool.query(
+        `SELECT ${clinicFields}
+        FROM clinics c WHERE c.status = 'approved' AND c.id = $1`,
+        [req.params.id],
+      );
+      if (!result.rows.length)
+        return res.status(404).json({ error: "Clinic not found." });
       res.json({ clinic: result.rows[0] });
-    } catch (error) { next(error); }
+    } catch (error) {
+      next(error);
+    }
   });
   return router;
 }

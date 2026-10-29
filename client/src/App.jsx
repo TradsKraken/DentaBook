@@ -13,12 +13,21 @@ import { Brand, Unavailable } from "./components/Shared";
 import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import About from "./pages/About";
+import { AuthProvider, WorkspaceGate } from "./hooks/useAuth";
+import {
+  Registration,
+  SignIn,
+  ClinicWorkspace,
+  AdminWorkspace,
+} from "./pages/Onboarding";
 
 export default function App() {
   return (
     <BrowserRouter>
       <ClinicProvider>
-        <Site />
+        <AuthProvider>
+          <Site />
+        </AuthProvider>
       </ClinicProvider>
     </BrowserRouter>
   );
@@ -59,6 +68,9 @@ function Site() {
             <NavLink className="mobile-nav-link" to="/book">
               Book a visit
             </NavLink>
+            <NavLink className="mobile-nav-link" to="/sign-in">
+              Clinic sign in
+            </NavLink>
           </nav>
           <div className="header-actions">
             <NavLink className="appointments-link" to="/appointments">
@@ -88,6 +100,24 @@ function Site() {
           <Route path="/services" element={<Services />} />
           <Route path="/calculator" element={<Estimator />} />
           <Route path="/about" element={<About />} />
+          <Route path="/register-clinic" element={<Registration />} />
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route
+            path="/clinic"
+            element={
+              <WorkspaceGate role="clinic_staff">
+                <ClinicWorkspace />
+              </WorkspaceGate>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <WorkspaceGate role="system_admin">
+                <AdminWorkspace />
+              </WorkspaceGate>
+            }
+          />
           <Route
             path="/book"
             element={
@@ -152,6 +182,8 @@ function Footer() {
             Know your cost.
           </h3>
           <p>Find information to help you plan your dental care.</p>
+          <Link to="/register-clinic">Register your clinic</Link>
+          <Link to="/sign-in">Clinic &amp; administrator sign in</Link>
         </div>
       </div>
       <div className="wrap footer-bottom">

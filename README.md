@@ -14,7 +14,9 @@ Development is proceeding in production increments, with a mobile-first interfac
 
 The directory reads approved clinic records from PostgreSQL through `/api/clinics`; it does not supply invented listings, ratings, credentials, or prices. Only active services and dentist profiles are public. Empty results and service failures have distinct states. No appointments are stored in browser storage, and there is no public staff dashboard.
 
-Online booking and appointment tracking currently show unavailable states. Accounts, clinic onboarding/approval tools, scheduling, server-persisted bookings, notifications, payments, rescheduling, and reviews are future increments. The current site must not be treated as a complete appointment service.
+Clinic registration, sign-in, administrator approval/rejection, and the protected clinic dashboard are now implemented. See [clinic accounts setup](docs/09_CLINIC_ACCOUNTS_SETUP.md) to configure the database and create the first administrator. There are no default administrator credentials.
+
+Online booking and appointment tracking currently show unavailable states. Profile/service/dentist editing, schedules, server-persisted bookings, notifications, payments, rescheduling, reviews, and password recovery remain future increments. The current site must not be treated as a complete appointment service.
 
 ## Preview the website locally
 
@@ -26,7 +28,7 @@ npm.cmd run dev
 
 Open the URL printed by Vite (normally http://localhost:3000). Start the backend and provision PostgreSQL for clinic data; the frontend shows a connection error when the API is unavailable. The Docker setup below runs all three services. No production clinic data is seeded automatically.
 
-The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools will require server-side authentication and authorization before being exposed.
+The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools require server-side authentication and approval. Use `/register-clinic`, `/sign-in`, `/clinic`, and `/admin` for the new account workflow; the server restricts dashboard access by role and clinic status.
 
 ```powershell
 # From client/
@@ -39,7 +41,7 @@ npm.cmd install
 npm.cmd test
 ```
 
-Browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. Server tests exercise the Express routes with a controlled database adapter; they do not prove live PostgreSQL connectivity. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The checks start a local development server when needed.
+Browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. The account integration tests exercise the Express API using the real schema and migrations in an isolated PGlite PostgreSQL engine. Docker PostgreSQL deployment connectivity is not established by those tests. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The checks start a local development server when needed.
 
 See [incremental delivery status](docs/08_IMPLEMENTATION_STATUS.md) for the next parts and validation limits.
 

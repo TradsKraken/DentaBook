@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const ClinicContext = createContext(null);
 export function ClinicProvider({ children }) {
@@ -8,6 +14,7 @@ export function ClinicProvider({ children }) {
     error: false,
   });
   const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
   useEffect(() => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
@@ -36,9 +43,7 @@ export function ClinicProvider({ children }) {
     };
   }, [attempt]);
   return (
-    <ClinicContext.Provider
-      value={{ ...state, retry: () => setAttempt((n) => n + 1) }}
-    >
+    <ClinicContext.Provider value={{ ...state, retry }}>
       {children}
     </ClinicContext.Provider>
   );

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "keywords": [
     "dentabook",
@@ -21,8 +22,9 @@
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.13"
   }
 }
-

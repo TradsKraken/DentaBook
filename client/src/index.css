@@ -2277,3 +2277,41 @@ td small {
     flex: 0 1 180px;
   }
 }
+.account-panel {
+  max-width: 600px;
+  margin-inline: auto;
+}
+.field-error {
+  color: #a22e42;
+  font-weight: 400;
+  font-size: 13px;
+}
+.field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: -12px;
+}
+.account-status > .icon-tile {
+  margin-bottom: 20px;
+}
+.account-status > .button {
+  margin-top: 24px;
+}
+.registration-list {
+  display: grid;
+  gap: 22px;
+}
+.admin-filter {
+  max-width: 380px;
+}
+.review-panel {
+  max-width: 720px;
+}
+.section-heading > .page-title {
+  margin-bottom: 0;
+}
+@media (min-width: 901px) {
+  .registration-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
