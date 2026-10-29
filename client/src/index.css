@@ -2315,3 +2315,19 @@ td small {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+.admin-area-label {
+  color: #54727e;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+}
+.admin-main {
+  min-height: calc(100svh - 76px);
+  background: #f3f8fa;
+  padding-bottom: 32px;
+}
+@media (min-width: 901px) {
+  .admin-main {
+    min-height: calc(100svh - 94px);
+  }
+}

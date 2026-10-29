@@ -29,8 +29,8 @@ For a locally running Node server, configure `server/.env` with the database set
 
 1. Open `/register-clinic`. Submit the authorized account holder's details, clinic contact information, and a clinic registration/license reference for review.
 2. The server creates the staff account and pending clinic in one transaction. A clinic remains unpublished until approved.
-3. The clinic can sign in at `/sign-in` to view its pending/rejected status and review notes. Pending, rejected, and suspended clinics cannot open the clinic dashboard.
-4. A system administrator signs in at the same page and is directed to `/admin`. Review the registration reference and contact information, perform the necessary checks outside the application, then approve or reject the registration. Rejection requires a reason.
+3. The clinic signs in at `/clinic/sign-in` to view its pending/rejected status and review notes. Pending, rejected, and suspended clinics cannot open the clinic dashboard.
+4. A system administrator signs in separately at `/admin/sign-in` and is directed to `/admin`. The administrator sign-in uses a separate endpoint and accepts only administrator accounts; the clinic sign-in accepts only clinic staff accounts. Review the registration reference and contact information, perform the necessary checks outside the application, then approve or reject the registration. Rejection requires a reason.
 5. Approval records the reviewer, review time, and notes. It publishes the clinic and unlocks `/clinic`. A clinic owner can refresh their status without signing out.
 6. The dashboard shows the clinic's saved contact details and database counts for dentists, published services, and pending appointments. Editing these resources is the next increment.
 

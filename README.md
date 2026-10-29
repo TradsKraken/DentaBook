@@ -16,9 +16,15 @@ The directory reads approved clinic records from PostgreSQL through `/api/clinic
 
 Clinic registration, sign-in, administrator approval/rejection, and the protected clinic dashboard are now implemented. See [clinic accounts setup](docs/09_CLINIC_ACCOUNTS_SETUP.md) to configure the database and create the first administrator. There are no default administrator credentials.
 
-Online booking and appointment tracking currently show unavailable states. Profile/service/dentist editing, schedules, server-persisted bookings, notifications, payments, rescheduling, reviews, and password recovery remain future increments. The current site must not be treated as a complete appointment service.
+Patient registration, sign-in, account information, and an account-scoped appointment list are implemented. Visitors can browse clinics, services, and estimates without an account. Booking, personal appointments, and account pages require patient sign-in. Use `/patient/register` and `/patient/sign-in`; `/sign-in` is now a shortcut to patient sign-in.
+
+Online booking submission is still unavailable. Profile/service/dentist editing, schedules, booking creation, notifications, payments, cancellation/rescheduling, reviews, and password recovery remain future increments. Signing in does not simulate these unfinished features.
 
 ## Preview the website locally
+
+The complete local runtime is now configured with native PostgreSQL 16. Double-click `start-local.bat` to start/reuse the database, API, and website. Open http://localhost:3000. See [local testing and administrator access](docs/10_LOCAL_TESTING.md) for credentials location and the registration/approval test steps.
+
+For frontend development only:
 
 ```powershell
 cd client
@@ -28,7 +34,7 @@ npm.cmd run dev
 
 Open the URL printed by Vite (normally http://localhost:3000). Start the backend and provision PostgreSQL for clinic data; the frontend shows a connection error when the API is unavailable. The Docker setup below runs all three services. No production clinic data is seeded automatically.
 
-The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools require server-side authentication and approval. Use `/register-clinic`, `/sign-in`, `/clinic`, and `/admin` for the new account workflow; the server restricts dashboard access by role and clinic status.
+The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools require server-side authentication and approval. Clinic staff use `/register-clinic`, `/clinic/sign-in`, and `/clinic`. Administrators use the separate `/admin/sign-in` and `/admin` area. The server checks roles at sign-in and restricts dashboard access by role and clinic status.
 
 ```powershell
 # From client/
@@ -41,7 +47,7 @@ npm.cmd install
 npm.cmd test
 ```
 
-Browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. The account integration tests exercise the Express API using the real schema and migrations in an isolated PGlite PostgreSQL engine. Docker PostgreSQL deployment connectivity is not established by those tests. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The checks start a local development server when needed.
+Automated browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. The account integration tests exercise the Express API using the real schema and migrations in an isolated PGlite PostgreSQL engine. A separate real-browser verification has also passed against the running native PostgreSQL 16 instance, without intercepted requests. Docker deployment remains unverified. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The automated checks start a local development server when needed.
 
 See [incremental delivery status](docs/08_IMPLEMENTATION_STATUS.md) for the next parts and validation limits.
 

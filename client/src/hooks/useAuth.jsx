@@ -5,7 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { api } from "../api";
 const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
@@ -46,6 +46,7 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 export function WorkspaceGate({ role, children }) {
+  const location = useLocation();
   const { loading, error, session, refresh } = useAuth();
   if (loading)
     return (
@@ -67,13 +68,37 @@ export function WorkspaceGate({ role, children }) {
         </div>
       </div>
     );
-  if (!session) return <Navigate to="/sign-in" replace />;
+  if (!session)
+    return (
+      <Navigate
+        to={
+          role === "patient"
+            ? `/patient/sign-in?next=${encodeURIComponent(location.pathname + location.search)}`
+            : role === "system_admin"
+              ? "/admin/sign-in"
+              : "/clinic/sign-in"
+        }
+        replace
+      />
+    );
   if (session.user.role !== role)
     return (
       <div className="wrap page">
         <div className="panel empty">
-          <h1>Access restricted.</h1>
+          <h1>
+            {role === "patient"
+              ? "Use a patient account to continue."
+              : "Access restricted."}
+          </h1>
           <p>This workspace is not available to your account.</p>
+          {role === "patient" && (
+            <Link
+              className="button"
+              to={`/patient/sign-in?next=${encodeURIComponent(location.pathname + location.search)}`}
+            >
+              Switch to patient sign-in
+            </Link>
+          )}
         </div>
       </div>
     );

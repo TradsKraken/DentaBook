@@ -12,7 +12,7 @@ async function start() {
   )
     throw new Error("CLIENT_URL must use HTTPS in production.");
   await migrate(pool);
-  const server = createApp(pool).listen(process.env.PORT || 5000, () =>
+  const server = createApp(pool).listen(process.env.PORT || 5000, process.env.HOST || '0.0.0.0', () =>
     console.log("DentaBook API listening on port", process.env.PORT || 5000),
   );
   function shutdown() {

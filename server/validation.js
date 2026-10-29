@@ -16,6 +16,24 @@ function password(value) {
     Buffer.byteLength(value, "utf8") <= 72
   );
 }
+function phone(value) {
+  return (
+    typeof value === "string" &&
+    /^[+0-9() .-]{7,30}$/.test(value.trim()) &&
+    value.replace(/\D/g, "").length >= 7
+  );
+}
+function patientRegistration(body = {}) {
+  const errors = {};
+  if (!text(body.name, 150))
+    errors.name = "Enter your full name (up to 150 characters).";
+  if (!email(body.email)) errors.email = "Enter a valid email address.";
+  if (!phone(body.phone)) errors.phone = "Enter a valid phone number.";
+  if (!password(body.password))
+    errors.password =
+      "Use at least 12 characters and no more than 72 UTF-8 bytes.";
+  return errors;
+}
 function registration(body = {}) {
   const errors = {};
   for (const [key, max] of Object.entries({
@@ -43,4 +61,4 @@ function registration(body = {}) {
     errors.consent = "Confirm that you are authorized to register this clinic.";
   return errors;
 }
-module.exports = { email, text, password, registration };
+module.exports = { email, text, password, registration, patientRegistration };

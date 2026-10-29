@@ -49,6 +49,10 @@ export default function About() {
             "Published service prices help you plan. Your dentist confirms the final treatment and cost after an assessment.",
           ],
           [
+            "Do I need an account to browse?",
+            "You can browse clinics, dentist information, services, and estimates without signing in. A patient account is required for booking and personal appointment features. Online booking submission is still being built.",
+          ],
+          [
             "Can I book an appointment online?",
             "Online booking is not available yet. Use the contact details on a clinic profile to discuss availability and arrange a visit.",
           ],

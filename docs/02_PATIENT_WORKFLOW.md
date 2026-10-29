@@ -2,6 +2,8 @@
 
 This document details the complete 18-step end-to-end journey for patients utilizing the DentaBook platform.
 
+Additional user requirement: browsing clinics, dentist information, services, and estimates remains public. Before booking or opening personal appointment features, patients must register/sign in with a patient account. Preserve the selected clinic and requested page through authentication. This account step supplements the original workflow below; it does not change the dentist review, deposit, or confirmation sequence.
+
 ---
 
 ```mermaid

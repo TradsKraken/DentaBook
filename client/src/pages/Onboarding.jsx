@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,8 +11,9 @@ import { api } from "../api";
 import { PageTitle } from "../components/Shared";
 import { useAuth } from "../hooks/useAuth";
 import { useClinics } from "../hooks/useClinics";
+import { patientDestination } from "../patientNavigation";
 
-function Field({ label, name, value, onChange, error, ...props }) {
+export function Field({ label, name, value, onChange, error, ...props }) {
   return (
     <label className="field">
       {label}
@@ -96,7 +97,7 @@ export function Registration() {
             Sign in to check your registration status. Dashboard access becomes
             available after approval.
           </p>
-          <Link className="button" to="/sign-in">
+          <Link className="button" to="/clinic/sign-in">
             Sign in to your account <ArrowRight size={17} />
           </Link>
         </section>
@@ -232,7 +233,7 @@ export function Registration() {
               {busy ? "Submitting registration…" : "Submit for review"}
             </button>
           </div>
-          <Link className="text-link" to="/sign-in">
+          <Link className="text-link" to="/clinic/sign-in">
             Already registered? Sign in <ArrowRight size={16} />
           </Link>
         </form>
@@ -254,28 +255,74 @@ export function Registration() {
     </div>
   );
 }
-export function SignIn() {
+export function SignIn({ portal = "clinic" }) {
+  const patient = portal === "patient";
+  const location = useLocation();
+  const destination = patientDestination(
+    new URLSearchParams(location.search).get("next"),
+  );
+  const administrator = portal === "admin";
+  const expectedRole = administrator
+    ? "system_admin"
+    : patient
+      ? "patient"
+      : "clinic_staff";
+  const signInPath = administrator
+    ? "/admin/sign-in"
+    : patient
+      ? `/patient/sign-in?next=${encodeURIComponent(destination)}`
+      : "/clinic/sign-in";
+  const workspace = administrator
+    ? "/admin"
+    : patient
+      ? destination
+      : "/clinic";
   const { session, refresh } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  if (session)
+  if (session && session.user.role !== expectedRole)
     return (
-      <Navigate
-        to={session.user.role === "system_admin" ? "/admin" : "/clinic"}
-        replace
-      />
+      <div className="wrap page">
+        <div className="account-panel panel empty">
+          <h1>This account belongs to another portal.</h1>
+          <p>
+            Sign out before signing in with{" "}
+            {administrator
+              ? "an administrator"
+              : patient
+                ? "a patient"
+                : "a clinic"}{" "}
+            account.
+          </p>
+          <SignOut destination={signInPath} />
+        </div>
+      </div>
     );
+  if (session) return <Navigate to={workspace} replace />;
   async function submit(event) {
     event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      await api("/auth/login", { method: "POST", body: form });
+      await api(
+        administrator
+          ? "/auth/admin/login"
+          : patient
+            ? "/auth/patient/login"
+            : "/auth/login",
+        {
+          method: "POST",
+          body: form,
+        },
+      );
       const current = await refresh();
-      if (!current) throw new Error("Please sign in again.");
-      navigate(current.user.role === "system_admin" ? "/admin" : "/clinic", {
+      if (!current || current.user.role !== expectedRole)
+        throw new Error(
+          "Please sign in using the correct portal for your account.",
+        );
+      navigate(workspace, {
         replace: true,
       });
     } catch (error) {
@@ -288,9 +335,21 @@ export function SignIn() {
     <div className="wrap page">
       <div className="account-panel">
         <PageTitle
-          eyebrow="WELCOME BACK"
-          title="Sign in to your workspace."
-          text="For registered clinics and system administrators."
+          eyebrow={administrator ? "DENTABOOK ADMINISTRATION" : "WELCOME BACK"}
+          title={
+            administrator
+              ? "Administrator sign-in."
+              : patient
+                ? "Sign in to continue."
+                : "Sign in to your clinic."
+          }
+          text={
+            administrator
+              ? "For authorized platform administrators only."
+              : patient
+                ? "Explore freely. Sign in to access booking and your personal appointments."
+                : "Manage your clinic and check your registration status."
+          }
         />
         <form className="panel" onSubmit={submit}>
           <Field
@@ -321,16 +380,27 @@ export function SignIn() {
           <button className="button full" disabled={busy}>
             {busy ? "Signing in…" : "Sign in"}
           </button>
-          <Link className="text-link" to="/register-clinic">
-            Register your clinic <ArrowRight size={16} />
-          </Link>
+          {!administrator && (
+            <Link
+              className="text-link"
+              to={
+                patient
+                  ? `/patient/register?next=${encodeURIComponent(destination)}`
+                  : "/register-clinic"
+              }
+            >
+              {patient ? "Create a patient account" : "Register your clinic"}{" "}
+              <ArrowRight size={16} />
+            </Link>
+          )}
         </form>
       </div>
     </div>
   );
 }
-function SignOut() {
-  const { signOut } = useAuth();
+export function SignOut({ destination } = {}) {
+  const { signOut, session } = useAuth();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -344,7 +414,15 @@ function SignOut() {
           setError("");
           try {
             await signOut();
-            navigate("/sign-in", { replace: true });
+            navigate(
+              destination ||
+                (pathname.startsWith("/admin")
+                  ? "/admin/sign-in"
+                  : session?.user.role === "patient"
+                    ? "/patient/sign-in"
+                    : "/clinic/sign-in"),
+              { replace: true },
+            );
           } catch (error) {
             setError(error.message);
           } finally {

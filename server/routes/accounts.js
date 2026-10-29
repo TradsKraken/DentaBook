@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
-const { registration, email } = require("../validation");
+const { registration, patientRegistration, email } = require("../validation");
 const {
   COOKIE,
   cookieOptions,
@@ -35,12 +35,10 @@ function createAccountRouter(pool) {
       const body = req.body || {};
       const errors = registration(body);
       if (Object.keys(errors).length)
-        return res
-          .status(400)
-          .json({
-            error: "Please check the registration form.",
-            fields: errors,
-          });
+        return res.status(400).json({
+          error: "Please check the registration form.",
+          fields: errors,
+        });
       let client;
       try {
         const passwordHash = await bcrypt.hash(body.password, 12);
@@ -74,6 +72,41 @@ function createAccountRouter(pool) {
       } catch (error) {
         if (client) await client.query("ROLLBACK");
         if (error.code === "23505")
+          return res.status(409).json({
+            error:
+              "An account already uses this email address. Please sign in instead.",
+          });
+        next(error);
+      } finally {
+        if (client) client.release();
+      }
+    },
+  );
+  const loginLimit = rateLimit({ limit: 30, windowMs: 15 * 60 * 1000 });
+  router.post(
+    "/register-patient",
+    rateLimit({ limit: 5, windowMs: 60 * 60 * 1000 }),
+    async (req, res, next) => {
+      const body = req.body || {};
+      const fields = patientRegistration(body);
+      if (Object.keys(fields).length)
+        return res
+          .status(400)
+          .json({ error: "Please check your account details.", fields });
+      try {
+        const hash = await bcrypt.hash(body.password, 12);
+        await pool.query(
+          `INSERT INTO users (full_name,email,phone,password_hash,role) VALUES ($1,$2,$3,$4,'patient')`,
+          [
+            body.name.trim(),
+            body.email.trim().toLowerCase(),
+            body.phone.trim(),
+            hash,
+          ],
+        );
+        res.status(201).json({ registered: true });
+      } catch (error) {
+        if (error.code === "23505")
           return res
             .status(409)
             .json({
@@ -81,65 +114,62 @@ function createAccountRouter(pool) {
                 "An account already uses this email address. Please sign in instead.",
             });
         next(error);
-      } finally {
-        if (client) client.release();
       }
     },
   );
-  router.post(
-    "/login",
-    rateLimit({ limit: 30, windowMs: 15 * 60 * 1000 }),
-    async (req, res, next) => {
-      const body = req.body || {};
-      if (
-        !email(body.email) ||
-        typeof body.password !== "string" ||
-        Buffer.byteLength(body.password, "utf8") > 72 ||
-        !body.password
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Enter your email address and password." });
-      }
-      try {
-        const result = await pool.query(
-          "SELECT id, password_hash FROM users WHERE LOWER(email) = $1",
-          [body.email.trim().toLowerCase()],
-        );
-        const user = result.rows[0];
-        const matches = await bcrypt.compare(
-          body.password,
-          user ? user.password_hash : await dummyHash,
-        );
-        if (!user || !matches)
-          return res
-            .status(401)
-            .json({ error: "The email address or password is incorrect." });
-        const token = crypto.randomBytes(32).toString("hex");
-        // Replacing this browser's session prevents session fixation and stale duplicate sessions.
-        const previous = sessionToken(req);
-        if (previous)
-          await pool.query("DELETE FROM sessions WHERE token_hash = $1", [
-            hashToken(previous),
-          ]);
-        await pool.query(
-          "DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP",
-        );
-        await pool.query(
-          `INSERT INTO sessions (token_hash, user_id, expires_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '8 hours')`,
-          [hashToken(token), user.id],
-        );
-        res.cookie(COOKIE, token, {
-          ...cookieOptions(),
-          maxAge: 8 * 60 * 60 * 1000,
+  const loginFor = (role) => async (req, res, next) => {
+    const body = req.body || {};
+    if (
+      !email(body.email) ||
+      typeof body.password !== "string" ||
+      Buffer.byteLength(body.password, "utf8") > 72 ||
+      !body.password
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Enter your email address and password." });
+    }
+    try {
+      const result = await pool.query(
+        "SELECT id, password_hash, role FROM users WHERE LOWER(email) = $1",
+        [body.email.trim().toLowerCase()],
+      );
+      const user = result.rows[0];
+      const matches = await bcrypt.compare(
+        body.password,
+        user ? user.password_hash : await dummyHash,
+      );
+      if (!user || !matches || user.role !== role)
+        return res.status(401).json({
+          error: "The email address or password is incorrect for this portal.",
         });
-        res.json({ signedIn: true });
-      } catch (error) {
-        next(error);
-      }
-    },
-  );
+      const token = crypto.randomBytes(32).toString("hex");
+      // Replacing this browser's session prevents session fixation and stale duplicate sessions.
+      const previous = sessionToken(req);
+      if (previous)
+        await pool.query("DELETE FROM sessions WHERE token_hash = $1", [
+          hashToken(previous),
+        ]);
+      await pool.query(
+        "DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP",
+      );
+      await pool.query(
+        `INSERT INTO sessions (token_hash, user_id, expires_at)
+        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '8 hours')`,
+        [hashToken(token), user.id],
+      );
+      res.cookie(COOKIE, token, {
+        ...cookieOptions(),
+        maxAge: 8 * 60 * 60 * 1000,
+      });
+      res.json({ signedIn: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+  router.post("/login", loginLimit, loginFor("clinic_staff"));
+  router.post("/admin/login", loginLimit, loginFor("system_admin"));
+  router.post("/patient/login", loginLimit, loginFor("patient"));
   router.get("/me", requireSession(pool), async (req, res, next) => {
     try {
       res.json({

@@ -10,15 +10,35 @@ function createWorkspaceRouter(pool) {
     next();
   });
   router.use(requireSession(pool));
+  router.get(
+    "/patient/appointments",
+    requireRole("patient"),
+    async (req, res, next) => {
+      try {
+        const result = await pool.query(
+          `SELECT a.id, a.appointment_code AS "appointmentCode", a.status,
+        a.appointment_date::text AS date, to_char(a.start_time,'HH24:MI') AS time,
+        a.estimated_total_cost AS total, c.name AS "clinicName", c.address AS "clinicAddress",
+        d.full_name AS "dentistName",
+        COALESCE((SELECT json_agg(s.name ORDER BY s.name) FROM appointment_services aps
+          JOIN services s ON s.id=aps.service_id WHERE aps.appointment_id=a.id),'[]'::json) AS services
+        FROM appointments a JOIN clinics c ON c.id=a.clinic_id LEFT JOIN dentists d ON d.id=a.dentist_id
+        WHERE a.patient_user_id=$1 ORDER BY a.appointment_date DESC,a.start_time DESC,a.id LIMIT 50`,
+          [req.user.id],
+        );
+        res.json({ appointments: result.rows });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
   router.get("/clinic", requireRole("clinic_staff"), async (req, res, next) => {
     try {
       const clinic = await ownedClinic(pool, req.user.id);
       if (!clinic || clinic.status !== "approved")
-        return res
-          .status(403)
-          .json({
-            error: "Clinic approval is required to access the dashboard.",
-          });
+        return res.status(403).json({
+          error: "Clinic approval is required to access the dashboard.",
+        });
       const result = await pool.query(
         `SELECT
         (SELECT COUNT(*)::int FROM dentists WHERE clinic_id = $1 AND is_active = TRUE) AS dentists,
@@ -70,12 +90,10 @@ function createWorkspaceRouter(pool) {
           (typeof notes !== "string" || notes.length > 2000)) ||
         (decision === "rejected" && !notes?.trim())
       ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Choose approve or reject. A rejection requires a reason (up to 2,000 characters).",
-          });
+        return res.status(400).json({
+          error:
+            "Choose approve or reject. A rejection requires a reason (up to 2,000 characters).",
+        });
       }
       try {
         const result = await pool.query(
@@ -85,12 +103,10 @@ function createWorkspaceRouter(pool) {
           [decision, notes?.trim() || null, req.user.id, req.params.id],
         );
         if (!result.rows.length)
-          return res
-            .status(409)
-            .json({
-              error:
-                "This registration is no longer awaiting review. Refresh the list.",
-            });
+          return res.status(409).json({
+            error:
+              "This registration is no longer awaiting review. Refresh the list.",
+          });
         res.json({ clinic: result.rows[0] });
       } catch (error) {
         next(error);

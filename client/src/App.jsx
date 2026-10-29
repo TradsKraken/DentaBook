@@ -3,17 +3,24 @@ import {
   BrowserRouter,
   Link,
   NavLink,
+  Navigate,
   Route,
   Routes,
   useLocation,
 } from "react-router-dom";
-import { ArrowUpRight, CalendarDays, Menu, X } from "lucide-react";
+import { ArrowUpRight, UserRound, Menu, X } from "lucide-react";
 import { ClinicProvider } from "./hooks/useClinics";
 import { Brand, Unavailable } from "./components/Shared";
 import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import About from "./pages/About";
-import { AuthProvider, WorkspaceGate } from "./hooks/useAuth";
+import { patientAuthSuffix } from "./patientNavigation";
+import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
+import {
+  PatientRegistration,
+  PatientAccount,
+  PatientAppointments,
+} from "./pages/Patients";
 import {
   Registration,
   SignIn,
@@ -33,8 +40,13 @@ export default function App() {
   );
 }
 function Site() {
+  const { session } = useAuth();
+  const patient = session?.user.role === "patient";
   const [menu, setMenu] = useState(false);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const patientSignIn =
+    "/patient/sign-in" + patientAuthSuffix({ pathname, search });
+  const adminArea = pathname === "/admin" || pathname.startsWith("/admin/");
   useEffect(() => {
     setMenu(false);
     window.scrollTo(0, 0);
@@ -44,55 +56,76 @@ function Site() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      <header className="site-header">
-        <div className="wrap header-inner">
-          <Brand />
-          <nav
-            id="main-navigation"
-            className={menu ? "nav open" : "nav"}
-            aria-label="Main navigation"
-            onClick={(event) => {
-              if (event.target.closest("a")) setMenu(false);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") setMenu(false);
-            }}
-          >
-            <NavLink to="/" end>
-              Home
-            </NavLink>
-            <NavLink to="/clinics">Find a clinic</NavLink>
-            <NavLink to="/services">Services</NavLink>
-            <NavLink to="/calculator">Cost calculator</NavLink>
-            <NavLink to="/about">About us</NavLink>
-            <NavLink className="mobile-nav-link" to="/book">
-              Book a visit
-            </NavLink>
-            <NavLink className="mobile-nav-link" to="/sign-in">
-              Clinic sign in
-            </NavLink>
-          </nav>
-          <div className="header-actions">
-            <NavLink className="appointments-link" to="/appointments">
-              <CalendarDays size={16} />
-              My appointments
-            </NavLink>
-            <Link className="button small" to="/book">
-              Book a visit <ArrowUpRight size={16} />
-            </Link>
-            <button
-              className="menu-button"
-              aria-label={menu ? "Close menu" : "Open menu"}
-              aria-expanded={menu}
-              aria-controls="main-navigation"
-              onClick={() => setMenu(!menu)}
-            >
-              {menu ? <X /> : <Menu />}
-            </button>
+      {adminArea ? (
+        <header className="site-header">
+          <div className="wrap header-inner">
+            <Brand />
+            <span className="admin-area-label">Platform administration</span>
           </div>
-        </div>
-      </header>
-      <main id="main">
+        </header>
+      ) : (
+        <header className="site-header">
+          <div className="wrap header-inner">
+            <Brand />
+            <nav
+              id="main-navigation"
+              className={menu ? "nav open" : "nav"}
+              aria-label="Main navigation"
+              onClick={(event) => {
+                if (event.target.closest("a")) setMenu(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setMenu(false);
+              }}
+            >
+              <NavLink to="/" end>
+                Home
+              </NavLink>
+              <NavLink to="/clinics">Find a clinic</NavLink>
+              <NavLink to="/services">Services</NavLink>
+              <NavLink to="/calculator">Cost calculator</NavLink>
+              <NavLink to="/about">About us</NavLink>
+              <NavLink className="mobile-nav-link" to="/book">
+                Book a visit
+              </NavLink>
+              <NavLink className="mobile-nav-link" to="/clinic/sign-in">
+                Clinic sign in
+              </NavLink>
+              <NavLink
+                className="mobile-nav-link"
+                to={patient ? "/account" : patientSignIn}
+              >
+                {patient ? "My account" : "Patient sign in"}
+              </NavLink>
+              <NavLink className="mobile-nav-link" to="/appointments">
+                My appointments
+              </NavLink>
+            </nav>
+            <div className="header-actions">
+              <NavLink
+                className="appointments-link"
+                to={patient ? "/account" : patientSignIn}
+              >
+                <UserRound size={16} />
+                {patient ? "My account" : "Sign in"}
+              </NavLink>
+              <Link className="button small" to="/book">
+                Book a visit <ArrowUpRight size={16} />
+              </Link>
+              <button
+                className="menu-button"
+                aria-label={menu ? "Close menu" : "Open menu"}
+                aria-expanded={menu}
+                aria-controls="main-navigation"
+                onClick={() => setMenu(!menu)}
+              >
+                {menu ? <X /> : <Menu />}
+              </button>
+            </div>
+          </div>
+        </header>
+      )}
+      <main id="main" className={adminArea ? "admin-main" : undefined}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/clinics" element={<Directory />} />
@@ -101,7 +134,25 @@ function Site() {
           <Route path="/calculator" element={<Estimator />} />
           <Route path="/about" element={<About />} />
           <Route path="/register-clinic" element={<Registration />} />
-          <Route path="/sign-in" element={<SignIn />} />
+          <Route
+            path="/sign-in"
+            element={<Navigate to="/patient/sign-in" replace />}
+          />
+          <Route
+            path="/patient/sign-in"
+            element={<SignIn portal="patient" />}
+          />
+          <Route path="/patient/register" element={<PatientRegistration />} />
+          <Route
+            path="/account"
+            element={
+              <WorkspaceGate role="patient">
+                <PatientAccount />
+              </WorkspaceGate>
+            }
+          />
+          <Route path="/clinic/sign-in" element={<SignIn portal="clinic" />} />
+          <Route path="/admin/sign-in" element={<SignIn portal="admin" />} />
           <Route
             path="/clinic"
             element={
@@ -121,19 +172,20 @@ function Site() {
           <Route
             path="/book"
             element={
-              <Unavailable
-                title="Online booking is not available yet."
-                text="You can contact a listed clinic directly using the details on its profile."
-              />
+              <WorkspaceGate role="patient">
+                <Unavailable
+                  title="Online booking is not available yet."
+                  text="You can contact a listed clinic directly using the details on its profile."
+                />
+              </WorkspaceGate>
             }
           />
           <Route
             path="/appointments"
             element={
-              <Unavailable
-                title="Appointment tracking is not available yet."
-                text="Please contact your clinic for updates on an existing appointment."
-              />
+              <WorkspaceGate role="patient">
+                <PatientAppointments />
+              </WorkspaceGate>
             }
           />
           <Route
@@ -147,11 +199,12 @@ function Site() {
           />
         </Routes>
       </main>
-      <Footer />
+      {!adminArea && <Footer />}
     </>
   );
 }
 function Footer() {
+  const suffix = patientAuthSuffix(useLocation());
   return (
     <footer className="site-footer">
       <div className="wrap footer-grid">
@@ -174,6 +227,8 @@ function Footer() {
           <Link to="/book">Book an appointment</Link>
           <Link to="/appointments">My appointments</Link>
           <Link to="/about">About DentaBook</Link>
+          <Link to={"/patient/sign-in" + suffix}>Patient sign in</Link>
+          <Link to={"/patient/register" + suffix}>Patient registration</Link>
         </div>
         <div className="footer-note">
           <h3>
@@ -183,7 +238,7 @@ function Footer() {
           </h3>
           <p>Find information to help you plan your dental care.</p>
           <Link to="/register-clinic">Register your clinic</Link>
-          <Link to="/sign-in">Clinic &amp; administrator sign in</Link>
+          <Link to="/clinic/sign-in">Clinic sign in</Link>
         </div>
       </div>
       <div className="wrap footer-bottom">

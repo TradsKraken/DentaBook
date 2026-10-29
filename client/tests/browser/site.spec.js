@@ -29,6 +29,9 @@ const clinic = {
   ],
 };
 async function directoryResponse(page, clinics = []) {
+  await page.route("**/api/auth/me", (route) =>
+    route.fulfill({ status: 401, json: { error: "Please sign in." } }),
+  );
   await page.route("**/api/clinics", (route) =>
     route.fulfill({ json: { clinics } }),
   );
@@ -47,9 +50,9 @@ test("empty database has no invented listings, booking submission, or open dashb
   );
   await page.goto("/book");
   await expect(
-    page.getByRole("heading", { name: "Online booking is not available yet." }),
+    page.getByRole("heading", { name: "Sign in to continue." }),
   ).toBeVisible();
-  await expect(page.locator("form")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/patient\/sign-in\?next=/);
   await page.goto("/dashboard");
   await expect(
     page.getByRole("heading", { name: "Page not found." }),

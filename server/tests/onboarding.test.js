@@ -198,7 +198,7 @@ test("clinic onboarding and permissions against an isolated PostgreSQL engine", 
           ],
         );
         adminCookie = (
-          await request("/auth/login", {
+          await request("/auth/admin/login", {
             method: "POST",
             body: {
               email: "admin@example.com",
@@ -206,6 +206,25 @@ test("clinic onboarding and permissions against an isolated PostgreSQL engine", 
             },
           })
         ).cookie.split(";")[0];
+        const wrongAdminPortal = await request("/auth/login", {
+          method: "POST",
+          body: {
+            email: "admin@example.com",
+            password: "Administrator testing password!",
+          },
+        });
+        assert.equal(wrongAdminPortal.status, 401);
+        assert.equal(wrongAdminPortal.cookie, null);
+        const wrongStaffPortal = await request("/auth/admin/login", {
+          method: "POST",
+          body: {
+            email: registration.email,
+            password: registration.password,
+            role: "system_admin",
+          },
+        });
+        assert.equal(wrongStaffPortal.status, 401);
+        assert.equal(wrongStaffPortal.cookie, null);
         const list = await request("/workspaces/admin/clinics", {
           cookie: adminCookie,
         });
@@ -322,6 +341,195 @@ test("clinic onboarding and permissions against an isolated PostgreSQL engine", 
           (await request("/auth/me", { cookie: rejectedCookie })).data.clinic
             .reviewNotes,
           "Registration reference needs correction.",
+        );
+      },
+    );
+    await t.test(
+      "patient registration and sign-in cannot create or enter privileged accounts",
+      async () => {
+        const body = {
+          name: "Patient One",
+          email: "patient-one@example.com",
+          phone: "09123456789",
+          password: "Patient testing password!",
+          role: "system_admin",
+        };
+        assert.equal(
+          (
+            await request("/auth/register-patient", {
+              method: "POST",
+              body: { ...body, password: "short" },
+            })
+          ).status,
+          400,
+        );
+        assert.equal(
+          (await request("/auth/register-patient", { method: "POST", body }))
+            .status,
+          201,
+        );
+        const user = (
+          await db.query(
+            "SELECT role,password_hash FROM users WHERE email=$1",
+            [body.email],
+          )
+        ).rows[0];
+        assert.equal(user.role, "patient");
+        assert.equal(
+          await bcrypt.compare(body.password, user.password_hash),
+          true,
+        );
+        assert.equal(
+          (
+            await request("/auth/register-patient", {
+              method: "POST",
+              body: { ...body, email: "PATIENT-ONE@EXAMPLE.COM" },
+            })
+          ).status,
+          409,
+        );
+        assert.equal(
+          (await request("/auth/login", { method: "POST", body })).status,
+          401,
+        );
+        assert.equal(
+          (await request("/auth/admin/login", { method: "POST", body })).status,
+          401,
+        );
+        assert.equal(
+          (
+            await request("/auth/patient/login", {
+              method: "POST",
+              body: {
+                email: "admin@example.com",
+                password: "Administrator testing password!",
+              },
+            })
+          ).status,
+          401,
+        );
+        assert.equal(
+          (
+            await request("/auth/patient/login", {
+              method: "POST",
+              body: {
+                email: registration.email,
+                password: registration.password,
+              },
+            })
+          ).status,
+          401,
+        );
+        const login = await request("/auth/patient/login", {
+          method: "POST",
+          body,
+        });
+        assert.equal(login.status, 200);
+        const cookie = login.cookie.split(";")[0];
+        assert.equal(
+          (await request("/auth/me", { cookie })).data.user.role,
+          "patient",
+        );
+        assert.equal(
+          (await request("/workspaces/clinic", { cookie })).status,
+          403,
+        );
+        assert.equal(
+          (await request("/workspaces/admin/clinics", { cookie })).status,
+          403,
+        );
+        assert.equal(
+          (await request("/workspaces/patient/appointments", { cookie }))
+            .status,
+          200,
+        );
+        assert.equal(
+          (await request("/auth/logout", { cookie, method: "POST" })).status,
+          204,
+        );
+      },
+    );
+    await t.test(
+      "patient appointment reads require login and cannot expose another patient’s records",
+      async () => {
+        assert.equal(
+          (await request("/workspaces/patient/appointments")).status,
+          401,
+        );
+        assert.equal(
+          (
+            await request("/workspaces/patient/appointments", {
+              cookie: adminCookie,
+            })
+          ).status,
+          403,
+        );
+        assert.equal(
+          (
+            await request("/workspaces/patient/appointments", {
+              cookie: staffCookie,
+            })
+          ).status,
+          403,
+        );
+        const second = {
+          name: "Patient Two",
+          email: "patient-two@example.com",
+          phone: "09123456789",
+          password: "Patient testing password!",
+        };
+        assert.equal(
+          (
+            await request("/auth/register-patient", {
+              method: "POST",
+              body: second,
+            })
+          ).status,
+          201,
+        );
+        const firstId = (
+          await db.query("SELECT id FROM users WHERE email=$1", [
+            "patient-one@example.com",
+          ])
+        ).rows[0].id;
+        const secondId = (
+          await db.query("SELECT id FROM users WHERE email=$1", [second.email])
+        ).rows[0].id;
+        for (const [userId, email, code] of [
+          [firstId, "patient-one@example.com", "PATIENT-ONE"],
+          [secondId, second.email, "PATIENT-TWO"],
+        ]) {
+          await db.query(
+            `INSERT INTO appointments (appointment_code,clinic_id,patient_user_id,patient_name,patient_email,patient_phone,appointment_date,start_time,end_time,medical_notes)
+          VALUES ($1,$2,$3,'Private Patient',$4,'09123456789',CURRENT_DATE,'09:00','09:30','Private clinical information')`,
+            [code, clinicId, userId, email],
+          );
+        }
+        const login = await request("/auth/patient/login", {
+          method: "POST",
+          body: { email: "patient-one@example.com", password: second.password },
+        });
+        const cookie = login.cookie.split(";")[0];
+        const result = await request(
+          `/workspaces/patient/appointments?patient_user_id=${secondId}`,
+          { cookie },
+        );
+        assert.equal(result.status, 200);
+        assert.equal(result.data.appointments.length, 1);
+        assert.equal(
+          result.data.appointments[0].appointmentCode,
+          "PATIENT-ONE",
+        );
+        assert.equal(result.data.appointments[0].time, "09:00");
+        assert.doesNotMatch(
+          JSON.stringify(result.data),
+          /PATIENT-TWO|Private clinical|patient_email|patient_phone|password/,
+        );
+        await request("/auth/logout", { method: "POST", cookie });
+        assert.equal(
+          (await request("/workspaces/patient/appointments", { cookie }))
+            .status,
+          401,
         );
       },
     );

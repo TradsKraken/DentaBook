@@ -45,8 +45,11 @@ async function fixture(page, initial = null) {
         : respond({ error: "Please sign in." }, 401);
     if (path === "/api/auth/register-clinic")
       return respond({ clinicId: record.id, status: "pending_review" }, 201);
-    if (path === "/api/auth/login") {
-      current = owner;
+    if (path === "/api/auth/login" || path === "/api/auth/admin/login") {
+      current =
+        path === "/api/auth/admin/login"
+          ? { ...owner, role: "system_admin" }
+          : owner;
       return respond({ signedIn: true });
     }
     if (path === "/api/auth/logout") {
@@ -174,7 +177,11 @@ test("onboarding pages keep phone controls readable and do not overflow", async 
   await fixture(page);
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of ["/register-clinic", "/sign-in"]) {
+    for (const path of [
+      "/register-clinic",
+      "/clinic/sign-in",
+      "/admin/sign-in",
+    ]) {
       await page.goto(path);
       await page.locator("main h1").waitFor();
       expect(
@@ -203,6 +210,47 @@ test("onboarding pages keep phone controls readable and do not overflow", async 
     path: "test-results/registration-phone.png",
     fullPage: true,
   });
+});
+
+test("administrator sign-in has a separate URL, layout, endpoint, and logout destination", async ({
+  page,
+}) => {
+  const state = await fixture(page);
+  await page.goto("/");
+  await expect(page.locator('a[href^="/admin"]')).toHaveCount(0);
+  await expect(
+    page
+      .locator("footer")
+      .getByRole("link", { name: "Clinic sign in", exact: true }),
+  ).toHaveAttribute("href", "/clinic/sign-in");
+  await page.goto("/admin");
+  await expect(page).toHaveURL(/\/admin\/sign-in$/);
+  await expect(
+    page.getByRole("heading", { name: "Administrator sign-in." }),
+  ).toBeVisible();
+  await expect(page.getByRole("navigation")).toHaveCount(0);
+  await expect(page.locator("footer")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Register your clinic" }),
+  ).toHaveCount(0);
+  await page
+    .getByLabel("Email address", { exact: true })
+    .fill("admin@example.com");
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("Administrator testing password!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).tap();
+  await expect(page).toHaveURL(/\/admin$/);
+  expect(state.mutations[0].path).toBe("/api/auth/admin/login");
+  await page.getByRole("button", { name: "Sign out", exact: true }).tap();
+  await expect(page).toHaveURL(/\/admin\/sign-in$/);
+  await page.goto("/clinic");
+  await expect(page).toHaveURL(/\/clinic\/sign-in$/);
+  await expect(
+    page.getByRole("heading", { name: "Sign in to your clinic." }),
+  ).toBeVisible();
+  await page.goto("/sign-in");
+  await expect(page).toHaveURL(/\/patient\/sign-in$/);
 });
 
 test("private clinic and administrator workspaces fit phones through desktop", async ({
