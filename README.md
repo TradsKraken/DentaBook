@@ -1,120 +1,109 @@
-# DentaBook
-# DentaBook - Dental Clinic & Appointment Management Platform
+﻿# DentaBook
 
-A comprehensive web platform for dental service discovery, price estimation, online appointment booking, and clinic management.
-A web platform for dental service discovery, price estimation, online appointment booking, and clinic management.
+Dental clinic discovery, treatment cost estimation, online appointment booking, and clinic management.
 
-## Overview
----
+**Book your smile, know your cost.**
 
-DentaBook makes dental services more accessible and convenient by helping patients estimate potential treatment costs and schedule appointments online, while giving dental clinics an efficient dashboard to manage services, dentists, and schedules.
-## 📁 Repository Structure
+Patients will browse clinics and dentist credentials, select services, estimate costs, and request appointments. Dentists review requests before patients pay the required deposit and receive confirmation. Patients can track, cancel, request rescheduling, and leave feedback after completed visits.
 
-### Key Features
-```
-DentaBook/
-├── client/                     # Frontend Application (React + Vite + Nginx)
-│   ├── src/                           # React components & UI
-│   ├── Dockerfile                     # Multi-stage production Docker build
-│   ├── nginx.conf                     # Nginx SPA & API proxy configuration
-│   └── package.json
-├── server/                     # Backend API (Node.js 22 + Express 4)
-│   ├── database/
-│   │   └── init.sql                   # Automatic PostgreSQL schema & seed initialization
-│   ├── Dockerfile                     # Node.js production Dockerfile
-│   ├── index.js                       # Express server & healthcheck endpoint
-│   └── package.json
-├── docs/                       # Formal project & client documentation
-│   ├── 01_PROJECT_OVERVIEW.md         # Executive summary, problem statement & user roles
-│   ├── 02_PATIENT_WORKFLOW.md         # Complete 18-step customer journey & flowchart
-│   ├── 03_CLINIC_ADMIN_WORKFLOW.md    # Complete 13-step clinic/admin lifecycle
-│   ├── 04_FEATURE_SPECIFICATIONS.md   # Estimator logic, booking engine & specifications
-│   ├── 05_DELIVERY_ROADMAP.md         # Phases, milestones & client sign-off checklist
-│   └── 06_SYSTEM_ARCHITECTURE.md      # Tailored technology stack, schema & Docker architecture
-├── internal/                   # Developer & AI staging notes (retained for future migration)
-│   └── README.md
-├── docker-compose.yml          # Container orchestration (client, api, db)
-├── .env.example                # Sample environment variables
-├── sync.bat                    # One-click Windows backup & sync tool (pull + commit + push)
-├── sync.ps1                    # PowerShell sync script
-├── Information.txt             # Original client brief
-├── .gitignore                  # Git ignore rules for dependencies and environment files
-└── README.md                   # Repository guide
-```
+Clinics will manage profiles, services, prices, dentists, schedules, requests, and payment records. Platform administrators will review clinic registrations.
 
----
+## Current state
 
-## 🐳 Docker Deployment & Quick Start
+Development is proceeding in production increments, with a mobile-first interface based on the supplied logo and blue-and-white theme. The first increment includes the public homepage, clinic directory, public profiles, service information, and a cost estimator based on published clinic prices.
 
-To launch the full containerized environment (Client, API, PostgreSQL):
+The directory reads approved clinic records from PostgreSQL through `/api/clinics`; it does not supply invented listings, ratings, credentials, or prices. Only active services and dentist profiles are public. Empty results and service failures have distinct states. No appointments are stored in browser storage, and there is no public staff dashboard.
 
-1. **Copy the environment configuration**:
-   ```bash
-   cp .env.example .env
-   ```
-2. **Build and start all containers**:
-   ```bash
-   docker compose up -d --build
-   ```
-   *(or `docker-compose up -d --build`)*
+Online booking and appointment tracking currently show unavailable states. Accounts, clinic onboarding/approval tools, scheduling, server-persisted bookings, notifications, payments, rescheduling, and reviews are future increments. The current site must not be treated as a complete appointment service.
 
-3. **Access Services**:
-   - **Frontend**: [http://localhost:3000](http://localhost:3000)
-   - **API Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
-   - **Database**: Port `5432` internally managed with persistent data in `dentabook_pgdata`.
+## Preview the website locally
 
-4. **Stop Services**:
-   ```bash
-   docker compose down
-   ```
-
-- **Patient Portal**:
-  - Browse dental clinics and view clinic credentials, dentists, and locations.
-  - Interactive treatment cost calculator.
-  - Easy online appointment booking with preferred date and time slots.
-  - Appointment tracking, rescheduling, and post-visit feedback.
----
-
-- **Clinic & Admin Portal**:
-  - Clinic profile and service catalog management.
-  - Dentist profile and credentials management.
-  - Schedule, calendar, and availability configuration.
-  - Appointment request review and workflow management.
-## 🔄 Cloud Syncing & Backup
-
-To sync your work or pull recent updates across your devices:
-
-### Option 1: One-Click Sync (Windows)
-Double-click [`sync.bat`](file:///d:/Antigravity/DentaBook/sync.bat) in the project folder. It will:
-1. Fetch and rebase the latest commits from GitHub.
-2. Stage all your modified/new files.
-3. Commit with a timestamp (or a custom message you specify).
-4. Push everything to GitHub automatically.
-
-### Option 2: Command Line
 ```powershell
-.\sync.ps1 -Message "Your update description"
-```
-Or with standard Git commands:
-```bash
-git pull --rebase origin main
-git add .
-git commit -m "Your update description"
-git push origin main
+cd client
+npm.cmd install
+npm.cmd run dev
 ```
 
----
+Open the URL printed by Vite (normally http://localhost:3000). Start the backend and provision PostgreSQL for clinic data; the frontend shows a connection error when the API is unavailable. The Docker setup below runs all three services. No production clinic data is seeded automatically.
 
-## 📖 Client Documentation Index
+The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools will require server-side authentication and authorization before being exposed.
 
-- [**01. Project Overview & Scope**](docs/01_PROJECT_OVERVIEW.md)
-- [**02. Patient Journey & Workflow (18 Steps)**](docs/02_PATIENT_WORKFLOW.md)
-- [**03. Clinic & Administration Workflow (13 Steps)**](docs/03_CLINIC_ADMIN_WORKFLOW.md)
-- [**04. Feature Specifications & Requirements**](docs/04_FEATURE_SPECIFICATIONS.md)
-- [**05. Delivery Roadmap & Milestones**](docs/05_DELIVERY_ROADMAP.md)
-- [**06. System & Technology Architecture**](docs/06_SYSTEM_ARCHITECTURE.md)
+```powershell
+# From client/
+npm.cmd run build
+npm.cmd test
+npm.cmd run test:browser
 
----
+# From server/
+npm.cmd install
+npm.cmd test
+```
 
-## 🔒 Confidentiality & Client Delivery Plan
-This repository serves as the private development workspace, continuous backup, and synchronization hub. Once development is complete, a dedicated clean client repository will be generated containing exclusively the deployable code (`src/`) and client documentation (`docs/`), keeping all internal notes, agent transcripts, and developer records strictly isolated.
+Browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. Server tests exercise the Express routes with a controlled database adapter; they do not prove live PostgreSQL connectivity. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The checks start a local development server when needed.
+
+See [incremental delivery status](docs/08_IMPLEMENTATION_STATUS.md) for the next parts and validation limits.
+
+## File organization
+
+```text
+DentaBook/
+|-- client/                         React + Vite frontend and Nginx configuration
+|   |-- public/branding/            Original DentaBook logo
+|   `-- src/                        Frontend source
+|-- server/                         Express API and Dockerfile
+|   `-- database/init.sql           PostgreSQL initialization
+|-- docs/                           Project specifications and workflows
+|   |-- design/                     Interface reference image
+|   `-- references/                 Original client brief
+|-- internal/                       Private development notes; exclude from handoff
+|   `-- references/                 Previous project's architecture reference
+|-- docker-compose.yml              Client, API, and database services
+|-- .env.example                    Environment configuration template
+|-- sync.bat                        Windows sync launcher
+|-- sync.ps1                        Git pull, commit, and push helper
+`-- README.md
+```
+
+## Documentation
+
+- [Project overview](docs/01_PROJECT_OVERVIEW.md)
+- [Patient workflow](docs/02_PATIENT_WORKFLOW.md)
+- [Clinic and administrator workflow](docs/03_CLINIC_ADMIN_WORKFLOW.md)
+- [Feature specifications](docs/04_FEATURE_SPECIFICATIONS.md)
+- [Delivery roadmap](docs/05_DELIVERY_ROADMAP.md)
+- [DentaBook architecture](docs/06_SYSTEM_ARCHITECTURE.md)
+- [Brand and interface guide](docs/07_BRAND_AND_INTERFACE_GUIDE.md)
+- [Original client brief](docs/references/original-client-brief.txt)
+
+## Visual assets
+
+- [Original logo](client/public/branding/dentabook-logo.jpg): served by Vite at `/branding/dentabook-logo.jpg`.
+- [Interface reference](docs/design/interface-reference.jpg): blue-and-white layouts for discovery, profiles, estimation, booking, and administration. DentalLink is the reference's sample name; this project is DentaBook.
+
+The previous Fortek architecture document is preserved under `internal/references/` as historical input. Use the DentaBook architecture document for this project's plan.
+
+## Docker quick start
+
+From the repository root:
+
+```powershell
+Copy-Item .env.example .env
+# Configure .env for your environment.
+docker compose up -d --build
+```
+
+Default addresses:
+
+- Frontend: http://localhost:3000
+- API health: http://localhost:5000/api/health
+- Database: localhost:5432 (host loopback)
+
+Stop services with `docker compose down`.
+
+## Windows backup and sync
+
+Run `sync.bat`, or `./sync.ps1 -Message "Describe your changes"` from the repository root. This helper pulls from `origin/main`, stages all changes, commits, and pushes to GitHub.
+
+## Client handoff
+
+Include frontend, backend, required configuration, and client documentation. Exclude `internal/`, private environment files, and developer records. See [internal delivery notes](internal/README.md).

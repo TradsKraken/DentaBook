@@ -11,6 +11,8 @@ vendor/
 dist/
 build/
 out/
+test-results/
+playwright-report/
 
 # Logs
 logs

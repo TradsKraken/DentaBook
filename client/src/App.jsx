@@ -1,76 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Database, Server, Globe, CheckCircle2, Clock } from 'lucide-react';
+import { useEffect, useState } from "react";
+import {
+  BrowserRouter,
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import { ArrowUpRight, CalendarDays, Menu, X } from "lucide-react";
+import { ClinicProvider } from "./hooks/useClinics";
+import { Brand, Unavailable } from "./components/Shared";
+import Home from "./pages/Home";
+import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
+import About from "./pages/About";
 
 export default function App() {
-  const [health, setHealth] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((res) => res.json())
-      .then((data) => {
-        setHealth(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('API health check error:', err);
-        setHealth({ status: 'unreachable', error: err.message });
-        setLoading(false);
-      });
-  }, []);
-
   return (
-    <div className="container">
-      <header style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>
-          DentaBook
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
-          Dental Clinic Discovery, Price Estimation & Online Appointment System
-        </p>
-      </header>
-
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-          <CheckCircle2 color="var(--success)" size={28} />
-          <h2 style={{ fontSize: '1.4rem' }}>Docker & Environment Infrastructure Initialized</h2>
-        </div>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-          The Docker Compose environment is properly configured with multi-stage Nginx builds, Node.js Express API, and persistent PostgreSQL database storage.
-        </p>
-
-        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>Service Connection Status:</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-          <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#f8fafc' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Globe size={20} color="var(--primary)" />
-              <strong>Frontend Client</strong>
-            </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--success)' }}>Active (React + Vite + Nginx)</p>
-          </div>
-
-          <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#f8fafc' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Server size={20} color="var(--primary)" />
-              <strong>Backend API</strong>
-            </div>
-            <p style={{ fontSize: '0.9rem', color: loading ? 'var(--text-muted)' : health?.status === 'healthy' ? 'var(--success)' : '#ef4444' }}>
-              {loading ? 'Checking status...' : health?.status === 'healthy' ? 'Connected (Node 22 / Express)' : 'Connecting / Offline'}
-            </p>
-          </div>
-
-          <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#f8fafc' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Database size={20} color="var(--primary)" />
-              <strong>Database (PostgreSQL)</strong>
-            </div>
-            <p style={{ fontSize: '0.9rem', color: loading ? 'var(--text-muted)' : health?.database?.connected ? 'var(--success)' : '#ef4444' }}>
-              {loading ? 'Checking status...' : health?.database?.connected ? `Connected (${health.database.database_name})` : 'Connecting / Pending'}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <BrowserRouter>
+      <ClinicProvider>
+        <Site />
+      </ClinicProvider>
+    </BrowserRouter>
   );
 }
-
+function Site() {
+  const [menu, setMenu] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => {
+    setMenu(false);
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return (
+    <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <header className="site-header">
+        <div className="wrap header-inner">
+          <Brand />
+          <nav
+            id="main-navigation"
+            className={menu ? "nav open" : "nav"}
+            aria-label="Main navigation"
+            onClick={(event) => {
+              if (event.target.closest("a")) setMenu(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setMenu(false);
+            }}
+          >
+            <NavLink to="/" end>
+              Home
+            </NavLink>
+            <NavLink to="/clinics">Find a clinic</NavLink>
+            <NavLink to="/services">Services</NavLink>
+            <NavLink to="/calculator">Cost calculator</NavLink>
+            <NavLink to="/about">About us</NavLink>
+            <NavLink className="mobile-nav-link" to="/book">
+              Book a visit
+            </NavLink>
+          </nav>
+          <div className="header-actions">
+            <NavLink className="appointments-link" to="/appointments">
+              <CalendarDays size={16} />
+              My appointments
+            </NavLink>
+            <Link className="button small" to="/book">
+              Book a visit <ArrowUpRight size={16} />
+            </Link>
+            <button
+              className="menu-button"
+              aria-label={menu ? "Close menu" : "Open menu"}
+              aria-expanded={menu}
+              aria-controls="main-navigation"
+              onClick={() => setMenu(!menu)}
+            >
+              {menu ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main id="main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/clinics" element={<Directory />} />
+          <Route path="/clinics/:id" element={<Clinic />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/calculator" element={<Estimator />} />
+          <Route path="/about" element={<About />} />
+          <Route
+            path="/book"
+            element={
+              <Unavailable
+                title="Online booking is not available yet."
+                text="You can contact a listed clinic directly using the details on its profile."
+              />
+            }
+          />
+          <Route
+            path="/appointments"
+            element={
+              <Unavailable
+                title="Appointment tracking is not available yet."
+                text="Please contact your clinic for updates on an existing appointment."
+              />
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <Unavailable
+                title="Page not found."
+                text="This page may have moved or is no longer available."
+              />
+            }
+          />
+        </Routes>
+      </main>
+      <Footer />
+    </>
+  );
+}
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <div className="wrap footer-grid">
+        <div>
+          <Brand />
+          <p>
+            A little care. A brighter smile.
+            <br />
+            Your next dental visit, made simple.
+          </p>
+        </div>
+        <div>
+          <h3>Your smile</h3>
+          <Link to="/clinics">Find a clinic</Link>
+          <Link to="/services">Explore services</Link>
+          <Link to="/calculator">Cost calculator</Link>
+        </div>
+        <div>
+          <h3>Your next visit</h3>
+          <Link to="/book">Book an appointment</Link>
+          <Link to="/appointments">My appointments</Link>
+          <Link to="/about">About DentaBook</Link>
+        </div>
+        <div className="footer-note">
+          <h3>
+            Book your smile.
+            <br />
+            Know your cost.
+          </h3>
+          <p>Find information to help you plan your dental care.</p>
+        </div>
+      </div>
+      <div className="wrap footer-bottom">
+        <span>
+          © {new Date().getFullYear()} DentaBook. Every smile matters.
+        </span>
+        <span>Made for smiles in the Philippines</span>
+      </div>
+    </footer>
+  );
+}

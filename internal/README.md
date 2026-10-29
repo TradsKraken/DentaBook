@@ -20,3 +20,7 @@ When the website is completed and ready for submission:
 2. Only production-ready source code (`src/`), configuration files, and polished client documentation (`docs/`) will be migrated.
 3. All internal notes, agent prompts, and development logs will remain preserved in this private repository.
 
+
+## Historical references
+
+[Fortek website architecture](references/fortek-website-architecture.md) is an unchanged document from the previous project, preserved as technical background. Its relative links describe that repository and may not resolve here. Use [DentaBook system architecture](../docs/06_SYSTEM_ARCHITECTURE.md) for this project's plan.
