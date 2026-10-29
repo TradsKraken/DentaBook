@@ -39,7 +39,7 @@ No email notification is claimed or sent in this increment. Registration outcome
 ## Session and deployment behavior
 
 - Passwords are hashed with bcrypt. Passwords require at least 12 characters and at most 72 UTF-8 bytes.
-- Sessions are random opaque values; only their SHA-256 hashes are stored in PostgreSQL. Cookies use `HttpOnly`, `SameSite=Strict`, and `/api` scope, and are secure in production/HTTPS. Sessions expire after eight hours and are revoked on logout.
+- Sessions are random opaque values; only their SHA-256 hashes are stored in PostgreSQL. Production/HTTPS cookies use the `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Strict`, root scope, and no Domain attribute. Administrator sessions expire after one hour; other roles after eight hours. Logout and changes to the account password or role revoke sessions. See [portal security](11_PORTAL_SECURITY.md).
 - API authorization checks the current database account and current clinic approval on every protected request. Public registration cannot choose an administrator role or an approved status.
 - Mutations require the application's custom request header and reject a mismatched browser origin. Authenticated responses are marked `no-store`.
 - Login and registration attempts are rate limited in memory per API process/IP. If deploying behind a reverse proxy, configure `TRUST_PROXY` with only that proxy's actual addresses/CIDRs so client addresses are interpreted correctly. The API host port is bound to loopback. Do not trust arbitrary forwarded addresses. Multiple API processes will need a shared rate-limit store before scaling out.
@@ -51,4 +51,4 @@ Session controls follow the [OWASP session management guidance](https://cheatshe
 
 Run `npm.cmd test` from `server/`. The onboarding suite applies the actual schema and migration against an isolated PGlite PostgreSQL engine, then exercises the Express HTTP API. It covers validation, registration rollback, password hashes, case-insensitive duplicate emails, approval/rejection, access boundaries, rate limits, live role/status changes, session expiry, and logout. PGlite is a test dependency and is not used by the deployed application.
 
-Run `npm.cmd run test:browser` from `client/` for phone-first registration, sign-in, review screens, dashboard access, public pages, touch targets, and overflow checks. Browser fixtures exist only in test files. Docker PostgreSQL 16 deployment connectivity remains unverified until the local Docker engine is running and the configured stack is exercised.
+Run `npm.cmd run test:browser` from `client/` for phone-first registration, sign-in, review screens, dashboard access, public pages, touch targets, and overflow checks. Browser fixtures exist only in test files. Docker PostgreSQL 16 connectivity and live session security checks passed on 2026-10-29. External domain routing is tracked in the deployment handoff.

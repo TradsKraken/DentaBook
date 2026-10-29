@@ -37,7 +37,7 @@ to the Express container. Express uses PostgreSQL 16.
 
 - Website upstream: `http://10.10.1.116:3003`.
 - API diagnostic port: `127.0.0.1:5003`.
-- Database diagnostic port: `127.0.0.1:5435`.
+- Database: isolated internal Docker network; no host port exposed by the runtime.
 - Persistent database volume: `dentabook_dentabook_pgdata`.
 - Root `.env` is ignored by Git, mode 0600, with a generated database password.
 - `CLIENT_URL=https://dentabook.forgroup.space` controls origin validation.
@@ -112,9 +112,32 @@ in the README. Backup scheduling and future product features were not added.
 - `.env` (private, ignored)
 - This document
 
-Changes are local and have not been committed or pushed.
+Implementation is now recorded in repository commits; verify current Git status for documentation follow-ups.
 
 ## Change log
 
 - 2026-10-29: Built and started the isolated stack, verified live authentication,
   configured the domain origin, and documented the pending external proxy route.
+
+## Portal security follow-up (2026-10-29)
+
+See [portal security](../11_PORTAL_SECURITY.md) for the routes, implemented controls,
+and encryption limits. Patient pages now use `/patient/...`, clinic registration
+uses `/clinic/register`, and existing bookmarks redirect. Sessions are bound to
+roles and revoked by database triggers after credential or role changes. HTTPS
+cookies use a host-only prefix. Administrator sessions last one hour. The API
+runs non-root with a read-only filesystem and no capabilities; PostgreSQL is on
+an isolated internal network. Nginx applies CSP and browser security headers.
+
+Verification: the final full sequential backend suite passed all 26 tests,
+including the credential-race guard. All 16 browser tests passed against production Nginx, including
+320/390/768/1440px layouts, legacy redirects and inline-script CSP rejection.
+Live real-PostgreSQL checks passed role boundaries and trigger revocation.
+No test accounts remain. The implementation is recorded in commits `cdcbff0` and `f3400a7`; documentation follow-ups may still be uncommitted.
+
+The latest HTTPS domain request succeeds at TLS but returns HTTP 404 via
+Cloudflare; the external Nginx route still needs completion. No access to that
+proxy configuration has been supplied. At-rest database/backup encryption, TLS
+on internal hops, MFA, and persistent shared throttling remain unimplemented.
+
+Final API deployment and real PostgreSQL login passed after the credential-race guard was deployed. All services are healthy.
