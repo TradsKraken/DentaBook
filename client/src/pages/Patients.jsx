@@ -179,10 +179,10 @@ export function PatientAccount() {
           <dd>{session.user.email}</dd>
         </dl>
         <div className="form-actions">
-          <Link className="button secondary" to="/appointments">
+          <Link className="button secondary" to="/patient/appointments">
             My appointments <CalendarDays size={17} />
           </Link>
-          <Link className="button" to="/book">
+          <Link className="button" to="/patient/book">
             Plan a visit <ArrowRight size={17} />
           </Link>
         </div>
@@ -225,7 +225,7 @@ export function PatientAppointments() {
           title="My appointments."
           text="Your latest 50 appointment records. Only appointments linked to your account appear here."
         />
-        <Link className="button secondary" to="/account">
+        <Link className="button secondary" to="/patient/account">
           My account
         </Link>
       </div>
@@ -250,7 +250,7 @@ export function PatientAppointments() {
             Your appointment records will appear here once a booking is linked
             to your account.
           </p>
-          <Link className="button" to="/book">
+          <Link className="button" to="/patient/book">
             Plan your next visit <ArrowRight size={17} />
           </Link>
         </div>

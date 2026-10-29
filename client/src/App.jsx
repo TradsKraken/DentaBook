@@ -47,6 +47,7 @@ function Site() {
   const patientSignIn =
     "/patient/sign-in" + patientAuthSuffix({ pathname, search });
   const adminArea = pathname === "/admin" || pathname.startsWith("/admin/");
+  const clinicArea = pathname === "/clinic" || pathname.startsWith("/clinic/");
   useEffect(() => {
     setMenu(false);
     window.scrollTo(0, 0);
@@ -56,11 +57,13 @@ function Site() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      {adminArea ? (
+      {adminArea || clinicArea ? (
         <header className="site-header">
           <div className="wrap header-inner">
             <Brand />
-            <span className="admin-area-label">Platform administration</span>
+            <span className="admin-area-label">
+              {adminArea ? "Platform administration" : "Clinic portal"}
+            </span>
           </div>
         </header>
       ) : (
@@ -85,7 +88,7 @@ function Site() {
               <NavLink to="/services">Services</NavLink>
               <NavLink to="/calculator">Cost calculator</NavLink>
               <NavLink to="/about">About us</NavLink>
-              <NavLink className="mobile-nav-link" to="/book">
+              <NavLink className="mobile-nav-link" to="/patient/book">
                 Book a visit
               </NavLink>
               <NavLink className="mobile-nav-link" to="/clinic/sign-in">
@@ -93,23 +96,23 @@ function Site() {
               </NavLink>
               <NavLink
                 className="mobile-nav-link"
-                to={patient ? "/account" : patientSignIn}
+                to={patient ? "/patient/account" : patientSignIn}
               >
                 {patient ? "My account" : "Patient sign in"}
               </NavLink>
-              <NavLink className="mobile-nav-link" to="/appointments">
+              <NavLink className="mobile-nav-link" to="/patient/appointments">
                 My appointments
               </NavLink>
             </nav>
             <div className="header-actions">
               <NavLink
                 className="appointments-link"
-                to={patient ? "/account" : patientSignIn}
+                to={patient ? "/patient/account" : patientSignIn}
               >
                 <UserRound size={16} />
                 {patient ? "My account" : "Sign in"}
               </NavLink>
-              <Link className="button small" to="/book">
+              <Link className="button small" to="/patient/book">
                 Book a visit <ArrowUpRight size={16} />
               </Link>
               <button
@@ -133,7 +136,12 @@ function Site() {
           <Route path="/services" element={<Services />} />
           <Route path="/calculator" element={<Estimator />} />
           <Route path="/about" element={<About />} />
-          <Route path="/register-clinic" element={<Registration />} />
+          <Route path="/clinic/register" element={<Registration />} />
+          <Route path="/register-clinic" element={<LegacyRedirect to="/clinic/register" />} />
+          <Route path="/patient" element={<LegacyRedirect to="/patient/account" />} />
+          <Route path="/account" element={<LegacyRedirect to="/patient/account" />} />
+          <Route path="/appointments" element={<LegacyRedirect to="/patient/appointments" />} />
+          <Route path="/book" element={<LegacyRedirect to="/patient/book" />} />
           <Route
             path="/sign-in"
             element={<Navigate to="/patient/sign-in" replace />}
@@ -144,7 +152,7 @@ function Site() {
           />
           <Route path="/patient/register" element={<PatientRegistration />} />
           <Route
-            path="/account"
+            path="/patient/account"
             element={
               <WorkspaceGate role="patient">
                 <PatientAccount />
@@ -170,7 +178,7 @@ function Site() {
             }
           />
           <Route
-            path="/book"
+            path="/patient/book"
             element={
               <WorkspaceGate role="patient">
                 <Unavailable
@@ -181,7 +189,7 @@ function Site() {
             }
           />
           <Route
-            path="/appointments"
+            path="/patient/appointments"
             element={
               <WorkspaceGate role="patient">
                 <PatientAppointments />
@@ -199,9 +207,13 @@ function Site() {
           />
         </Routes>
       </main>
-      {!adminArea && <Footer />}
+      {!adminArea && !clinicArea && <Footer />}
     </>
   );
+}
+function LegacyRedirect({ to }) {
+  const { search } = useLocation();
+  return <Navigate to={to + search} replace />;
 }
 function Footer() {
   const suffix = patientAuthSuffix(useLocation());
@@ -224,8 +236,8 @@ function Footer() {
         </div>
         <div>
           <h3>Your next visit</h3>
-          <Link to="/book">Book an appointment</Link>
-          <Link to="/appointments">My appointments</Link>
+          <Link to="/patient/book">Book an appointment</Link>
+          <Link to="/patient/appointments">My appointments</Link>
           <Link to="/about">About DentaBook</Link>
           <Link to={"/patient/sign-in" + suffix}>Patient sign in</Link>
           <Link to={"/patient/register" + suffix}>Patient registration</Link>
@@ -237,7 +249,7 @@ function Footer() {
             Know your cost.
           </h3>
           <p>Find information to help you plan your dental care.</p>
-          <Link to="/register-clinic">Register your clinic</Link>
+          <Link to="/clinic/register">Register your clinic</Link>
           <Link to="/clinic/sign-in">Clinic sign in</Link>
         </div>
       </div>

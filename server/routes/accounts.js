@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
 const { registration, patientRegistration, email } = require("../validation");
 const {
-  COOKIE,
+  cookieName,
   cookieOptions,
   hashToken,
   sessionToken,
@@ -153,14 +153,15 @@ function createAccountRouter(pool) {
       await pool.query(
         "DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP",
       );
+      const duration = role === "system_admin" ? 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
       await pool.query(
-        `INSERT INTO sessions (token_hash, user_id, expires_at)
-        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '8 hours')`,
-        [hashToken(token), user.id],
+        `INSERT INTO sessions (token_hash, user_id, role, expires_at)
+        VALUES ($1, $2, $3, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond')`,
+        [hashToken(token), user.id, role, duration],
       );
-      res.cookie(COOKIE, token, {
+      res.cookie(cookieName(), token, {
         ...cookieOptions(),
-        maxAge: 8 * 60 * 60 * 1000,
+        maxAge: duration,
       });
       res.json({ signedIn: true });
     } catch (error) {
@@ -168,6 +169,7 @@ function createAccountRouter(pool) {
     }
   };
   router.post("/login", loginLimit, loginFor("clinic_staff"));
+  router.post("/clinic/login", loginLimit, loginFor("clinic_staff"));
   router.post("/admin/login", loginLimit, loginFor("system_admin"));
   router.post("/patient/login", loginLimit, loginFor("patient"));
   router.get("/me", requireSession(pool), async (req, res, next) => {
@@ -190,7 +192,7 @@ function createAccountRouter(pool) {
         await pool.query("DELETE FROM sessions WHERE token_hash = $1", [
           hashToken(token),
         ]);
-      res.clearCookie(COOKIE, cookieOptions());
+      res.clearCookie(cookieName(), cookieOptions());
       res.status(204).end();
     } catch (error) {
       next(error);

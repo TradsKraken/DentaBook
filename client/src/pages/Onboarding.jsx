@@ -311,7 +311,7 @@ export function SignIn({ portal = "clinic" }) {
           ? "/auth/admin/login"
           : patient
             ? "/auth/patient/login"
-            : "/auth/login",
+            : "/auth/clinic/login",
         {
           method: "POST",
           body: form,
@@ -386,7 +386,7 @@ export function SignIn({ portal = "clinic" }) {
               to={
                 patient
                   ? `/patient/register?next=${encodeURIComponent(destination)}`
-                  : "/register-clinic"
+                  : "/clinic/register"
               }
             >
               {patient ? "Create a patient account" : "Register your clinic"}{" "}

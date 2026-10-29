@@ -48,7 +48,7 @@ test("empty database has no invented listings, booking submission, or open dashb
   await expect(page.locator("body")).not.toContainText(
     /demo|sample data|interactive preview|SmileCare|BrightLife|Maria Santos/i,
   );
-  await page.goto("/book");
+  await page.goto("/patient/book");
   await expect(
     page.getByRole("heading", { name: "Sign in to continue." }),
   ).toBeVisible();
@@ -118,8 +118,8 @@ test("mobile first layouts and controls work across phone, tablet, and desktop",
       `/clinics/${clinic.id}`,
       "/services",
       "/calculator",
-      "/book",
-      "/appointments",
+      "/patient/book",
+      "/patient/appointments",
       "/dashboard",
       "/about",
     ]) {

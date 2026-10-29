@@ -155,7 +155,7 @@ test("clinic onboarding and permissions against an isolated PostgreSQL engine", 
         assert.equal(login.status, 200);
         assert.match(login.cookie, /HttpOnly/);
         assert.match(login.cookie, /SameSite=Strict/);
-        assert.match(login.cookie, /Path=\/api/);
+        assert.match(login.cookie, /Path=\/;/);
         staffCookie = login.cookie.split(";")[0];
         const stored = (await db.query("SELECT token_hash FROM sessions"))
           .rows[0];
@@ -587,7 +587,7 @@ test("clinic onboarding and permissions against an isolated PostgreSQL engine", 
         ]);
         assert.equal(
           (await request("/workspaces/clinic", { cookie: staffCookie })).status,
-          403,
+          401,
         );
       },
     );

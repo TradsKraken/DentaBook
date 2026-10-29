@@ -141,13 +141,13 @@ export default function Home() {
             text: "View published treatment estimates",
           },
           {
-            to: "/book",
+            to: "/patient/book",
             icon: CalendarDays,
             title: "Plan your visit",
             text: "Check booking availability",
           },
           {
-            to: "/appointments",
+            to: "/patient/appointments",
             icon: Heart,
             title: "Your appointments",
             text: "Information about your visits",

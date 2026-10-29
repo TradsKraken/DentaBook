@@ -1,13 +1,17 @@
 const crypto = require("node:crypto");
 const COOKIE = "dentabook_session";
+function cookieName() {
+  // __Host- prevents sibling subdomains from injecting a parent-domain cookie.
+  return cookieOptions().secure ? `__Host-${COOKIE}` : COOKIE;
+}
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
 function sessionToken(req) {
   const value = (req.headers.cookie || "")
     .split(";")
     .map((part) => part.trim())
-    .find((part) => part.startsWith(`${COOKIE}=`))
-    ?.slice(COOKIE.length + 1);
+    .find((part) => part.startsWith(`${cookieName()}=`))
+    ?.slice(cookieName().length + 1);
   return /^[a-f0-9]{64}$/.test(value || "") ? value : null;
 }
 function cookieOptions() {
@@ -16,7 +20,7 @@ function cookieOptions() {
     httpOnly: true,
     sameSite: "strict",
     secure: url.protocol === "https:" || process.env.NODE_ENV === "production",
-    path: "/api",
+    path: "/",
   };
 }
 function requireSession(pool) {
@@ -28,7 +32,8 @@ function requireSession(pool) {
       const result = await pool.query(
         `SELECT u.id, u.full_name AS name, u.email, u.role
         FROM sessions s JOIN users u ON u.id = s.user_id
-        WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP`,
+        WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP
+          AND s.role = u.role`,
         [hashToken(token)],
       );
       if (!result.rows.length)
@@ -56,6 +61,7 @@ function protectMutation(req, res, next) {
     process.env.CLIENT_URL || "http://localhost:3000",
   ).origin;
   if (
+    req.get("Sec-Fetch-Site") === "cross-site" ||
     req.get("X-DentaBook-Request") !== "1" ||
     (req.get("Origin") && req.get("Origin") !== allowedOrigin)
   ) {
@@ -89,6 +95,7 @@ function rateLimit({ limit, windowMs }) {
 }
 module.exports = {
   COOKIE,
+  cookieName,
   hashToken,
   sessionToken,
   cookieOptions,

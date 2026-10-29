@@ -45,7 +45,7 @@ async function fixture(page, initial = null) {
         : respond({ error: "Please sign in." }, 401);
     if (path === "/api/auth/register-clinic")
       return respond({ clinicId: record.id, status: "pending_review" }, 201);
-    if (path === "/api/auth/login" || path === "/api/auth/admin/login") {
+    if (path === "/api/auth/clinic/login" || path === "/api/auth/admin/login") {
       current =
         path === "/api/auth/admin/login"
           ? { ...owner, role: "system_admin" }
@@ -83,7 +83,7 @@ test("clinic registration is usable on a phone and submits real API fields", asy
   page,
 }) => {
   const { mutations } = await fixture(page);
-  await page.goto("/register-clinic");
+  await page.goto("/clinic/register");
   const values = {
     ownerName: "Test Owner",
     email: "owner@example.com",
@@ -178,7 +178,7 @@ test("onboarding pages keep phone controls readable and do not overflow", async 
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     for (const path of [
-      "/register-clinic",
+      "/clinic/register",
       "/clinic/sign-in",
       "/admin/sign-in",
     ]) {
@@ -205,7 +205,7 @@ test("onboarding pages keep phone controls readable and do not overflow", async 
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/register-clinic");
+  await page.goto("/clinic/register");
   await page.screenshot({
     path: "test-results/registration-phone.png",
     fullPage: true,

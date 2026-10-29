@@ -2,7 +2,7 @@
 export function patientAuthSuffix({ pathname, search }) {
   const requested =
     new URLSearchParams(search).get("next") ||
-    (["/book", "/appointments", "/account"].includes(pathname)
+    (["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname)
       ? pathname + search
       : null);
   return requested
@@ -16,16 +16,22 @@ export function patientDestination(value) {
     value.startsWith("//") ||
     value.includes("\\")
   )
-    return "/account";
+    return "/patient/account";
   try {
     const url = new URL(value, "https://dentabook.invalid");
+    const legacy = {
+      "/book": "/patient/book",
+      "/appointments": "/patient/appointments",
+      "/account": "/patient/account",
+    };
+    const pathname = legacy[url.pathname] || url.pathname;
     if (
       url.origin !== "https://dentabook.invalid" ||
-      !["/book", "/appointments", "/account"].includes(url.pathname)
+      !["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname)
     )
-      return "/account";
-    return url.pathname + url.search;
+      return "/patient/account";
+    return pathname + url.search;
   } catch {
-    return "/account";
+    return "/patient/account";
   }
 }

@@ -53,9 +53,9 @@ test("guests browse public pages but private patient pages require sign-in", asy
     expect(new URL(page.url()).pathname).toBe(path);
   }
   for (const path of [
-    "/book?clinic=chosen-clinic",
-    "/appointments",
-    "/account",
+    "/patient/book?clinic=chosen-clinic",
+    "/patient/appointments",
+    "/patient/account",
   ]) {
     await page.goto(path);
     await expect(
@@ -70,7 +70,7 @@ test("patient signup and sign-in return to the original booking page", async ({
   page,
 }) => {
   const state = await fixture(page);
-  await page.goto("/book?clinic=chosen-clinic");
+  await page.goto("/patient/book?clinic=chosen-clinic");
   await expect(
     page.getByRole("heading", { name: "Sign in to continue." }),
   ).toBeVisible();
@@ -78,7 +78,7 @@ test("patient signup and sign-in return to the original booking page", async ({
     page.locator("footer").getByRole("link", { name: "Patient registration" }),
   ).toHaveAttribute(
     "href",
-    "/patient/register?next=%2Fbook%3Fclinic%3Dchosen-clinic",
+    "/patient/register?next=%2Fpatient%2Fbook%3Fclinic%3Dchosen-clinic",
   );
   await page
     .locator("main form")
@@ -101,7 +101,7 @@ test("patient signup and sign-in return to the original booking page", async ({
   await page.getByLabel("Email address", { exact: true }).fill(values.email);
   await page.getByLabel("Password", { exact: true }).fill(values.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).tap();
-  await expect(page).toHaveURL(/\/book\?clinic=chosen-clinic$/);
+  await expect(page).toHaveURL(/\/patient\/book\?clinic=chosen-clinic$/);
   await expect(
     page.getByRole("heading", { name: "Online booking is not available yet." }),
   ).toBeVisible();
@@ -110,7 +110,7 @@ test("patient signup and sign-in return to the original booking page", async ({
   expect(state.writes[0].body.confirmation).toBeUndefined();
   expect(state.writes[1].path).toBe("/api/auth/patient/login");
   expect(state.writes.every((write) => write.header === "1")).toBe(true);
-  await page.goto("/appointments");
+  await page.goto("/patient/appointments");
   await expect(
     page.getByRole("heading", { name: "No appointments yet." }),
   ).toBeVisible();
@@ -127,7 +127,7 @@ test("patient signup and sign-in return to the original booking page", async ({
   await expect
     .poll(() => new URL(page.url()).pathname)
     .toBe("/patient/sign-in");
-  await page.goto("/appointments");
+  await page.goto("/patient/appointments");
   await expect(
     page.getByRole("heading", { name: "Sign in to continue." }),
   ).toBeVisible();
@@ -142,7 +142,7 @@ test("patient sign-in rejects unsafe return destinations", async ({ page }) => {
     "/\\untrusted.example",
   ]) {
     await page.goto(`/patient/sign-in?next=${encodeURIComponent(next)}`);
-    await expect(page).toHaveURL(/\/account$/);
+    await expect(page).toHaveURL(/\/patient\/account$/);
   }
 });
 test("patient account pages are mobile-first and retain accessible controls", async ({
@@ -175,7 +175,7 @@ test("patient account pages are mobile-first and retain accessible controls", as
   await fixture(page, patient);
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of ["/account", "/appointments"]) {
+    for (const path of ["/patient/account", "/patient/appointments"]) {
       await page.goto(path);
       await page.locator("main h1").waitFor();
       expect(
