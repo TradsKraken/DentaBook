@@ -14,6 +14,11 @@ RUN npm ci
 # Copy application source
 COPY . .
 
+# Separate production portal links; empty defaults retain local development routes.
+ARG VITE_PATIENT_URL=
+ARG VITE_CLINIC_URL=
+ENV VITE_PATIENT_URL=$VITE_PATIENT_URL VITE_CLINIC_URL=$VITE_CLINIC_URL
+
 # Build production assets
 RUN npm run build
 
@@ -30,6 +35,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-portals/ /etc/nginx/portals/
 
 # Expose HTTP port
 EXPOSE 80

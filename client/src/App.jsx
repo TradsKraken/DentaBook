@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import { ArrowUpRight, UserRound, Menu, X } from "lucide-react";
 import { ClinicProvider } from "./hooks/useClinics";
-import { Brand, Unavailable } from "./components/Shared";
+import { Brand, Unavailable, PortalLink } from "./components/Shared";
 import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import About from "./pages/About";
@@ -93,9 +93,9 @@ function Site() {
               <NavLink className="mobile-nav-link" to="/patient/book">
                 Book a visit
               </NavLink>
-              <NavLink className="mobile-nav-link" to="/clinic/sign-in">
+              <PortalLink portal="clinic" className="mobile-nav-link" to="/clinic/sign-in">
                 Clinic sign in
-              </NavLink>
+              </PortalLink>
               <NavLink
                 className="mobile-nav-link"
                 to={patient ? "/patient/account" : patientSignIn}
@@ -251,8 +251,8 @@ function Footer() {
             Know your cost.
           </h3>
           <p>Find information to help you plan your dental care.</p>
-          <Link to="/clinic/register">Register your clinic</Link>
-          <Link to="/clinic/sign-in">Clinic sign in</Link>
+          <PortalLink portal="clinic" to="/clinic/register">Register your clinic</PortalLink>
+          <PortalLink portal="clinic" to="/clinic/sign-in">Clinic sign in</PortalLink>
         </div>
       </div>
       <div className="wrap footer-bottom">

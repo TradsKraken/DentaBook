@@ -1,12 +1,6 @@
 # Portal routes and security
 
-Current local testing address: `http://10.10.1.116:3003`. The domain
-`https://dentabook.forgroup.space` is reserved for future hosting.
-
-Local `.env` uses `NODE_ENV=development` and `CLIENT_URL=http://10.10.1.116:3003`.
-This permits the unprefixed session cookie over local HTTP while retaining role,
-CSRF, password, and database authorization controls. Local HTTP traffic is not
-encrypted. For hosting, set `NODE_ENV=production` and the exact HTTPS origin.
+Development runs on `10.10.1.116`. Production runs on `10.10.1.113`: patient and clinic access share port 3003 and `https://dentabook.forgroup.space`; administration uses port 3005 and `https://dentabook-admin.forgroup.space`. See [current production setup](12_DOMAIN_SETUP.md). Local HTTP is unencrypted; credentials use the HTTPS domains.
 
 | Portal | Sign-in | Private pages | Registration |
 | --- | --- | --- | --- |
@@ -22,21 +16,16 @@ links do not appear in public navigation.
 
 ## Server enforcement
 
-The Express API enforces authorization independently of the UI. Login endpoints
-accept only their designated role. `/auth/login` remains a clinic-only alias for
-`/auth/clinic/login`. Workspace APIs verify both the session and required role.
-Clinic workspaces require approval and derive ownership from the account.
-Patient appointments use the signed-in patient's ID, never a caller-supplied ID.
+The Express API enforces authorization independently of the UI. Production uses a public API process (`APP_PORTAL=public`) for patients and clinics, and a separate administrator API (`APP_PORTAL=admin`). Public pages and APIs reject administration routes; administration rejects patient/clinic routes. Each process checks its exact HTTPS browser origin. Portal selection comes from process configuration, not a caller-supplied header. API and database ports are not published.
+
+Login endpoints accept only the designated account role. The public process accepts only patient or clinic sessions; the administrator process accepts only system administrators, even if a foreign session token is copied into its cookie. `/auth/login` remains a clinic-only alias for `/auth/clinic/login`. Workspaces independently enforce roles, clinic approval, and record ownership. Patient appointments use the signed-in patient's ID, never a caller-supplied ID. The combined development setup retains the same role checks.
 
 Sessions use random 256-bit tokens; only SHA-256 hashes are stored. They are bound
 to the sign-in role. Database triggers revoke all sessions when an account's role
 or password hash changes. Re-login rotates the browser session; logout revokes
 it. Administrator sessions expire after one hour; other roles after eight hours.
 
-HTTPS/production cookies use `__Host-dentabook_session`, `Secure`, `HttpOnly`,
-`SameSite=Strict`, `Path=/`, and no Domain attribute. The host prefix protects
-against parent-domain cookie injection from sibling subdomains. Development HTTP
-uses an unprefixed cookie. Existing production users must sign in again.
+Production uses `__Host-dentabook_public_session` on the shared patient/clinic host and `__Host-dentabook_admin_session` on the administrator host. Cookies have `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, and no Domain attribute. Cookies are not isolated by port, so separate hosts and names protect administrator session separation. Patients and clinic staff share one browser session on their common host and sign out to switch accounts. Existing users must sign in again after a cookie-name change. Default combined local deployments retain `dentabook_session` (or its secure host-prefixed form).
 
 Passwords use bcrypt at cost 12. Mutations require the application header,
 reject mismatched Origins and cross-site Fetch Metadata. Private responses are
@@ -51,17 +40,14 @@ React styles; inline scripts and eval are blocked. Assets retain security header
 
 The API runs as a non-root user on a read-only filesystem with temporary `/tmp`,
 no Linux capabilities, and no privilege escalation. PostgreSQL has a separate
-internal Docker network. API/database debug ports bind to host loopback.
+internal Docker network. The production override removes API/database host ports; the base development Compose file retains loopback diagnostic mappings.
 Compose requires a database password rather than supplying a built-in fallback.
 These controls do not protect against a compromised host or Docker operator.
 
 ## Encryption and deployment limits
 
 No system is guaranteed unbreachable. Browser-to-proxy encryption requires a
-valid certificate and Force SSL on the external Nginx proxy. Forward the domain
-to `http://10.10.1.116:3003`. Direct HTTP upstream access is for diagnostics, not
-submitting credentials. The API uses the exact HTTPS browser origin and Secure
-cookies.
+valid certificate and Force SSL on the external Nginx proxy. Forward the patient/clinic HTTPS host to `10.10.1.113:3003` and the administrator HTTPS host to `10.10.1.113:3005`. Direct HTTP upstream access is for diagnostics, not submitting credentials. Each API uses its exact HTTPS browser origin and secure portal cookie. Separate ports do not by themselves provide encryption or replace role checks.
 
 The proxy-to-app LAN hop and API-to-PostgreSQL Docker hop do not currently use
 TLS. Database disks and backups are not encrypted by these changes. Encryption
@@ -80,8 +66,8 @@ node --test --test-concurrency=1 tests/*.test.js
 cd ../client
 npm run build
 npm test
-# Test production Nginx headers and CSP against Docker:
-PLAYWRIGHT_BASE_URL=http://127.0.0.1:3003 npm test
+# Test the public and administrator HTTPS listeners and their security headers:
+PLAYWRIGHT_BASE_URL=https://dentabook.forgroup.space PLAYWRIGHT_ADMIN_URL=https://dentabook-admin.forgroup.space npm test -- portals.spec.js
 ```
 
 Install Playwright Chromium first, or select a browser with PLAYWRIGHT_CHANNEL

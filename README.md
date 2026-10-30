@@ -1,4 +1,4 @@
-﻿# DentaBook
+# DentaBook
 
 Dental clinic discovery, treatment cost estimation, online appointment booking, and clinic management.
 
@@ -91,6 +91,10 @@ DentaBook/
 - [Interface reference](docs/design/interface-reference.jpg): blue-and-white layouts for discovery, profiles, estimation, booking, and administration. DentalLink is the reference's sample name; this project is DentaBook.
 
 The previous Fortek architecture document is preserved under `internal/references/` as historical input. Use the DentaBook architecture document for this project's plan.
+
+## Production hosting
+
+Development runs on `10.10.1.116`; production runs independently on `10.10.1.113` with shared patient/clinic port `3003` and separate administrator port `3005`, its own database, and private environment configuration. The production override isolates administrator pages, APIs, browser origin, and session cookie from the patient/clinic site; patient and clinic account roles remain enforced on the server. The domain proxy forwards `dentabook.forgroup.space` to `10.10.1.113:3003` and `dentabook-admin.forgroup.space` to `10.10.1.113:3005`. See [production domain setup and release workflow](docs/12_DOMAIN_SETUP.md). Development changes reach production only when a tested release is explicitly rebuilt and deployed.
 
 ## Docker quick start
 

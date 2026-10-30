@@ -20,15 +20,20 @@ export function Tooth({ size = 24, ...props }) {
     </svg>
   );
 }
+export function PortalLink({ portal, to, children, ...props }) {
+  const origin = portal === "patient" ? import.meta.env.VITE_PATIENT_URL : import.meta.env.VITE_CLINIC_URL;
+  return origin ? <a {...props} href={origin + to}>{children}</a> : <Link {...props} to={to}>{children}</Link>;
+}
+
 export function Brand() {
   return (
-    <Link className="brand" to="/" aria-label="DentaBook home">
+    <PortalLink portal="patient" className="brand" to="/" aria-label="DentaBook home">
       <img src="/branding/dentabook-logo.jpg" alt="" />
       <span>
         Denta<span>Book</span>
         <small>BOOK YOUR SMILE. KNOW YOUR COST.</small>
       </span>
-    </Link>
+    </PortalLink>
   );
 }
 export function Heading({ eyebrow, title, text, children }) {

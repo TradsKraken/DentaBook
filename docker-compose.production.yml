@@ -1,0 +1,46 @@
+# Production: patient/clinic site on 3003, isolated administration on 3005.
+# Select using COMPOSE_FILE=docker-compose.yml:docker-compose.production.yml in .env.
+services:
+  client:
+    build:
+      args:
+        VITE_PATIENT_URL: ${CLIENT_URL:?Set the production HTTPS origin}
+        VITE_CLINIC_URL: ${CLIENT_URL:?Set the production HTTPS origin}
+    command: ["nginx", "-c", "/etc/nginx/portals/nginx.conf", "-g", "daemon off;"]
+    ports: !override
+      - "${CLIENT_PORT:-3003}:80"
+      - "${ADMIN_PORT:-3005}:82"
+    depends_on:
+      admin_api:
+        condition: service_healthy
+  api:
+    environment:
+      APP_PORTAL: public
+    ports: !reset []
+  admin_api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: dentabook_admin_api
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      APP_PORTAL: admin
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-dentabook_user}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-dentabook_db}
+      CLIENT_URL: ${ADMIN_URL:?Set the production admin HTTPS origin}
+      TRUST_PROXY: ${TRUST_PROXY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [dentabook_network, database_network]
+  db:
+    ports: !reset []

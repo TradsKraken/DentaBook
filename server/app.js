@@ -4,8 +4,10 @@ const { createClinicRouter } = require("./routes/clinics");
 const { createAccountRouter } = require("./routes/accounts");
 const { createWorkspaceRouter } = require("./routes/workspaces");
 const { protectMutation } = require("./auth");
+const { configuredPortal, restrictPortal } = require("./portal");
 
 function createApp(pool, { logger = console } = {}) {
+  configuredPortal();
   const app = express();
   app.disable("x-powered-by");
   // Accept forwarded client addresses only from explicitly trusted proxy networks.
@@ -21,7 +23,7 @@ function createApp(pool, { logger = console } = {}) {
     }),
   );
   app.use(express.json({ limit: "100kb" }));
-  app.use("/api", protectMutation);
+  app.use("/api", restrictPortal, protectMutation);
   app.use((req, res, next) => {
     res.set("X-Content-Type-Options", "nosniff");
     next();

@@ -1,8 +1,11 @@
 const crypto = require("node:crypto");
 const COOKIE = "dentabook_session";
+const { configuredPortal, portalAllowsRole } = require("./portal");
 function cookieName() {
   // __Host- prevents sibling subdomains from injecting a parent-domain cookie.
-  return cookieOptions().secure ? `__Host-${COOKIE}` : COOKIE;
+  const portal = configuredPortal();
+  const name = portal === "all" ? COOKIE : `dentabook_${portal}_session`;
+  return cookieOptions().secure ? `__Host-${name}` : name;
 }
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
@@ -40,6 +43,8 @@ function requireSession(pool) {
         return res
           .status(401)
           .json({ error: "Your session has expired. Please sign in again." });
+      if (!portalAllowsRole(result.rows[0].role))
+        return res.status(403).json({ error: "This account belongs to another portal." });
       req.user = result.rows[0];
       next();
     } catch (error) {

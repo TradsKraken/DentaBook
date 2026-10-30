@@ -307,6 +307,7 @@ small {
 .nav > a {
   display: flex;
   align-items: center;
+  min-width: 44px;
   min-height: 48px;
   color: #51646d;
   font-size: 14px;
@@ -2260,10 +2261,6 @@ td small {
   }
   .search-fields {
     flex-direction: row;
-  }
-  .hero-search input,
-  .hero-search select {
-    font-size: 14px;
   }
   .hero-search .location-field {
     border-top: 0;

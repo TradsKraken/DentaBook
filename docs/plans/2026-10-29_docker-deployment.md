@@ -1,5 +1,7 @@
 # Docker deployment handoff
 
+> Historical development-host notes. Production is on `10.10.1.113`; development remains on `10.10.1.116`. Follow [current production domain setup](../12_DOMAIN_SETUP.md) for hosting and releases.
+
 Date: 2026-10-29. Branch: `main`. Base commit: `7fd4569`.
 
 ## Status at a glance
@@ -151,3 +153,33 @@ production as its default. The API was recreated and Nginx reloaded. Role checks
 session revocation, bcrypt and CSRF checks remain enabled. Future domain/proxy
 steps above are optional hosting work, not blockers for local sign-in. Local
 HTTP is unencrypted; production requires HTTPS and production cookie settings.
+
+## Domain activation follow-up (2026-10-30)
+
+The user requested `dentabook.forgroup.space` and chose to apply the hosting settings themselves. The existing app on `10.10.1.116:3003` remains healthy, with the LAN browser origin still configured. Nginx Proxy Manager 2.15.1 responds on `10.10.1.108:81`. Public HTTPS through Cloudflare returns 404; local HTTPS still lacks a matching certificate. This checkout is on `10.10.1.113`, not the app host. No duplicate deployment was created and no remote runtime settings were changed. See [domain setup](../12_DOMAIN_SETUP.md) for the exact proxy, certificate, production origin, and verification steps. Activation remains pending the user's configuration.
+
+## Production host correction and deployment (2026-10-30)
+
+The user clarified that `10.10.1.116` is development and `10.10.1.113` is production. The earlier proposed proxy destination is superseded. Built and started the production stack in `/home/dentabook` on `10.10.1.113:3003`, from application commit `1b0d0ee`, with independent generated credentials and database volume. `.env` is ignored and mode 0600; production origin and secure cookie settings are enabled. No development database was copied or modified. The existing other project's containers remain healthy. Live API and browser verification passed, including 390/320/768/1440px, unauthenticated portal API rejection, origin protection, and actual empty directory data. No test data was inserted. The domain now returns 502 through the LAN proxy and a same-URL redirect through Cloudflare; user must apply `http://10.10.1.113:3003` as proxy upstream, enable the domain certificate/Force SSL, and use Cloudflare Full (strict). See [current production instructions](../12_DOMAIN_SETUP.md).
+
+## Separate production portal ports (2026-10-30)
+
+At the user's request, production now selects `docker-compose.production.yml` via its private `.env`. Patients use `10.10.1.113:3003`, clinics `:3004`, and administrators `:3005`. Each listener rejects other portal pages and forwards to its own API process with an explicit `APP_PORTAL`, origin, allowed endpoint set, and role-checked session cookie. API/database host ports were removed. Development stays on the base Compose configuration on `10.10.1.116`; its runtime was not modified. Database credentials and the existing production volume were retained. A private pre-change SQL backup and environment backup are under ignored `.local/`.
+
+The complete backend suite passed all 32 tests. After configuration validation was hardened against inherited object property names, the six focused isolation tests passed again. The standard frontend regression run passed 15 tests with the three production-only checks correctly skipped. Live production listener tests additionally cover cross-port HTML/API rejection, exact origins, actual empty directory responses, access redirects, security headers/CSP, and 390/320/768/1440px layouts. Those checks found and prompted fixes for 14px desktop search inputs and a navigation target narrower than 44px.
+
+Production uses patient host `dentabook.forgroup.space`, clinic host `clinic.dentabook.forgroup.space`, and admin host `admin.dentabook.forgroup.space`. The user still needs to configure those HTTPS Proxy Hosts at `10.10.1.108:81` using HTTP upstream ports 3003/3004/3005 and valid matching certificates. Public HTTPS authentication remains unverified; local patient-domain HTTPS last returned 502, and the new clinic/admin names lacked matching certificates. See [current production instructions](../12_DOMAIN_SETUP.md).
+
+Final live browser verification passed both separated-portal tests after the control fixes (390/320/768/1440px), with all three API health endpoints healthy. No production test accounts were created. Public HTTPS sign-in still awaits proxy/certificate configuration.
+
+## Staff LAN root redirect correction (2026-10-30)
+
+Fixed the staff root redirects leaking internal ports 81/82 by configuring relative Nginx redirects. Client rebuilt and deployed; LAN redirect-follow checks return HTTP 200 on the correct 3004 and 3005 ports. Tests now assert the exact relative Location and preserved browser origin, using actual LAN endpoints. Patient HTTPS API is healthy. Exact user-created clinic/admin domain names are pending clarification because the runtime's current staff names lack proxy hosts/certificates.
+
+## Confirmed domains and shared clinic access (2026-10-30)
+
+The user supplied the actual administrator domain, `dentabook-admin.forgroup.space`, and chose to share clinic access with the patient port. Production now publishes only 3003 (patient/clinic) and 3005 (administrator). Port 3004 and the unused clinic API process were removed. The public API uses `APP_PORTAL=public`, allows patient/clinic endpoints, and rejects administrator routes and administrator sessions. Patient/clinic role boundaries remain enforced by workspace guards. Administration has its own process, exact HTTPS origin, and cookie. Clinic links now point to `https://dentabook.forgroup.space/clinic/...`. Admin's origin is `https://dentabook-admin.forgroup.space`. Production credentials and PostgreSQL volume were preserved. Development was not changed.
+
+All 33 backend tests passed, including the new shared patient/clinic boundary test. Both actual HTTPS health APIs report connected databases. Correct-origin patient/clinic/admin login requests reach validation, while foreign origins return 403. Clinic HTTPS sign-in and administrator HTTPS root redirects return HTTP 200. The admin LAN root retains port 3005, and clinic LAN sign-in returns HTTP 200 on port 3003. Real-browser HTTPS checks are in `client/tests/browser/portals.spec.js`; current instructions are in [production setup](../12_DOMAIN_SETUP.md). Earlier three-port and pending-certificate notes are superseded.
+
+Final verification passed both production browser tests through the actual patient/clinic and administrator HTTPS domains at 390/320/768/1440px. No credentials or production test data were created.
