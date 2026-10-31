@@ -1,5 +1,7 @@
 # Data and security
 
+The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) includes the current session-check sequence and simplified database relationships, with future management workflows labeled separately.
+
 ## Stored information
 
 | Record group | Current use |

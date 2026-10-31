@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor Person as Browser user
+    participant API as Correct host API
+    participant DB as PostgreSQL
+    Person->>API: Request private data with session cookie
+    API->>DB: Check session hash, expiry, and current account role
+    DB-->>API: Matching account or no valid session
+    alt Session missing, expired, or wrong for this portal
+        API-->>Person: Reject access
+    else Valid session for this portal
+        API->>API: Enforce workspace role, ownership, and clinic approval
+        alt Additional checks fail
+            API-->>Person: Deny the protected operation
+        else Checks pass
+            API->>DB: Read only the permitted records
+            DB-->>API: Account-scoped information
+            API-->>Person: Return authorized data
+        end
+    end

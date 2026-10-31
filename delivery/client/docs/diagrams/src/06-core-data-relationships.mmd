@@ -1,0 +1,35 @@
+erDiagram
+    USERS ||--o{ SESSIONS : has
+    USERS o|--o{ CLINICS : owns
+    CLINICS ||--o{ DENTISTS : lists
+    CLINICS ||--o{ SERVICES : offers
+    USERS {
+        uuid id PK
+        string email
+        string role
+        string password_hash
+    }
+    SESSIONS {
+        string token_hash PK
+        uuid user_id FK
+        string role
+        timestamp expires_at
+    }
+    CLINICS {
+        uuid id PK
+        uuid owner_user_id FK
+        string status
+        uuid reviewed_by FK
+    }
+    DENTISTS {
+        uuid id PK
+        uuid clinic_id FK
+        string full_name
+        boolean is_active
+    }
+    SERVICES {
+        uuid id PK
+        uuid clinic_id FK
+        string name
+        decimal estimated_price
+    }

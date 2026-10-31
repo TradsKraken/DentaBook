@@ -1,0 +1,22 @@
+flowchart TD
+    Main["Patient and clinic browsers<br/>Main HTTPS hostname"]:::current
+    Admin["Administrator browser<br/>Separate HTTPS hostname"]:::current
+    Proxy["Nginx Proxy Manager<br/>Certificates and hostname routing"]:::current
+    Main -->|HTTPS| Proxy
+    Admin -->|HTTPS| Proxy
+    subgraph Web["One Nginx website container"]
+        PublicWeb["Public and clinic listener"]:::current
+        AdminWeb["Administrator listener"]:::current
+    end
+    Proxy -->|HTTP upstream: port 3003| PublicWeb
+    Proxy -->|HTTP upstream: port 3005| AdminWeb
+    PublicWeb --> PublicAPI["Public and clinic API<br/>Patient or clinic role required for private actions"]:::current
+    AdminWeb --> AdminAPI["Administrator API<br/>System administrator role required"]:::current
+    PublicAPI --> Database[(PostgreSQL database)]:::current
+    AdminAPI --> Database
+    Database --> Storage["Persistent database volume"]:::current
+
+    classDef current fill:#eaf5ff,stroke:#176d9b,color:#16394f,stroke-width:1.5px;
+    classDef planned fill:#fff5dc,stroke:#a86c12,color:#62460c,stroke-dasharray:6 4;
+    classDef unavailable fill:#f1f4f6,stroke:#8397a3,color:#3f5563;
+    classDef decision fill:#ffffff,stroke:#176d9b,color:#16394f;

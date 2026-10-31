@@ -1,5 +1,7 @@
 # User guide
 
+For a visual walkthrough, see the [patient, clinic, and administrator workflows](11_DIAGRAMS_AND_WORKFLOWS.md).
+
 ## Browsing without an account
 
 1. Open https://dentabook.forgroup.space.

@@ -19,12 +19,14 @@ FORBIDDEN = {'.git', '.agents', '.codex', 'internal', 'AGENTS.md', 'SKILL.md', '
 def git(*args):
     return subprocess.check_output(['git', '-C', str(ROOT), *args])
 
-def validate(destination):
+def validate(destination, allow_repository=False):
     problems = []
     for path in destination.rglob('*'):
         if not path.is_file():
             continue
         relative = path.relative_to(destination)
+        if allow_repository and relative.parts[0] == '.git':
+            continue
         if path.is_symlink() or set(relative.parts) & FORBIDDEN:
             problems.append(f'Unexpected file: {relative}')
         if (path.name.startswith('.env') and not path.name.endswith('.example')) or path.suffix in {'.dump', '.log', '.pem', '.key', '.p12', '.pfx'}:

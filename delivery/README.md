@@ -10,6 +10,6 @@ The default output is `.local/client-delivery/DentaBook-Client`, alongside a ZIP
 
 The exported directory contains no Git history. Verify the code and documentation, then initialize that directory as an independent repository with a normal client-release commit. Do not copy the development `.git` directory. Keep runtime `.env`, backups, credentials, internal records, and local verification reports outside the release.
 
-Intended GitHub destination: `TradsKraken/DentaBook_Client`, private unless the owner requests otherwise. Create an empty repository under that owner with an authorized account, then push the independent client history. Do not create the repository under a different account as a substitute for missing owner permissions.
+Intended GitHub destination: `TradsKraken/DentaBook_Client`, public as explicitly requested by the owner for this handoff. Create an empty repository under that owner with an authorized account, then push the independent client history. Do not create the repository under a different account as a substitute for missing owner permissions.
 
 Future client updates should be explicit reviewed deliveries, with updated status, release notes, and verification. Preserve the client repository's own history when applying a later snapshot; do not force-push a new unrelated history over it. Client delivery and production deployment remain separate actions.

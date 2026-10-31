@@ -1,0 +1,15 @@
+flowchart TD
+    Signin["Patient signs in<br/>Available now"]:::current
+    Signin -.-> Select["PLANNED: choose clinic,<br/>services, and an available time"]:::planned
+    Select -.-> Validate["PLANNED: validate availability<br/>and save a persistent request"]:::planned
+    Validate -.-> Review["PLANNED: clinic reviews the request"]:::planned
+    Review -.-> Accepted{"PLANNED: accepted?"}:::planned
+    Accepted -.->|No| Declined["PLANNED: patient sees the saved decision"]:::planned
+    Accepted -.->|Yes| Deposit["PLANNED: verify any required deposit<br/>using the selected payment provider"]:::planned
+    Deposit -.-> Confirm["PLANNED: confirm the appointment"]:::planned
+    Confirm -.-> Manage["PLANNED: tracking, permitted changes,<br/>completion, and eligible feedback"]:::planned
+
+    classDef current fill:#eaf5ff,stroke:#176d9b,color:#16394f,stroke-width:1.5px;
+    classDef planned fill:#fff5dc,stroke:#a86c12,color:#62460c,stroke-dasharray:6 4;
+    classDef unavailable fill:#f1f4f6,stroke:#8397a3,color:#3f5563;
+    classDef decision fill:#ffffff,stroke:#176d9b,color:#16394f;

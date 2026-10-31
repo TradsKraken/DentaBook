@@ -20,3 +20,7 @@ The font files and their supplied license notices are included together:
 - `client/public/fonts/manrope.ttf` and `manrope-license.txt`.
 
 Dependency versions are listed in [dependency versions](DEPENDENCIES.md). Package-specific notices are provided with the corresponding installed packages. Keep supplied notices with the assets when redistributing the project.
+
+## Workflow and technical diagrams
+
+Vector diagrams are supplied under `docs/diagrams/`, with their editable Mermaid source files in `docs/diagrams/src/`. See the diagram guide for their current/planned status and the diagram README for update instructions. The SVG files are pre-rendered documentation assets; Mermaid is not a website runtime dependency.

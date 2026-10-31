@@ -1,0 +1,14 @@
+flowchart TD
+    Auth["Sign in on the administrator host<br/>Server requires the administrator role"]:::current
+    Auth --> Inspect["Open pending registrations<br/>and inspect submitted details"]:::current
+    Inspect --> Choice{"Review decision"}:::decision
+    Choice -->|Approve| Approve["Confirm approval"]:::current
+    Choice -->|Reject| Reject["Enter a reason<br/>and confirm rejection"]:::current
+    Approve --> Save["Update only if the clinic is still pending<br/>Save status, reviewer, time, and notes"]:::current
+    Reject --> Save
+    Save -->|Saved| Result["Clinic owner can read the result<br/>Only approved clinics are public"]:::current
+    Save -->|Already reviewed| Conflict["Return conflict<br/>and refresh the list"]:::current
+    classDef current fill:#eaf5ff,stroke:#176d9b,color:#16394f,stroke-width:1.5px;
+    classDef planned fill:#fff5dc,stroke:#a86c12,color:#62460c,stroke-dasharray:6 4;
+    classDef unavailable fill:#f1f4f6,stroke:#8397a3,color:#3f5563;
+    classDef decision fill:#ffffff,stroke:#176d9b,color:#16394f;

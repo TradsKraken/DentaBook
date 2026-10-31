@@ -9,6 +9,8 @@ The documents are arranged so business readers can begin without technical knowl
 | Hosting operator | [Technical overview](03_TECHNICAL_OVERVIEW.md), [deployment](04_SETUP_AND_DEPLOYMENT.md), [operations](05_OPERATIONS_MANUAL.md), [testing](07_TESTING_AND_ACCEPTANCE.md) |
 | Developer continuing the work | [Technical overview](03_TECHNICAL_OVERVIEW.md), [status and plan](06_STATUS_AND_DEVELOPMENT_PLAN.md), [API reference](08_API_REFERENCE.md), [data and security](09_DATA_AND_SECURITY.md) |
 
+The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) explains patient, clinic, and administrator journeys, system architecture, sessions, database relationships, cost estimates, releases, and the remaining roadmap. Each diagram has a full-size SVG and an editable Mermaid source.
+
 ## Terms used in these documents
 
 | Term | Plain-language meaning |

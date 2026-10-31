@@ -4,17 +4,9 @@
 
 DentaBook has three application layers: the browser interface, the server API, and the database. Production runs the API in two processes so administrator access is separated from the public and clinic site.
 
-```mermaid
-flowchart LR
-    Public[Patient and clinic browser] --> Main[Main HTTPS website]
-    Staff[Administrator browser] --> Admin[Administration HTTPS website]
-    Main --> Web[Nginx website service]
-    Admin --> Web
-    Web --> PublicAPI[Public and clinic API]
-    Web --> AdminAPI[Administrator API]
-    PublicAPI --> DB[(PostgreSQL database)]
-    AdminAPI --> DB
-```
+![Current system architecture](diagrams/01-system-architecture.svg)
+
+[Open the diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) for the full-size architecture image, account/session sequence, and database relationships.
 
 The browser presents forms and pages. The API validates submitted information and enforces account permissions. PostgreSQL stores the records. A browser cannot gain administrator access by changing a page link, form value, or request header.
 

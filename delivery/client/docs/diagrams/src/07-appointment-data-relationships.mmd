@@ -1,0 +1,26 @@
+erDiagram
+    direction LR
+    APPOINTMENTS ||--o{ APPOINTMENT_SERVICES : includes
+    APPOINTMENTS ||--o{ PAYMENTS : records
+    APPOINTMENTS ||--o| REVIEWS : receives
+    APPOINTMENTS {
+        uuid id PK
+        uuid patient_user_id FK
+        uuid clinic_id FK
+        uuid dentist_id FK
+        string status
+    }
+    APPOINTMENT_SERVICES {
+        uuid appointment_id PK,FK
+        uuid service_id PK,FK
+    }
+    PAYMENTS {
+        uuid id PK
+        uuid appointment_id FK
+        string payment_status
+    }
+    REVIEWS {
+        uuid id PK
+        uuid appointment_id FK,UK
+        int rating
+    }

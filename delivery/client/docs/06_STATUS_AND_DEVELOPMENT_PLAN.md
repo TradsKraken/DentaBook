@@ -21,6 +21,10 @@
 
 The discovery and account foundation is delivered. The next proposed product increment is **clinic content management**. The remaining items below are planned or not implemented; they are not being presented as working features or as started tasks. Move an item to active development only when it has an assigned owner and work has begun. Update this document at each release.
 
+![Development roadmap — foundation delivered, remaining phases planned](diagrams/10-development-roadmap.svg)
+
+The [planned booking diagram](11_DIAGRAMS_AND_WORKFLOWS.md) shows how the future steps fit together; it is not a live booking workflow.
+
 ## Remaining phases and completion criteria
 
 | Order | Work | Prerequisite or client decision | Complete when |

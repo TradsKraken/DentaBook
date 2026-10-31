@@ -1,5 +1,13 @@
 # Delivery notes
 
+## Client development-status summary — 31 October 2026
+
+Expanded the README with the delivered website status, read-only capabilities, website improvements included in the handoff, recent documentation updates, current limitations, the next planned clinic-management increment, and later development phases. Added links to verification, diagrams, and the handbook. This is a documentation update; application behavior is unchanged.
+
+## Workflow and system diagrams — 31 October 2026
+
+Added 12 diagrams covering the system architecture, patient/clinic/admin journeys, session checks, account/clinic data, appointment data foundations, planned booking, cost estimates, release operations, and the remaining roadmap. Each diagram includes a vector SVG and editable Mermaid source. Current behavior and planned features are labeled separately. The diagram guide and printable handbook now include these visuals.
+
 ## Initial client handoff — 31 October 2026
 
 This snapshot includes:

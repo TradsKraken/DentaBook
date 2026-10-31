@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    actor Person as Browser user
+    participant API as Correct host API
+    participant DB as PostgreSQL
+    Person->>API: Submit email and password
+    API->>API: Validate origin, input, and request limits
+    API->>DB: Read saved account
+    DB-->>API: Account role and password hash
+    API->>API: Verify password and login role
+    alt Invalid request or credentials
+        API-->>Person: Reject without creating a session
+    else Valid credentials and role
+        API->>DB: Save session hash, role, and expiry
+        API-->>Person: Set protected host-only session cookie
+    end
