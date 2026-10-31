@@ -20,6 +20,10 @@ Patient registration, sign-in, account information, and an account-scoped appoin
 
 Online booking submission is still unavailable. Profile/service/dentist editing, schedules, booking creation, notifications, payments, cancellation/rescheduling, reviews, and password recovery remain future increments. Signing in does not simulate these unfinished features.
 
+## Development on this server
+
+Use **http://10.10.1.113:3013** for the development patient/clinic website and **http://10.10.1.113:3015/admin/sign-in** for development administration. The development-only owner login is `admin` / `admin123`. This instance has its own database, containers, and images. Rebuild it with `./scripts/development.sh up -d --build --wait`; production continues on ports 3003 and 3005. See [same-server development](docs/14_SAME_SERVER_DEVELOPMENT.md) for operations and isolation details. The older 10.10.1.116 development computer is optional.
+
 ## Preview the website locally
 
 The complete local runtime is now configured with native PostgreSQL 16. Double-click `start-local.bat` to start/reuse the database, API, and website. Open http://localhost:3000. See [local testing and administrator access](docs/10_LOCAL_TESTING.md) for credentials location and the registration/approval test steps.
@@ -94,7 +98,7 @@ The previous Fortek architecture document is preserved under `internal/reference
 
 ## Production hosting
 
-Development runs on `10.10.1.116`; production runs independently on `10.10.1.113` with shared patient/clinic port `3003` and separate administrator port `3005`, its own database, and private environment configuration. The production override isolates administrator pages, APIs, browser origin, and session cookie from the patient/clinic site; patient and clinic account roles remain enforced on the server. The domain proxy forwards `dentabook.forgroup.space` to `10.10.1.113:3003` and `dentabook-admin.forgroup.space` to `10.10.1.113:3005`. See [production domain setup and release workflow](docs/12_DOMAIN_SETUP.md). Development changes reach production only when a tested release is explicitly rebuilt and deployed.
+Development now also runs on `10.10.1.113:3013` with administration on port `3015`; the older `10.10.1.116` setup is optional. Production runs independently on `10.10.1.113` with shared patient/clinic port `3003` and separate administrator port `3005`, its own database, and private environment configuration. The production override isolates administrator pages, APIs, browser origin, and session cookie from the patient/clinic site; patient and clinic account roles remain enforced on the server. The domain proxy forwards `dentabook.forgroup.space` to `10.10.1.113:3003` and `dentabook-admin.forgroup.space` to `10.10.1.113:3005`. See [production domain setup and release workflow](docs/12_DOMAIN_SETUP.md). Development changes reach production only when a tested release is explicitly rebuilt and deployed.
 
 ## Docker quick start
 

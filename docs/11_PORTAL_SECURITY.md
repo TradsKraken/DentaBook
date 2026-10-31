@@ -1,6 +1,6 @@
 # Portal routes and security
 
-Development runs on `10.10.1.116`. Production runs on `10.10.1.113`: patient and clinic access share port 3003 and `https://dentabook.forgroup.space`; administration uses port 3005 and `https://dentabook-admin.forgroup.space`. See [current production setup](12_DOMAIN_SETUP.md). Local HTTP is unencrypted; credentials use the HTTPS domains.
+Development is available on `10.10.1.113:3013` (patients/clinics) and `10.10.1.113:3015` (administration), with independent configuration, images, networks, and database storage. The older `10.10.1.116` installation is optional. See [same-server development](14_SAME_SERVER_DEVELOPMENT.md). Production runs on `10.10.1.113`: patient and clinic access share port 3003 and `https://dentabook.forgroup.space`; administration uses port 3005 and `https://dentabook-admin.forgroup.space`. See [current production setup](12_DOMAIN_SETUP.md). Local HTTP is unencrypted; credentials use the HTTPS domains.
 
 | Portal | Sign-in | Private pages | Registration |
 | --- | --- | --- | --- |

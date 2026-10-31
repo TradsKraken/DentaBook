@@ -1,0 +1,99 @@
+# Standalone LAN development stack. Do not merge with the production files.
+name: dentabook-development
+
+x-development-api: &development-api
+  image: dentabook-development-api:local
+  build:
+    context: ./server
+    dockerfile: Dockerfile
+    secrets:
+      - source: build_ca
+        target: proxy_ca
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  depends_on:
+    db:
+      condition: service_healthy
+  networks: [web, database]
+
+x-development-environment: &development-environment
+  NODE_ENV: development
+  PORT: 5000
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_USER: dentabook_dev
+  DB_NAME: dentabook_development
+  DB_PASSWORD: ${DEV_DB_PASSWORD:?Set DEV_DB_PASSWORD in .env.development.local}
+  TRUST_PROXY: ""
+
+services:
+  client:
+    image: dentabook-development-client:local
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      secrets:
+        - source: build_ca
+          target: proxy_ca
+      args:
+        VITE_PATIENT_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}
+        VITE_CLINIC_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}
+    command: ["nginx", "-c", "/etc/nginx/portals/nginx.conf", "-g", "daemon off;"]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}:80"
+      - "${DEV_BIND_IP:?Set the LAN IP}:${DEV_ADMIN_PORT:-3015}:82"
+    depends_on:
+      api:
+        condition: service_healthy
+      admin_api:
+        condition: service_healthy
+    networks: [web]
+
+  api:
+    <<: *development-api
+    environment:
+      <<: *development-environment
+      APP_PORTAL: public
+      CLIENT_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}
+
+  admin_api:
+    <<: *development-api
+    environment:
+      <<: *development-environment
+      APP_PORTAL: admin
+      CLIENT_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_ADMIN_PORT:-3015}
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      POSTGRES_USER: dentabook_dev
+      POSTGRES_DB: dentabook_development
+      POSTGRES_PASSWORD: ${DEV_DB_PASSWORD:?Set DEV_DB_PASSWORD in .env.development.local}
+    volumes:
+      - development_pgdata:/var/lib/postgresql/data
+      - ./server/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dentabook_dev -d dentabook_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [database]
+
+networks:
+  web:
+  database:
+    internal: true
+
+volumes:
+  development_pgdata:
+
+secrets:
+  build_ca:
+    file: ${DEV_BUILD_CA_FILE:-/etc/ssl/certs/ca-certificates.crt}

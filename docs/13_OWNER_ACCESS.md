@@ -4,7 +4,7 @@ An operator can explicitly create an owner account that uses one username and pa
 
 ## Requested development account
 
-This account is intended for the development computer at **10.10.1.116**:
+This account has been created in the isolated development stack on **10.10.1.113**, with the patient/clinic site on port **3013** and administration on port **3015**. See [same-server development](14_SAME_SERVER_DEVELOPMENT.md). The earlier **10.10.1.116** setup remains optional:
 
 | Setting | Value |
 | --- | --- |
@@ -50,7 +50,7 @@ The clinic workspace is still read-only. Clinic editing, scheduling, appointment
 
 ## Production owner access
 
-The deployment computer is **10.10.1.113**. Do not use the development-account command there. To deliberately provision a production owner after deploying this update:
+The production and development stacks now share computer **10.10.1.113** but have independent databases. Run the development-account command only through `./scripts/development.sh exec -T api`, which selects the development database. Do not run it through the production Compose project. To deliberately provision a production owner after deploying this update:
 
 ```sh
 docker compose exec api npm run create-owner
@@ -70,4 +70,4 @@ The regression suites cover migration, all three logins, role isolation, clinic 
 
 ## Installation status
 
-Source preparation and isolated tests do not create an account on a different computer or deploy production. Run the account-creation command against the intended development database after installing the updated source there.
+The development instance on 10.10.1.113 has been installed, and the requested owner account has been created in its separate development database. Production was not rebuilt or provisioned. Installing on another computer still requires the account-creation command against that computer’s intended development database.

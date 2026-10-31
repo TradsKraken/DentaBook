@@ -1,6 +1,6 @@
 # Production domains, ports, and releases
 
-Development stays on `10.10.1.116`. Production runs in `/home/dentabook` on `10.10.1.113`, with independent configuration and its own PostgreSQL volume.
+Development now also runs on `10.10.1.113`, using separate ports 3013/3015 and an independent Docker project/database. The earlier `10.10.1.116` setup is optional. See [same-server development](14_SAME_SERVER_DEVELOPMENT.md). Production runs in `/home/dentabook` on `10.10.1.113`, with independent configuration and its own PostgreSQL volume.
 
 ## Current addresses
 
@@ -58,7 +58,7 @@ Public and clinic links use the public HTTPS origin at build time. Changing an o
 
 ## Deliberate releases
 
-Develop and test on `10.10.1.116` using a feature branch, then merge reviewed changes into `main`. Production images copy source during builds; development edits or pushes do not update production automatically.
+Develop and test through the isolated `10.10.1.113:3013` / `:3015` preview (or the older development computer) using a feature branch, then merge reviewed changes into `main`. Production images copy source during builds; development edits or pushes do not update production automatically.
 
 Before a release, create a private database backup:
 
