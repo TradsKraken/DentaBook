@@ -11,6 +11,8 @@ The documents are arranged so business readers can begin without technical knowl
 
 The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) explains patient, clinic, and administrator journeys, system architecture, sessions, database relationships, cost estimates, releases, and the remaining roadmap. Each diagram has a full-size SVG and an editable Mermaid source.
 
+The [development history](12_DEVELOPMENT_HISTORY.md) follows the recorded work from the initial requirements through the current handoff. It explains each milestone in plain language and distinguishes completed features from planning. For the latest release summaries, see the [delivery notes](../CHANGELOG.md).
+
 ## Terms used in these documents
 
 | Term | Plain-language meaning |

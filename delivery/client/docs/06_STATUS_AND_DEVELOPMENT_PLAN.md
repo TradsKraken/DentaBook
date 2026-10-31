@@ -2,6 +2,8 @@
 
 **Snapshot: 31 October 2026.** This document distinguishes delivered behavior from remaining scope. A database table or page address alone does not mean its complete workflow is available.
 
+For earlier milestones and how the project reached this stage, read the [development history](12_DEVELOPMENT_HISTORY.md), beginning with the first recorded work on 29 October 2026.
+
 ## Delivered in this snapshot
 
 | Area | Available behavior |

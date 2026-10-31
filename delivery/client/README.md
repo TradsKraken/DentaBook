@@ -6,7 +6,7 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 
 **Development status, last updated 31 October 2026:** the clinic discovery, accounts, and clinic-approval foundation is delivered. **Clinic content management is the next planned increment.** Online appointment submission, live scheduling, and payments remain planned work.
 
-[Development status](#development-status) · [Recent updates](#recent-updates) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
+[Development status](#development-status) · [Recent updates](#recent-updates) · [Development history](#development-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
 
 ## Development status
 
@@ -44,12 +44,31 @@ These describe the website foundation included in the client delivery. The more 
 
 | Date | Update | Client benefit |
 | --- | --- | --- |
+| 31 October 2026 | Historical development updates | Added the recorded progression from initial requirements on 29 October through accounts, security, production preparation, and the current handoff |
 | 31 October 2026 | Public redirect-loop correction | Confirmed NPM settings: Force SSL off, HTTP/2 Support on; public patient/clinic pages load and the admin root redirects once to sign-in |
 | 31 October 2026 | Development-status README | One place to review delivered capabilities, read-only areas, recent changes, the next increment, and remaining phases |
 | 31 October 2026 | Workflow and system diagrams | 12 diagrams explain patient/clinic/admin journeys, architecture, sessions, database relationships, estimates, releases, and future work; SVG images and editable sources are included |
 | 31 October 2026 | Initial client handoff | Application source, configuration templates, user instructions, technical documentation, operations guidance, and the remaining-development plan are supplied together |
 
 See [delivery notes](CHANGELOG.md) for the release history and the [verification record](docs/VERIFICATION.md) for the checks performed. This repository records reviewed client deliveries; it is not a live feed of every development change.
+
+## Development history
+
+The first recorded project work is dated **29 October 2026**. This overview includes the development that preceded the separate client repository.
+
+| Recorded date | Milestone | What changed |
+| --- | --- | --- |
+| 29 October 2026 | Requirements and design | Defined the project purpose, patient/clinic/admin journeys, feature scope, and proposed architecture |
+| 29 October 2026 | Application foundation | Set up the React interface, Express server, PostgreSQL database structure, and Docker development environment |
+| 29 October 2026 | Public website | Added branded phone-first pages, clinic discovery and profiles, treatment information, database-backed reads, and published-price estimates |
+| 29 October 2026 | Clinic onboarding and review | Added clinic/staff registration, sign-in, registration status, guarded workspaces, and administrator approval/rejection |
+| 30 October 2026 | Patient accounts | Added registration, sign-in/out, protected personal pages, and account-scoped reads of existing appointments |
+| 30 October 2026 | Access and usability improvements | Strengthened portal/session checks and container isolation, clarified local environment settings, and added motion respecting reduced-motion preferences |
+| 30 October 2026 | Production preparation | Separated development and production configuration and the public/clinic website from the administrator host and API process |
+| 31 October 2026 | Client handoff and documentation | Supplied the client source release, handbook, 12 diagrams, status overview, verification record, and remaining-development plan |
+| 31 October 2026 | Hosting correction and history | Recorded the confirmed proxy redirect fix and added this historical update record |
+
+Dates are recorded development dates in **Philippine time (UTC+8)**, not individual live-release dates. Early requirements and architecture entries describe planning; unfinished booking and payment workflows remain planned. Read the [full development history](docs/12_DEVELOPMENT_HISTORY.md) for each stage's result and limits.
 
 ## Next planned release
 
@@ -129,6 +148,7 @@ Open the [HTML handbook](CLIENT_GUIDE.html) locally in a browser for a printable
 | A plain-language project introduction | [Project guide](docs/01_PROJECT_GUIDE.md) |
 | Instructions for patients, clinics, and administrators | [User guide](docs/02_USER_GUIDE.md) |
 | Delivered features and remaining development phases | [Status and development plan](docs/06_STATUS_AND_DEVELOPMENT_PLAN.md) |
+| Updates from the first recorded project work | [Development history](docs/12_DEVELOPMENT_HISTORY.md) |
 | Workflow, architecture, and database diagrams | [Diagram guide](docs/11_DIAGRAMS_AND_WORKFLOWS.md) |
 | How the website is built | [Technical overview](docs/03_TECHNICAL_OVERVIEW.md) |
 | Installation and domain configuration | [Setup and deployment](docs/04_SETUP_AND_DEPLOYMENT.md) |

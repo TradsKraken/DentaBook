@@ -26,3 +26,7 @@ The README now presents delivered and read-only capabilities, recent website/del
 ## Public redirect regression check — 31 October 2026
 
 The operator confirmed that NPM Force SSL must be off and HTTP/2 Support on for the current deployment. After that change, checks pinned to the public Cloudflare address returned HTTP 200 with zero redirects for the patient homepage and clinic sign-in. The administrator root returned HTTP 200 after one expected redirect to `/admin/sign-in`. These checks exercise the public route separately from LAN DNS. Application source, production cookies, and role checks are unchanged; origin-hop encryption was not determined by these redirect checks.
+
+## Historical update documentation — 31 October 2026
+
+The historical timeline was checked against the recorded development changes, including the underlying feature/security changes rather than commit titles alone. Dates use Asia/Manila (UTC+8), with related changes grouped into client-readable milestones. Earlier requirements and proposed workflows are labeled as planning. Local documentation and README section links were checked, and the refreshed HTML/PDF handbook passed phone-first checks at 390px, 320px, 768px, and 1440px plus print checks. Exported application source remains identical to the previously tested delivery; no application test results or production deployment claims are added by this documentation update.
