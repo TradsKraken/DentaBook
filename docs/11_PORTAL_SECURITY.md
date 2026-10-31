@@ -18,12 +18,12 @@ links do not appear in public navigation.
 
 The Express API enforces authorization independently of the UI. Production uses a public API process (`APP_PORTAL=public`) for patients and clinics, and a separate administrator API (`APP_PORTAL=admin`). Public pages and APIs reject administration routes; administration rejects patient/clinic routes. Each process checks its exact HTTPS browser origin. Portal selection comes from process configuration, not a caller-supplied header. API and database ports are not published.
 
-Login endpoints accept only the designated account role. The public process accepts only patient or clinic sessions; the administrator process accepts only system administrators, even if a foreign session token is copied into its cookie. `/auth/login` remains a clinic-only alias for `/auth/clinic/login`. Workspaces independently enforce roles, clinic approval, and record ownership. Patient appointments use the signed-in patient's ID, never a caller-supplied ID. The combined development setup retains the same role checks.
+Ordinary accounts can sign in only to their designated role. An explicitly provisioned [owner account](13_OWNER_ACCESS.md) can sign into each portal with a session scoped to that portal’s role. Development-only owners are blocked by production APIs. The public process accepts only patient or clinic sessions; the administrator process accepts only system administrators, even if a foreign session token is copied into its cookie. `/auth/login` remains a clinic-only alias for `/auth/clinic/login`. Workspaces independently enforce roles. Ordinary clinic staff require clinic approval and record ownership; a clinic-role owner session can explicitly select an existing clinic for read-only access without changing approval or ownership. Patient appointments use the signed-in patient's ID, never a caller-supplied ID. The combined development setup retains the same role checks.
 
 Sessions use random 256-bit tokens; only SHA-256 hashes are stored. They are bound
 to the sign-in role. Database triggers revoke all sessions when an account's role
-or password hash changes. Re-login rotates the browser session; logout revokes
-it. Administrator sessions expire after one hour; other roles after eight hours.
+or password hash changes. Owner-grant, development-only flag, and username changes also revoke sessions. Re-login rotates the browser session; logout revokes
+it. Administrator and owner sessions expire after one hour; other accounts after eight hours.
 
 Production uses `__Host-dentabook_public_session` on the shared patient/clinic host and `__Host-dentabook_admin_session` on the administrator host. Cookies have `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, and no Domain attribute. Cookies are not isolated by port, so separate hosts and names protect administrator session separation. Patients and clinic staff share one browser session on their common host and sign out to switch accounts. Existing users must sign in again after a cookie-name change. Default combined local deployments retain `dentabook_session` (or its secure host-prefixed form).
 

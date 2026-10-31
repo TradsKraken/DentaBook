@@ -35,6 +35,10 @@ The user has added a patient-access requirement beyond the original brief: guest
 - Personal appointments are read from the database, restricted to the session's patient ID, with no client-supplied patient selector. The current screen shows the latest 50 linked records and an honest empty state.
 - Actual appointment submission, scheduling, payments, cancellation, and rescheduling remain future work; signing in does not simulate those operations.
 
+## Operator-provisioned owner access
+
+Source support now includes an explicit owner account with a username, separate portal-scoped sign-ins, and a selector for existing clinic workspaces. The requested weak-password account is development-only and blocked in production; production provisioning requires a strong password. Ordinary account, portal, and patient-record boundaries remain enforced. See [owner account setup](13_OWNER_ACCESS.md) for installation and provisioning. This source change does not by itself install an account on another host or deploy production.
+
 ## Subsequent parts
 
 1. Clinic management: profile editing, dentist credentials, service/price management, dentist-service assignments, and staff ownership rules.

@@ -176,7 +176,7 @@ export function PatientAccount() {
           <dt>Name</dt>
           <dd>{session.user.name}</dd>
           <dt>Email</dt>
-          <dd>{session.user.email}</dd>
+          <dd>{session.user.email || "No email address set"}</dd>
         </dl>
         <div className="form-actions">
           <Link className="button secondary" to="/patient/appointments">

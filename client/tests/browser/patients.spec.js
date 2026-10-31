@@ -98,7 +98,7 @@ test("patient signup and sign-in return to the original booking page", async ({
     page.getByRole("heading", { name: "Your patient account is ready." }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Sign in to continue" }).tap();
-  await page.getByLabel("Email address", { exact: true }).fill(values.email);
+  await page.getByLabel("Email address or username", { exact: true }).fill(values.email);
   await page.getByLabel("Password", { exact: true }).fill(values.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).tap();
   await expect(page).toHaveURL(/\/patient\/book\?clinic=chosen-clinic$/);

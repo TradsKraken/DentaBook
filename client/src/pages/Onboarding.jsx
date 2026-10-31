@@ -282,7 +282,7 @@ export function SignIn({ portal = "clinic" }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  if (session && session.user.role !== expectedRole)
+  if (session && session.user.role !== expectedRole && !session.user.ownerAccess)
     return (
       <div className="wrap page">
         <div className="account-panel panel empty">
@@ -300,7 +300,7 @@ export function SignIn({ portal = "clinic" }) {
         </div>
       </div>
     );
-  if (session) return <Navigate to={workspace} replace />;
+  if (session?.user.role === expectedRole) return <Navigate to={workspace} replace />;
   async function submit(event) {
     event.preventDefault();
     setBusy(true);
@@ -353,9 +353,9 @@ export function SignIn({ portal = "clinic" }) {
         />
         <form className="panel" onSubmit={submit}>
           <Field
-            label="Email address"
+            label="Email address or username"
             name="email"
-            type="email"
+            type="text"
             autoComplete="username"
             value={form.email}
             onChange={(event) =>
@@ -446,31 +446,75 @@ export function ClinicWorkspace() {
   const [workspace, setWorkspace] = useState(null);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
-  const clinic = session.clinic;
+  const owner = !!session.user.ownerAccess;
+  const [clinics, setClinics] = useState([]);
+  const [selectedClinic, setSelectedClinic] = useState("");
+  const [optionsLoading, setOptionsLoading] = useState(owner);
+  const [optionsError, setOptionsError] = useState("");
+  const clinic = owner ? workspace?.clinic : session.clinic;
   useEffect(() => {
-    if (clinic?.status === "approved") refreshDirectory();
-  }, [clinic?.status, refreshDirectory]);
+    if (session.clinic?.status === "approved") refreshDirectory();
+  }, [session.clinic?.status, refreshDirectory]);
   useEffect(() => {
-    if (clinic?.status !== "approved") return;
+    if (!owner) return;
     const controller = new AbortController();
-    api("/workspaces/clinic", { signal: controller.signal })
+    setOptionsLoading(true);
+    setOptionsError("");
+    api("/workspaces/clinic/options", { signal: controller.signal })
+      .then(data => setClinics(data.clinics))
+      .catch(error => { if (!controller.signal.aborted) setOptionsError(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setOptionsLoading(false); });
+    return () => controller.abort();
+  }, [owner, attempt]);
+  useEffect(() => {
+    if (owner ? !selectedClinic : session.clinic?.status !== "approved") return;
+    const controller = new AbortController();
+    setWorkspace(null);
+    setError("");
+    api(`/workspaces/clinic${owner ? `?clinicId=${encodeURIComponent(selectedClinic)}` : ""}`, { signal: controller.signal })
       .then(setWorkspace)
       .catch((error) => {
         if (!controller.signal.aborted) setError(error.message);
       });
     return () => controller.abort();
-  }, [clinic?.status, attempt]);
+  }, [owner, selectedClinic, session.clinic?.status, attempt]);
   return (
     <div className="wrap page">
       <div className="section-heading">
         <PageTitle
-          eyebrow="YOUR CLINIC ACCOUNT"
-          title={clinic?.name || "Clinic registration"}
+          eyebrow={owner ? "OWNER CLINIC ACCESS" : "YOUR CLINIC ACCOUNT"}
+          title={clinic?.name || (owner ? "Clinic workspaces" : "Clinic registration")}
           text={`Signed in as ${session.user.name}`}
         />
         <SignOut />
       </div>
-      {clinic?.status !== "approved" ? (
+      {owner && (
+        <section className="panel">
+          <h2>Choose a clinic</h2>
+          <p>View an existing clinic’s saved information. Selecting a clinic does not change its owner or approval status.</p>
+          {optionsLoading ? <p role="status">Loading clinics…</p> : optionsError ? (
+            <div role="alert">
+              <p>{optionsError}</p>
+              <button className="button secondary" onClick={() => setAttempt(n => n + 1)}>Try again</button>
+            </div>
+          ) : clinics.length === 0 ? <p>No clinics have been registered yet.</p> : (
+            <div className="field">
+              <label htmlFor="owner-clinic">Clinic</label>
+              <select id="owner-clinic" value={selectedClinic} onChange={event => {
+                setWorkspace(null);
+                setError("");
+                setSelectedClinic(event.target.value);
+              }}>
+                <option value="">Select a clinic</option>
+                {clinics.map(item => <option key={item.id} value={item.id}>{item.name} — {item.status.replaceAll("_", " ")}</option>)}
+              </select>
+            </div>
+          )}
+        </section>
+      )}
+      {owner && !selectedClinic ? (
+        <div className="panel empty"><p>Select a clinic above to open its workspace.</p></div>
+      ) : !owner && clinic?.status !== "approved" ? (
         <section className="panel account-status">
           <span className="icon-tile">
             <Clock3 />
@@ -526,7 +570,9 @@ export function ClinicWorkspace() {
         <>
           <div className="notice">
             <CheckCircle2 size={20} />
-            Your clinic is approved and listed in the public directory.
+            {owner
+              ? `Owner access. Clinic status: ${workspace.clinic.status.replaceAll("_", " ")}.`
+              : "Your clinic is approved and listed in the public directory."}
           </div>
           <div className="stats-grid">
             {[
@@ -551,9 +597,9 @@ export function ClinicWorkspace() {
               <dt>Email</dt>
               <dd>{workspace.clinic.email}</dd>
             </dl>
-            <Link className="button secondary" to={`/clinics/${clinic.id}`}>
+            {clinic.status === "approved" && <Link className="button secondary" to={`/clinics/${clinic.id}`}>
               View public clinic profile <ArrowRight size={16} />
-            </Link>
+            </Link>}
             <p className="summary-note">
               Clinic profile editing, dentist/service management, schedules, and
               booking tools are the next development stage.

@@ -116,7 +116,7 @@ test("sign in, pending approval, approved dashboard, access restriction, and sig
   await page.goto("/clinic");
   await expect(page).toHaveURL(/sign-in/);
   await page
-    .getByLabel("Email address", { exact: true })
+    .getByLabel("Email address or username", { exact: true })
     .fill("owner@example.com");
   await page
     .getByLabel("Password", { exact: true })
@@ -234,7 +234,7 @@ test("administrator sign-in has a separate URL, layout, endpoint, and logout des
     page.getByRole("link", { name: "Register your clinic" }),
   ).toHaveCount(0);
   await page
-    .getByLabel("Email address", { exact: true })
+    .getByLabel("Email address or username", { exact: true })
     .fill("admin@example.com");
   await page
     .getByLabel("Password", { exact: true })

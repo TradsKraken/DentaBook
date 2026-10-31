@@ -14,7 +14,7 @@ Development is proceeding in production increments, with a mobile-first interfac
 
 The directory reads approved clinic records from PostgreSQL through `/api/clinics`; it does not supply invented listings, ratings, credentials, or prices. Only active services and dentist profiles are public. Empty results and service failures have distinct states. No appointments are stored in browser storage, and there is no public staff dashboard.
 
-Clinic registration, sign-in, administrator approval/rejection, and the protected clinic dashboard are now implemented. See [clinic accounts setup](docs/09_CLINIC_ACCOUNTS_SETUP.md) to configure the database and create the first administrator. There are no default administrator credentials.
+Clinic registration, sign-in, administrator approval/rejection, and the protected clinic dashboard are now implemented. See [clinic accounts setup](docs/09_CLINIC_ACCOUNTS_SETUP.md) to configure the database and create the first administrator. Accounts are not seeded automatically. An operator can explicitly provision [owner access to all three portals](docs/13_OWNER_ACCESS.md), including the requested development-only account and an existing-clinic selector.
 
 Patient registration, sign-in, account information, and an account-scoped appointment list are implemented. Visitors can browse clinics, services, and estimates without an account. Booking, personal appointments, and account pages require patient sign-in. Use `/patient/register` and `/patient/sign-in`; `/sign-in` is now a shortcut to patient sign-in.
 

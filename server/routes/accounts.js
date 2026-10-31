@@ -119,29 +119,33 @@ function createAccountRouter(pool) {
   );
   const loginFor = (role) => async (req, res, next) => {
     const body = req.body || {};
+    const identifier = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     if (
-      !email(body.email) ||
+      !(email(identifier) || /^[a-z][a-z0-9_.-]{2,39}$/.test(identifier)) ||
       typeof body.password !== "string" ||
       Buffer.byteLength(body.password, "utf8") > 72 ||
       !body.password
     ) {
       return res
         .status(400)
-        .json({ error: "Enter your email address and password." });
+        .json({ error: "Enter your email address or username and password." });
     }
     try {
       const result = await pool.query(
-        "SELECT id, password_hash, role FROM users WHERE LOWER(email) = $1",
-        [body.email.trim().toLowerCase()],
+        `SELECT id, password_hash, role, owner_access, development_only FROM users
+        WHERE LOWER(email) = $1 OR LOWER(username) = $1`,
+        [identifier],
       );
       const user = result.rows[0];
       const matches = await bcrypt.compare(
         body.password,
         user ? user.password_hash : await dummyHash,
       );
-      if (!user || !matches || user.role !== role)
+      if (!user || !matches ||
+          (user.role !== role && !(user.role === "system_admin" && user.owner_access)) ||
+          (user.development_only && process.env.NODE_ENV !== "development"))
         return res.status(401).json({
-          error: "The email address or password is incorrect for this portal.",
+          error: "The sign-in details are incorrect for this portal.",
         });
       const token = crypto.randomBytes(32).toString("hex");
       // Replacing this browser's session prevents session fixation and stale duplicate sessions.
@@ -153,19 +157,23 @@ function createAccountRouter(pool) {
       await pool.query(
         "DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP",
       );
-      const duration = role === "system_admin" ? 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
+      const duration = user.owner_access || role === "system_admin" ? 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
       const created = await pool.query(
         `INSERT INTO sessions (token_hash, user_id, role, expires_at)
-        SELECT $1, u.id, u.role, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond'
-        FROM users u WHERE u.id = $2 AND u.role = $3 AND u.password_hash = $5
+        SELECT $1, u.id, $3::varchar, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond'
+        FROM users u WHERE u.id = $2 AND u.password_hash = $5
+          AND u.role = $6 AND u.owner_access = $7
+          AND (u.role = $3 OR (u.role = 'system_admin' AND u.owner_access))
+          AND (NOT u.development_only OR $8 = 'development')
         FOR SHARE RETURNING token_hash`,
-        [hashToken(token), user.id, role, duration, user.password_hash],
+        [hashToken(token), user.id, role, duration, user.password_hash,
+          user.role, user.owner_access, process.env.NODE_ENV || ""],
       );
       // Serialize issuance with credential changes so an old password cannot
       // create a new session after a concurrent reset or privilege change.
       if (!created.rows.length)
         return res.status(401).json({
-          error: "The email address or password is incorrect for this portal.",
+          error: "The sign-in details are incorrect for this portal.",
         });
       res.cookie(cookieName(), token, {
         ...cookieOptions(),
@@ -185,7 +193,7 @@ function createAccountRouter(pool) {
       res.json({
         user: req.user,
         clinic:
-          req.user.role === "clinic_staff"
+          req.user.role === "clinic_staff" && !req.user.ownerAccess
             ? await ownedClinic(pool, req.user.id)
             : null,
       });

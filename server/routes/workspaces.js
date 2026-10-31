@@ -32,10 +32,28 @@ function createWorkspaceRouter(pool) {
       }
     },
   );
+  router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {
+    if (!req.user.ownerAccess)
+      return res.status(403).json({ error: "Owner access is required to select another clinic." });
+    try {
+      const result = await pool.query("SELECT id, name, status FROM clinics ORDER BY name, id");
+      res.json({ clinics: result.rows });
+    } catch (error) { next(error); }
+  });
   router.get("/clinic", requireRole("clinic_staff"), async (req, res, next) => {
     try {
-      const clinic = await ownedClinic(pool, req.user.id);
-      if (!clinic || clinic.status !== "approved")
+      let clinic;
+      if (req.user.ownerAccess) {
+        if (!uuid.test(req.query.clinicId || ""))
+          return res.status(400).json({ error: "Select a clinic to open its workspace." });
+        clinic = (await pool.query(`SELECT ${clinicColumns} FROM clinics c WHERE c.id = $1`, [req.query.clinicId])).rows[0];
+        if (!clinic) return res.status(404).json({ error: "This clinic is no longer available." });
+      } else {
+        if (req.query.clinicId !== undefined)
+          return res.status(403).json({ error: "Clinic staff can only access their own clinic." });
+        clinic = await ownedClinic(pool, req.user.id);
+      }
+      if (!clinic || (!req.user.ownerAccess && clinic.status !== "approved"))
         return res.status(403).json({
           error: "Clinic approval is required to access the dashboard.",
         });
