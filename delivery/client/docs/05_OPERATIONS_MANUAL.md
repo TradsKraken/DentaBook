@@ -57,6 +57,7 @@ Never use `docker compose down -v` for a routine update: it deletes the named da
 
 | Symptom | What to check |
 | --- | --- |
+| Repeated redirects through the public hostname | For this confirmed deployment, keep NPM Force SSL off and HTTP/2 Support on. Compare the public and LAN routes; a successful LAN check alone does not verify the Cloudflare path. |
 | Proxy shows 502 | Container status, production server address, correct upstream port, LAN reachability, and application logs |
 | Certificate or hostname error | Exact Proxy Host name, DNS record, matching certificate, and renewal status |
 | Sign-in form works but session does not persist | HTTPS, correct browser hostname, production origins, cookies, and API health |

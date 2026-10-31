@@ -32,7 +32,7 @@ API processes run as a non-root account with a read-only container filesystem, t
 
 ## Limits and continuing work
 
-HTTPS protects browser-to-proxy traffic when DNS, certificates, and redirects are configured correctly. The proxy-to-application LAN hop and application-to-database Docker hop are not encrypted by the current setup. Database-volume and backup encryption are not automatically configured.
+Public browser HTTPS has been verified. For this deployment, NPM Force SSL is off and HTTP/2 Support is on; forcing a redirect at NPM caused a public redirect loop. The Force SSL switch is a redirect setting, not proof of encryption on every connection. Cloudflare-to-NPM transport depends on its separate origin/TLS configuration and was not established by these redirect checks. The NPM-to-application LAN hop and application-to-database Docker hop are not encrypted by the current setup. Database-volume and backup encryption are not automatically configured.
 
 MFA, self-service password recovery, email verification, durable shared request throttling, and a full security audit trail are future work. Current request limits are stored in each API process's memory and reset with that process. The project has automated access-control tests; it has not undergone an independent penetration assessment.
 

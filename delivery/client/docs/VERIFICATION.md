@@ -22,3 +22,7 @@ The documentation now includes 12 editable Mermaid sources and 12 corresponding 
 ## README development-status update — 31 October 2026
 
 The README now presents delivered and read-only capabilities, recent website/delivery updates, current limitations, and the next planned clinic-management increment. The later roadmap remains explicitly planned. Local documentation links and README section links were checked, and the handbook phone/desktop and print checks passed after refreshing the release notes. Application source is unchanged, so the previously recorded backend and production journey results continue to describe the delivered application.
+
+## Public redirect regression check — 31 October 2026
+
+The operator confirmed that NPM Force SSL must be off and HTTP/2 Support on for the current deployment. After that change, checks pinned to the public Cloudflare address returned HTTP 200 with zero redirects for the patient homepage and clinic sign-in. The administrator root returned HTTP 200 after one expected redirect to `/admin/sign-in`. These checks exercise the public route separately from LAN DNS. Application source, production cookies, and role checks are unchanged; origin-hop encryption was not determined by these redirect checks.

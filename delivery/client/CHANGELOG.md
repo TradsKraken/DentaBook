@@ -1,5 +1,9 @@
 # Delivery notes
 
+## Public redirect-loop resolution — 31 October 2026
+
+Recorded the confirmed Nginx Proxy Manager settings for this deployment: Force SSL off and HTTP/2 Support on. Replaced the earlier Force SSL instruction in the setup guide and added public-versus-LAN redirect checks to operations/testing guidance. Public patient and clinic pages return HTTP 200 without redirects; the administrator root follows one expected sign-in redirect to HTTP 200. This resolves a hosting configuration issue without changing application features.
+
 ## Client development-status summary — 31 October 2026
 
 Expanded the README with the delivered website status, read-only capabilities, website improvements included in the handoff, recent documentation updates, current limitations, the next planned clinic-management increment, and later development phases. Added links to verification, diagrams, and the handbook. This is a documentation update; application behavior is unchanged.

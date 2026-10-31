@@ -34,7 +34,7 @@ Nginx Proxy Manager is at `http://10.10.1.108:81`. The user manages its settings
 | `dentabook.forgroup.space` | `http` | `10.10.1.113` | `3003` |
 | `dentabook-admin.forgroup.space` | `http` | `10.10.1.113` | `3005` |
 
-Use valid certificates for those exact names and Force SSL. Cloudflare, when proxying these records, should use Full (strict). Forward the entire host without path rewrites or extra `/api` rules. For administrator access limited to your team, use a Proxy Host IP access list with your actual trusted addresses; administrator authentication is still required.
+Keep the existing matching certificates. The confirmed NPM settings for this deployment are **Force SSL off** and **HTTP/2 Support on**. Enabling Force SSL caused a public redirect loop; disabling it resolved the issue. This describes the current proxy path, not a universal SSL rule. Browser-facing HTTPS remains available, while Cloudflare-to-origin encryption is configured separately. Forward the entire host without path rewrites or extra `/api` rules. For administrator access limited to your team, use a Proxy Host IP access list with your actual trusted addresses; administrator authentication is still required.
 
 The user reports both Proxy Hosts are configured. Local DNS resolves them to `10.10.1.108`. Do not redirect clinic traffic to a separate clinic domain. Production clinic links point to the public host.
 
@@ -109,3 +109,7 @@ The browser checks review 390px first, then 320px, 768px, and 1440px; public bro
 ## Verified deployment (2026-10-30)
 
 All 33 backend tests passed. Both production browser tests passed through the actual HTTPS domains, with 390px checked first followed by 320px, 768px, and 1440px. Checks confirmed public/clinic access, administrator route isolation, protected-page redirects, relative administrator root redirects that preserve the browser origin, security headers/CSP, readable controls, and no horizontal overflow. Both HTTPS APIs report healthy connected databases. Correct login origins reach validation; foreign origins are rejected. LAN administrator access retains port 3005; clinic access succeeds on port 3003. No production accounts or clinic records were created by verification, and no real account credentials were used. The existing unrelated website containers remain healthy.
+
+## Confirmed public redirect fix (2026-10-31)
+
+The operator resolved the loop by disabling Force SSL in NPM and keeping HTTP/2 Support enabled. Public Cloudflare checks now return HTTP 200 with zero redirects for the homepage and clinic sign-in, and one expected redirect followed by HTTP 200 for the administrator root. Earlier instructions to enable NPM Force SSL are superseded for this deployment. Always verify the public route separately: LAN DNS resolves directly to the proxy and can hide public-route failures. No application or session-security settings were changed.

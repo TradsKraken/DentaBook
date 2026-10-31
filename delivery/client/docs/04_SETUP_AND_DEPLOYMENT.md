@@ -63,7 +63,16 @@ Create these two Proxy Hosts, substituting the production server's LAN address:
 | `dentabook.forgroup.space` | `http` | Production server LAN address | `3003` |
 | `dentabook-admin.forgroup.space` | `http` | Production server LAN address | `3005` |
 
-Install a valid certificate for each exact name and enable Force SSL. Forward the entire hostname; the application already handles `/api` forwarding. Do not create a separate clinic host. Clinic access uses `/clinic/sign-in` on the main website. Use Cloudflare Full (strict) encryption when the DNS records are proxied through Cloudflare.
+Keep the existing certificates for the exact hostnames. For this deployment, the confirmed Nginx Proxy Manager SSL options are:
+
+| Option | Confirmed setting |
+| --- | --- |
+| Force SSL | **Off** |
+| HTTP/2 Support | **On** |
+
+Enabling Force SSL on this proxy path caused repeated redirects; disabling it resolved the public-site loop. These are the working settings for the current Cloudflare/NPM deployment, not a universal rule for every installation. Force SSL controls an HTTP-to-HTTPS redirect; disabling that option does not disable the existing browser-facing HTTPS service. Cloudflare-to-origin encryption is a separate configuration and must not be inferred from this switch.
+
+Forward the entire hostname; the application already handles `/api` forwarding. Do not create a separate clinic host. Clinic access uses `/clinic/sign-in` on the main website.
 
 The administrator root redirects to `/admin/sign-in`. Redirects are relative so they preserve the browser's HTTPS hostname or the published LAN port.
 
@@ -85,6 +94,8 @@ curl --fail https://dentabook-admin.forgroup.space/api/health
 curl --fail --location --head https://dentabook-admin.forgroup.space/
 curl --fail --head https://dentabook.forgroup.space/clinic/sign-in
 ```
+
+Check public Internet access separately from LAN access: local DNS may bypass Cloudflare. The public patient and clinic pages should return 200 without a repeated redirect. The administrator root should make one redirect to its sign-in page, then return 200.
 
 Both health responses should report `healthy` and a connected database. Administrator pages must return 404 on the public host; patient and clinic pages must return 404 on the administrator host. Then run the [acceptance checks](07_TESTING_AND_ACCEPTANCE.md).
 

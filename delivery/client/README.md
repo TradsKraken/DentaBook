@@ -44,6 +44,7 @@ These describe the website foundation included in the client delivery. The more 
 
 | Date | Update | Client benefit |
 | --- | --- | --- |
+| 31 October 2026 | Public redirect-loop correction | Confirmed NPM settings: Force SSL off, HTTP/2 Support on; public patient/clinic pages load and the admin root redirects once to sign-in |
 | 31 October 2026 | Development-status README | One place to review delivered capabilities, read-only areas, recent changes, the next increment, and remaining phases |
 | 31 October 2026 | Workflow and system diagrams | 12 diagrams explain patient/clinic/admin journeys, architecture, sessions, database relationships, estimates, releases, and future work; SVG images and editable sources are included |
 | 31 October 2026 | Initial client handoff | Application source, configuration templates, user instructions, technical documentation, operations guidance, and the remaining-development plan are supplied together |

@@ -183,3 +183,7 @@ The user supplied the actual administrator domain, `dentabook-admin.forgroup.spa
 All 33 backend tests passed, including the new shared patient/clinic boundary test. Both actual HTTPS health APIs report connected databases. Correct-origin patient/clinic/admin login requests reach validation, while foreign origins return 403. Clinic HTTPS sign-in and administrator HTTPS root redirects return HTTP 200. The admin LAN root retains port 3005, and clinic LAN sign-in returns HTTP 200 on port 3003. Real-browser HTTPS checks are in `client/tests/browser/portals.spec.js`; current instructions are in [production setup](../12_DOMAIN_SETUP.md). Earlier three-port and pending-certificate notes are superseded.
 
 Final verification passed both production browser tests through the actual patient/clinic and administrator HTTPS domains at 390/320/768/1440px. No credentials or production test data were created.
+
+## Confirmed public-route redirect correction (2026-10-31)
+
+The operator confirmed the working NPM settings are Force SSL off and HTTP/2 Support on. With Force SSL enabled, public Cloudflare requests repeatedly redirected to the same HTTPS URL, while direct LAN HTTPS succeeded. After disabling it, public homepage/clinic checks return 200 without redirects and admin root returns 200 after one expected sign-in redirect. The current deployment and client guides have been corrected; earlier Force SSL recommendations are superseded for this route. This change was applied in NPM by the operator, not in application code.

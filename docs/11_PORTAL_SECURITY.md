@@ -46,8 +46,7 @@ These controls do not protect against a compromised host or Docker operator.
 
 ## Encryption and deployment limits
 
-No system is guaranteed unbreachable. Browser-to-proxy encryption requires a
-valid certificate and Force SSL on the external Nginx proxy. Forward the patient/clinic HTTPS host to `10.10.1.113:3003` and the administrator HTTPS host to `10.10.1.113:3005`. Direct HTTP upstream access is for diagnostics, not submitting credentials. Each API uses its exact HTTPS browser origin and secure portal cookie. Separate ports do not by themselves provide encryption or replace role checks.
+Browser-facing HTTPS has been verified. For this deployment, NPM Force SSL is off and HTTP/2 Support is on; enabling Force SSL caused a public redirect loop. This redirect setting does not establish Cloudflare-to-origin encryption, which depends on separate origin/TLS configuration. Forward the patient/clinic HTTPS host to `10.10.1.113:3003` and the administrator HTTPS host to `10.10.1.113:3005`. Direct HTTP upstream access is for diagnostics, not submitting credentials. Each API uses its exact HTTPS browser origin and secure portal cookie. Separate ports do not by themselves provide encryption or replace role checks.
 
 The proxy-to-app LAN hop and API-to-PostgreSQL Docker hop do not currently use
 TLS. Database disks and backups are not encrypted by these changes. Encryption
