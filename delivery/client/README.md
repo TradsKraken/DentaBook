@@ -6,7 +6,7 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 
 **Development status, last updated 31 October 2026:** the clinic discovery, accounts, and clinic-approval foundation is delivered. **Clinic content management is the next planned increment.** Online appointment submission, live scheduling, and payments remain planned work.
 
-[Development status](#development-status) · [Recent updates](#recent-updates) · [Development history](#development-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
+[Development status](#development-status) · [Recent updates](#recent-updates) · [Website history](#website-update-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
 
 ## Development status
 
@@ -29,46 +29,23 @@ Clinic listings come from approved database records. A new installation can legi
 
 ## Recent updates
 
-### Website improvements included in the current delivery
+| Date | Website change | What users experience | Status |
+| --- | --- | --- | --- |
+| 31 October 2026 | Redirect-loop fix | Patient and clinic pages open successfully; administrator access reaches sign-in normally | Live fix verified |
+| 30 October 2026 | Patient accounts | Register, sign in/out, view account information, and read personal appointment records | Included in the delivered foundation |
+| 30 October 2026 | Access and phone usability | Separate account-role access, stronger sign-in protection, readable phone controls, and accessible page transitions | Included in the delivered foundation |
+| 29 October 2026 | Clinic discovery and estimates | Browse approved clinics and treatment information and estimate costs using published prices | Included in the delivered foundation |
+| 29 October 2026 | Clinic registration and review | Submit a clinic, check review status/notes, and approve or reject pending registrations | Included in the delivered foundation |
 
-- **Public discovery:** a phone-first homepage, searchable clinic directory, public profiles, treatment information, and published-price estimates.
-- **Patient access:** patient registration and sign-in, protected personal pages, and appointment reads restricted to the signed-in account.
-- **Clinic review:** registration saves a staff account and unpublished clinic together; administrators can approve or reject pending submissions, with review details saved.
-- **Separate administration:** patients and clinics share the main hostname; administrators use their own HTTPS hostname and API process. Main-site administrator routes are blocked.
-- **Access and sessions:** server-side role, ownership, and clinic-approval checks; hashed passwords; secure database-backed sessions; origin checks; and session revocation after credential or role changes.
-- **Hosting and navigation:** Docker services and persistent storage, production domain configuration, redirects that preserve the correct hostname/port, and phone-readable form controls and navigation targets.
+The development preview also supports an owner account that can sign in separately to each portal and select existing clinic workspaces. **That change is awaiting production release and is implemented in the supplied source for development use.** Ordinary-account permissions and personal-appointment restrictions remain enforced.
 
-These describe the website foundation included in the client delivery. The more recent documentation updates below do not add booking, scheduling, or payment functionality.
+See [website updates](CHANGELOG.md), the [full website history](docs/12_DEVELOPMENT_HISTORY.md), and the [verification record](docs/VERIFICATION.md) for the behavior and limits. Documentation, repository, and project-administration tasks are kept out of this website-update history.
 
-### Latest client delivery updates
+## Website update history
 
-| Date | Update | Client benefit |
-| --- | --- | --- |
-| 31 October 2026 | Historical development updates | Added the recorded progression from initial requirements on 29 October through accounts, security, production preparation, and the current handoff |
-| 31 October 2026 | Public redirect-loop correction | Confirmed NPM settings: Force SSL off, HTTP/2 Support on; public patient/clinic pages load and the admin root redirects once to sign-in |
-| 31 October 2026 | Development-status README | One place to review delivered capabilities, read-only areas, recent changes, the next increment, and remaining phases |
-| 31 October 2026 | Workflow and system diagrams | 12 diagrams explain patient/clinic/admin journeys, architecture, sessions, database relationships, estimates, releases, and future work; SVG images and editable sources are included |
-| 31 October 2026 | Initial client handoff | Application source, configuration templates, user instructions, technical documentation, operations guidance, and the remaining-development plan are supplied together |
+The earliest recorded website features date from **29 October 2026**. The history follows changes to public pages, clinic discovery, estimates, clinic registration/review, patient accounts, access protection, phone usability, and the redirect fix.
 
-See [delivery notes](CHANGELOG.md) for the release history and the [verification record](docs/VERIFICATION.md) for the checks performed. This repository records reviewed client deliveries; it is not a live feed of every development change.
-
-## Development history
-
-The first recorded project work is dated **29 October 2026**. This overview includes the development that preceded the separate client repository.
-
-| Recorded date | Milestone | What changed |
-| --- | --- | --- |
-| 29 October 2026 | Requirements and design | Defined the project purpose, patient/clinic/admin journeys, feature scope, and proposed architecture |
-| 29 October 2026 | Application foundation | Set up the React interface, Express server, PostgreSQL database structure, and Docker development environment |
-| 29 October 2026 | Public website | Added branded phone-first pages, clinic discovery and profiles, treatment information, database-backed reads, and published-price estimates |
-| 29 October 2026 | Clinic onboarding and review | Added clinic/staff registration, sign-in, registration status, guarded workspaces, and administrator approval/rejection |
-| 30 October 2026 | Patient accounts | Added registration, sign-in/out, protected personal pages, and account-scoped reads of existing appointments |
-| 30 October 2026 | Access and usability improvements | Strengthened portal/session checks and container isolation, clarified local environment settings, and added motion respecting reduced-motion preferences |
-| 30 October 2026 | Production preparation | Separated development and production configuration and the public/clinic website from the administrator host and API process |
-| 31 October 2026 | Client handoff and documentation | Supplied the client source release, handbook, 12 diagrams, status overview, verification record, and remaining-development plan |
-| 31 October 2026 | Hosting correction and history | Recorded the confirmed proxy redirect fix and added this historical update record |
-
-Dates are recorded development dates in **Philippine time (UTC+8)**, not individual live-release dates. Early requirements and architecture entries describe planning; unfinished booking and payment workflows remain planned. Read the [full development history](docs/12_DEVELOPMENT_HISTORY.md) for each stage's result and limits.
+Dates use **Philippine time (UTC+8)**. Earlier feature dates describe recorded implementation changes, not the exact day each feature first appeared in production. Each new update should state the affected website behavior and whether it is **live**, **development preview**, or **planned**. Read the [full website update history](docs/12_DEVELOPMENT_HISTORY.md) for details.
 
 ## Next planned release
 
@@ -135,7 +112,7 @@ The latest recorded delivery checks include **33 backend tests**, **two producti
 
 ## How development progress is reported
 
-Each reviewed client release should update this README's date and status, the delivery notes, the detailed development plan, and the verification record. Work moves to **in progress** when implementation actually starts and to **available** only after its agreed acceptance checks pass.
+Each reviewed release should update this README's date and feature status, the website update history, the detailed development plan, and the verification record. History entries describe changes to website behavior and identify whether they are live, available only in development preview, or planned. Work moves to **in progress** when implementation actually starts and to **available** only after its agreed acceptance checks pass.
 
 Development, client delivery, and production deployment are separate steps. A development commit does not automatically appear in the client repository or change the live website. An approved release is documented, tested, backed up, deployed deliberately, and checked again.
 
@@ -148,10 +125,11 @@ Open the [HTML handbook](CLIENT_GUIDE.html) locally in a browser for a printable
 | A plain-language project introduction | [Project guide](docs/01_PROJECT_GUIDE.md) |
 | Instructions for patients, clinics, and administrators | [User guide](docs/02_USER_GUIDE.md) |
 | Delivered features and remaining development phases | [Status and development plan](docs/06_STATUS_AND_DEVELOPMENT_PLAN.md) |
-| Updates from the first recorded project work | [Development history](docs/12_DEVELOPMENT_HISTORY.md) |
+| Earlier website features and fixes | [Website update history](docs/12_DEVELOPMENT_HISTORY.md) |
 | Workflow, architecture, and database diagrams | [Diagram guide](docs/11_DIAGRAMS_AND_WORKFLOWS.md) |
 | How the website is built | [Technical overview](docs/03_TECHNICAL_OVERVIEW.md) |
 | Installation and domain configuration | [Setup and deployment](docs/04_SETUP_AND_DEPLOYMENT.md) |
+| Saved production versions and rollback | [Five-version release guide](docs/13_RELEASE_VERSIONS.md) |
 | Backups, updates, and troubleshooting | [Operations manual](docs/05_OPERATIONS_MANUAL.md) |
 | Test procedures and client review | [Testing and acceptance](docs/07_TESTING_AND_ACCEPTANCE.md) |
 | Technical interfaces and stored information | [API reference](docs/08_API_REFERENCE.md), [data and security](docs/09_DATA_AND_SECURITY.md) |

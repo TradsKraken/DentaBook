@@ -60,28 +60,16 @@ Public and clinic links use the public HTTPS origin at build time. Changing an o
 
 Develop and test through the isolated `10.10.1.113:3013` / `:3015` preview (or the older development computer) using a feature branch, then merge reviewed changes into `main`. Production images copy source during builds; development edits or pushes do not update production automatically.
 
-Before a release, create a private database backup:
+Use the versioned release command after the tested changes are committed:
 
 ```bash
 cd /home/dentabook
-mkdir -p .local/backups
-chmod 700 .local/backups
-umask 077
-docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > ".local/backups/pre-release-$(date +%Y%m%d-%H%M%S).sql"
+python3 scripts/releases.py deploy --note "Describe the website feature or fix delivered."
 ```
 
-From a clean production checkout, pull the tested release and build before replacing services:
+It saves the running website images and a verified database backup, deploys the update, and retains the five newest saved versions. Use `python3 scripts/releases.py list` to review saved versions. The [release and rollback guide](15_RELEASE_VERSIONS.md) explains restoration, retention after failures, and migration limits.
 
-```bash
-git switch main
-git pull --ff-only origin main
-docker compose build
-docker compose up -d --wait
-docker compose exec -T client nginx -c /etc/nginx/portals/nginx.conf -t
-docker compose exec -T client nginx -c /etc/nginx/portals/nginx.conf -s reload
-```
-
-Resolve local changes before pulling. Never use `docker compose down -v` for an update; it deletes production data. The production Nginx configuration resolves API container addresses through Docker DNS. Backups are manual; scheduled backups are not configured.
+A direct Compose build/update bypasses automatic version saves. Do not use `docker compose down -v` for an update; it deletes production data. Keep the production database and private environment configuration separate from development.
 
 ## Verification
 

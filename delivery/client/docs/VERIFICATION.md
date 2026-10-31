@@ -30,3 +30,11 @@ The operator confirmed that NPM Force SSL must be off and HTTP/2 Support on for 
 ## Historical update documentation — 31 October 2026
 
 The historical timeline was checked against the recorded development changes, including the underlying feature/security changes rather than commit titles alone. Dates use Asia/Manila (UTC+8), with related changes grouped into client-readable milestones. Earlier requirements and proposed workflows are labeled as planning. Local documentation and README section links were checked, and the refreshed HTML/PDF handbook passed phone-first checks at 390px, 320px, 768px, and 1440px plus print checks. Exported application source remains identical to the previously tested delivery; no application test results or production deployment claims are added by this documentation update.
+
+## Website history review — 31 October 2026
+
+Website update entries now describe user-visible features, access changes, usability improvements, and fixes. Requirements drafting, documentation changes, repository setup, and handoff tasks were removed from the website timeline. Dates retain the recorded feature-date limitation, and the newer owner access is explicitly marked as development-preview-only and outside this delivered source snapshot. Local links, README anchors, and the regenerated handbook layouts/print output were checked. Application files in this client release remain unchanged.
+
+## Release version tooling checks — 31 October 2026
+
+Fifteen isolated release-management tests passed, including five-version retention, sixth-save oldest deletion, backup/build/deployment failures, integrity checks, locking, unrelated-image protection, and database-preserving rollback behavior. The first production restore point was saved and checked: PostgreSQL archive inspection passed, the Docker image archive loaded successfully, and the restore Compose configuration validated. Production container IDs, image IDs, and start times remained unchanged. A live production deployment or rollback was not performed for this tooling update. The client application source remains unchanged.

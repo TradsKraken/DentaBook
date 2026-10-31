@@ -2,7 +2,7 @@
 
 **Snapshot: 31 October 2026.** This document distinguishes delivered behavior from remaining scope. A database table or page address alone does not mean its complete workflow is available.
 
-For earlier milestones and how the project reached this stage, read the [development history](12_DEVELOPMENT_HISTORY.md), beginning with the first recorded work on 29 October 2026.
+For earlier website features and fixes, read the [website update history](12_DEVELOPMENT_HISTORY.md), beginning with the recorded public website features on 29 October 2026. The newer owner portal access is available in the development preview only; it is not deployed to production and is available in the supplied source for development use.
 
 ## Delivered in this snapshot
 

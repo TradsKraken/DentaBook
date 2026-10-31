@@ -28,7 +28,7 @@ cd /home/dentabook
 ./scripts/development.sh up -d --build --wait
 ```
 
-The command rebuilds and replaces only the development services. Refresh the development browser page afterward. This setup uses built images rather than hot reload. Saving source files or rebuilding development does not update the running production images. A production release remains a separate tested deployment.
+The command rebuilds and replaces only the development services. Refresh the development browser page afterward. This setup uses built images rather than hot reload. Saving source files or rebuilding development does not update the running production images. A production release remains a separate tested deployment using the [five-version release manager](15_RELEASE_VERSIONS.md).
 
 The wrapper always selects the `dentabook-development` project, `docker-compose.development.yml`, and private `.env.development.local`. It avoids the root production `.env`, its `COMPOSE_FILE`, and production image tags. Use this wrapper for development operations:
 

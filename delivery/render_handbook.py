@@ -13,6 +13,7 @@ DOCUMENTS = [
     'docs/07_TESTING_AND_ACCEPTANCE.md', 'docs/08_API_REFERENCE.md',
     'docs/09_DATA_AND_SECURITY.md', 'docs/10_HANDOVER_CHECKLIST.md',
     'docs/11_DIAGRAMS_AND_WORKFLOWS.md', 'docs/12_DEVELOPMENT_HISTORY.md',
+    'docs/13_RELEASE_VERSIONS.md',
     'docs/DEPENDENCIES.md', 'docs/ASSET_NOTICES.md', 'CHANGELOG.md',
 ]
 

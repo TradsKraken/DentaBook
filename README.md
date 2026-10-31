@@ -100,6 +100,10 @@ The previous Fortek architecture document is preserved under `internal/reference
 
 Development now also runs on `10.10.1.113:3013` with administration on port `3015`; the older `10.10.1.116` setup is optional. Production runs independently on `10.10.1.113` with shared patient/clinic port `3003` and separate administrator port `3005`, its own database, and private environment configuration. The production override isolates administrator pages, APIs, browser origin, and session cookie from the patient/clinic site; patient and clinic account roles remain enforced on the server. The domain proxy forwards `dentabook.forgroup.space` to `10.10.1.113:3003` and `dentabook-admin.forgroup.space` to `10.10.1.113:3005`. See [production domain setup and release workflow](docs/12_DOMAIN_SETUP.md). Development changes reach production only when a tested release is explicitly rebuilt and deployed.
 
+## Saved production versions
+
+Release tested website changes with `python3 scripts/releases.py deploy --note "Describe the website feature or fix."`. Each release saves the previous running website and a database backup, keeps the five newest saved versions, and removes the oldest after the new recovery copy is verified. Use `python3 scripts/releases.py list` to view them. See [version retention and rollback](docs/15_RELEASE_VERSIONS.md). Website update notes describe product changes; project work stays out of that history.
+
 ## Docker quick start
 
 From the repository root:

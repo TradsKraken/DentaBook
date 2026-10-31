@@ -39,14 +39,11 @@ The backup format is plain SQL. Restoring it into an already initialized databas
 
 ## Installing a new release
 
-Confirm that the release has passed the agreed tests and read its release notes. Back up the database and retain the previous release and its configuration. For a clean client repository checkout, obtain the approved release using the agreed branch or tag, then run:
+Confirm that the release has passed the agreed tests and read its release notes. Obtain and test the approved release using the agreed branch or tag, and commit the intended source. The release manager saves the current running images and a verified database backup before replacing services and retains the five newest saved versions. Then run:
 
 ```bash
-docker compose config --quiet
-docker compose build
-docker compose up -d --wait
-docker compose exec -T client nginx -c /etc/nginx/portals/nginx.conf -t
-docker compose exec -T client nginx -c /etc/nginx/portals/nginx.conf -s reload
+python3 scripts/releases.py deploy --note "Describe the tested website feature or fix."
+python3 scripts/releases.py list
 ```
 
 Verify the two HTTPS health endpoints and the user journeys. Database migrations run at startup and may require a recovery plan beyond restarting an old image. The current project has no general automatic migration-down command.
@@ -68,3 +65,7 @@ Never use `docker compose down -v` for a routine update: it deletes the named da
 | An administrator link fails on the main site | Use the separate administrator hostname; public-host admin routes are intentionally blocked |
 
 Self-service password resets, MFA, automated email delivery, and provider payments are not available in this release. Escalate those requests to the designated maintainer using the approved maintenance process.
+
+## Versioned production releases
+
+Use the [five-version release manager](13_RELEASE_VERSIONS.md) when releasing tested website changes. It saves the running images and a database backup before the update. Direct Compose updates bypass that saved-version process. Rollback restores application images while preserving the current database; schema compatibility must be reviewed separately.

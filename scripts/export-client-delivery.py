@@ -13,7 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / 'delivery' / 'client'
-ROOT_FILES = ['docker-compose.yml', 'docker-compose.production.yml', '.env.example']
+ROOT_FILES = ['docker-compose.yml', 'docker-compose.production.yml', '.env.example',
+              'scripts/releases.py', 'scripts/tests/test_releases.py']
 FORBIDDEN = {'.git', '.agents', '.codex', 'internal', 'AGENTS.md', 'SKILL.md', 'node_modules', 'test-results', 'playwright-report', '.local'}
 
 def git(*args):

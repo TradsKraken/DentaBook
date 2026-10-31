@@ -11,7 +11,7 @@ The documents are arranged so business readers can begin without technical knowl
 
 The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) explains patient, clinic, and administrator journeys, system architecture, sessions, database relationships, cost estimates, releases, and the remaining roadmap. Each diagram has a full-size SVG and an editable Mermaid source.
 
-The [development history](12_DEVELOPMENT_HISTORY.md) follows the recorded work from the initial requirements through the current handoff. It explains each milestone in plain language and distinguishes completed features from planning. For the latest release summaries, see the [delivery notes](../CHANGELOG.md).
+The [website update history](12_DEVELOPMENT_HISTORY.md) explains changes to website features, access, usability, and fixes. Entries distinguish live behavior, development-preview features, and planned work. See [website updates](../CHANGELOG.md) for the shorter summaries. Project administration and documentation work are not website-update entries.
 
 ## Terms used in these documents
 
@@ -29,3 +29,5 @@ The [development history](12_DEVELOPMENT_HISTORY.md) follows the recorded work f
 | Backup | A separate recoverable copy of saved data |
 
 Documents describe the delivered snapshot. Update the status, release notes, and affected instructions whenever a later release changes the behavior.
+
+The [production release and rollback guide](13_RELEASE_VERSIONS.md) describes the five-version retention process and recovery limits. These operator procedures are kept separate from the website-feature history.

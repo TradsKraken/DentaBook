@@ -50,6 +50,8 @@ docker compose up -d --wait
 docker compose ps
 ```
 
+The commands above are for initial installation. For later production updates, use the [five-version release process](13_RELEASE_VERSIONS.md) so the running website and database are saved before replacement.
+
 The database initializes a new persistent volume on first startup. API startup applies pending migrations. An existing volume is reused on later deployments. Changing an environment password does not automatically change the password inside an existing database.
 
 Production contains four services: the website, the public/clinic API, the administrator API, and PostgreSQL. The APIs and database have no published host ports. The website exposes ports 3003 and 3005 for the upstream reverse proxy.
