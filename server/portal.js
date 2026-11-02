@@ -30,12 +30,14 @@ function restrictPortal(req, res, next) {
     (patient && path === "/auth/register-patient") ||
     (clinic && ["/auth/register-clinic", "/auth/login"].includes(path))
   );
-  const workspace = (patient && read && path === "/workspaces/patient/appointments") ||
+  const workspace = (patient && ((read && ["/workspaces/patient/appointments", "/workspaces/patient/booking-options", "/workspaces/patient/availability"].includes(path)) ||
+      (req.method === "POST" && path === "/workspaces/patient/appointments"))) ||
     (clinic && ((read && ["/workspaces/clinic", "/workspaces/clinic/options"].includes(path)) ||
-      (read && ["/workspaces/clinic/manage"].includes(path)) ||
+      (read && ["/workspaces/clinic/manage", "/workspaces/clinic/manage/appointments"].includes(path)) ||
       (req.method === "PUT" && path === "/workspaces/clinic/manage/profile") ||
       (req.method === "POST" && /^\/workspaces\/clinic\/manage\/(services|dentists|schedules)$/.test(path)) ||
       (req.method === "PUT" && /^\/workspaces\/clinic\/manage\/(services|dentists)\/[^/]+$/.test(path)) ||
+      (req.method === "PUT" && /^\/workspaces\/clinic\/manage\/appointments\/[^/]+\/review$/.test(path)) ||
       (req.method === "DELETE" && /^\/workspaces\/clinic\/manage\/schedules\/[^/]+$/.test(path)))) ||
     (portal === "admin" && ((read && path === "/workspaces/admin/clinics") ||
       (req.method === "POST" && /^\/workspaces\/admin\/clinics\/[^/]+\/review$/.test(path))));

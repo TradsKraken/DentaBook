@@ -1,5 +1,6 @@
 const express = require("express");
 const { requireSession, requireRole } = require("../auth");
+const { createPatientBookingRouter } = require("./patient-booking");
 const { createClinicToolsRouter } = require("./clinic-tools");
 const { ownedClinic, clinicColumns } = require("./accounts");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -19,9 +20,9 @@ function createWorkspaceRouter(pool) {
         const result = await pool.query(
           `SELECT a.id, a.appointment_code AS "appointmentCode", a.status,
         a.appointment_date::text AS date, to_char(a.start_time,'HH24:MI') AS time,
-        a.estimated_total_cost AS total, c.name AS "clinicName", c.address AS "clinicAddress",
+        a.review_notes AS "reviewNotes", a.estimated_total_cost AS total, c.name AS "clinicName", c.address AS "clinicAddress",
         d.full_name AS "dentistName",
-        COALESCE((SELECT json_agg(s.name ORDER BY s.name) FROM appointment_services aps
+        COALESCE((SELECT json_agg(COALESCE(aps.service_name,s.name) ORDER BY s.name) FROM appointment_services aps
           JOIN services s ON s.id=aps.service_id WHERE aps.appointment_id=a.id),'[]'::json) AS services
         FROM appointments a JOIN clinics c ON c.id=a.clinic_id LEFT JOIN dentists d ON d.id=a.dentist_id
         WHERE a.patient_user_id=$1 ORDER BY a.appointment_date DESC,a.start_time DESC,a.id LIMIT 50`,
@@ -33,6 +34,7 @@ function createWorkspaceRouter(pool) {
       }
     },
   );
+  router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool));
   router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool));
   router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {
     if (!req.user.ownerAccess)

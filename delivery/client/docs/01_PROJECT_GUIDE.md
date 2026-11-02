@@ -4,15 +4,15 @@
 
 DentaBook brings clinic information, treatment information, and account access into one website. A visitor can compare available clinic information and understand published treatment prices before contacting a clinic.
 
-The longer-term product includes appointment requests, clinic review of those requests, deposits, appointment tracking, and completed-visit feedback. Those later steps are listed separately in the development plan because they are not available in the current release.
+The supplied source includes clinic setup and patient requests with clinic review in the development preview. Deposits, final confirmation, appointment changes, reminders, completion, and feedback remain future work. The development plan distinguishes the preview from the unchanged production release.
 
 ## Who uses the website
 
 | Person | What the current release allows |
 | --- | --- |
 | Visitor | Browse clinics and treatments, view public profiles, search, and estimate costs without an account |
-| Patient | Register, sign in, view account details, and view appointments already linked to that account |
-| Clinic representative | Register a clinic, check review status, read review notes, and access the approved-clinic workspace |
+| Patient | Register/sign in, view account details, and use preview booking and own appointment status tracking |
+| Clinic representative | Register/check review status and, in the preview, manage approved clinic content, assignments/hours, and requests |
 | Platform administrator | Review clinic submissions and approve or reject pending registrations |
 
 Each account is assigned a role. Registering as a patient cannot create a clinic or administrator account. Clinics appear publicly only after administrator approval. A clinic representative cannot enter the administrator workspace.
@@ -25,9 +25,9 @@ The calculator uses a selected clinic's saved service prices. It does not make a
 
 ## Current delivery boundaries
 
-This release supports discovery and account administration. A new clinic can register and be approved, but editing clinic descriptions, dentist records, prices, and schedules through the clinic dashboard is a later increment. Until that increment is delivered, an authorized operator must arrange data updates through a controlled maintenance process.
+The development preview and supplied source include editable approved-clinic profiles, service prices/durations, dentist profiles, treatment assignments, and weekly working hours. Only the owning approved clinic can use those tools; published records update discovery and cost estimates. Production remains on its existing release until separately deployed.
 
-Patient appointment pages can display existing account-linked records. The website does not yet create new appointment requests or available time slots. A signed-in patient sees a clear notice where online booking is unavailable.
+The development preview and supplied source now include real available times, signed-in patient appointment requests, and clinic acceptance/decline. Patients can refresh their account-scoped appointments to see the saved decision. Clinic setup and these booking tools have not been deployed to production. Payments, final confirmation, appointment changes, reminders, and reviews remain planned.
 
 ## Design approach
 

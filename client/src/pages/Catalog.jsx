@@ -235,7 +235,8 @@ export function Clinic() {
           <span className="icon-tile">
             <Calculator />
           </span>
-          <h2>Plan your treatment budget.</h2>
+          <h2>Plan your visit.</h2>
+          <Link className="button" to={`/patient/book?clinic=${clinic.id}`}>Request an appointment <ArrowRight size={17} /></Link>
           <p className="muted">
             Use this clinic’s published prices to calculate an estimate.
           </p>

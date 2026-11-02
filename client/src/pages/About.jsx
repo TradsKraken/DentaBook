@@ -50,11 +50,11 @@ export default function About() {
           ],
           [
             "Do I need an account to browse?",
-            "You can browse clinics, dentist information, services, and estimates without signing in. A patient account is required for booking and personal appointment features. Online booking submission is still being built.",
+            "You can browse clinics, dentist information, services, and estimates without signing in. A patient account is required for booking and personal appointment features. Signed-in patients can request available times from clinics with published services, assigned dentists, and working hours.",
           ],
           [
             "Can I book an appointment online?",
-            "Online booking is not available yet. Use the contact details on a clinic profile to discuss availability and arrange a visit.",
+            "Yes. Sign in as a patient, choose a clinic, treatment, dentist, and available time, then send a request. The clinic accepts or declines it, and you can follow the status in My appointments. Online payments and final confirmation are arranged separately.",
           ],
           [
             "Where does the clinic information come from?",

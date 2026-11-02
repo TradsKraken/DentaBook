@@ -39,7 +39,16 @@ Approved clinic staff can use the setup tools in `/clinic`:
 
 Every tool requires a current server-validated clinic session and an approved clinic. Ordinary staff are scoped to their owned clinic, including every record update and schedule removal. Operator owner access must select an approved clinic before using these tools. Writes lock the clinic record while validating approval and saving changes.
 
-These are setup tools: they do not create appointment slots, submit bookings, process payments, or alter existing appointments. Dentist-service assignments and appointment management remain planned.
+## Booking and clinic review (development preview)
+
+- Dentist editors assign treatments within their clinic. Only published, assigned service/dentist combinations can receive requests.
+- `/patient/book` uses saved working hours, treatment durations, and existing reservations. Slots start at 15-minute intervals within each shift, require 15 minutes of lead time, and cover today through 90 days ahead in Asia/Manila.
+- Each request covers one treatment and is saved with the session’s patient identity, server price and duration, contact details, optional visit notes, and a unique request code. Price/duration changes require the patient to review a refreshed quote.
+- A transaction locks the clinic while checking configuration and reserving time. Pending, accepted, and confirmed requests block overlaps for the same dentist. Declines release the time. Request keys make identical retries return the saved record.
+- The clinic inbox shows the latest 100 records for a chosen status, with a refresh action. Only the owning approved clinic (or an explicitly selected owner clinic) can accept or decline pending requests. Declines require a reason; both outcomes record reviewer, time, and patient-visible notes.
+- Acceptance rechecks working hours, current assignments, publication, and conflicts. Patients can refresh their account-scoped appointment list to see decisions. Treatment names and prices are preserved on new service lines.
+
+Production has not been updated. Payments, final confirmation, cancellations/rescheduling, notifications, completion, feedback, and date-specific closures remain planned. Changing setup information does not silently alter existing appointments.
 
 ## Patient accounts and public browsing
 
@@ -49,7 +58,7 @@ The user has added a patient-access requirement beyond the original brief: guest
 - `/book`, `/appointments`, and `/account` require a patient session. Guests return to their requested patient page after registering/signing in. Return URLs are restricted to known local patient routes.
 - Patient accounts are stored in PostgreSQL with hashed passwords and database-backed sessions. Public patient registration cannot select a staff or administrator role.
 - Personal appointments are read from the database, restricted to the session's patient ID, with no client-supplied patient selector. The current screen shows the latest 50 linked records and an honest empty state.
-- Actual appointment submission, scheduling, payments, cancellation, and rescheduling remain future work; signing in does not simulate those operations.
+- Appointment submission, availability, and clinic acceptance/decline are available in the development preview described above. Payments, cancellation, and rescheduling remain planned.
 
 ## Operator-provisioned owner access
 
@@ -57,9 +66,9 @@ Source support now includes an explicit owner account with a username, separate 
 
 ## Subsequent parts
 
-1. Further clinic management: dentist-service assignments and additional staff access. Profile, service, dentist, and weekly working-hour tools are implemented above.
+1. Further clinic management: additional staff access and date-specific closures. Setup and dentist-service assignments are implemented in the preview.
 2. Account lifecycle: password recovery, email verification, and staff/dentist access. Patient sign-in is now required for booking and personal features by the user's later instruction; browsing remains public.
-3. Scheduling and booking: actual availability, duration and conflict checks in database transactions, patient intake, persistent requests, and authorized review actions.
+3. Further booking controls: agreed reservation expiry, clinic-specific booking policies, and date-specific closures. Basic availability, persistent requests, and authorized review are implemented in the preview.
 4. Appointment management: tracking, policy-based cancellation/rescheduling, and notifications.
 5. Payment integration: provider-confirmed deposits, idempotent callbacks, reconciliation, refunds, and confirmation rules.
 6. Completed-visit reviews, deployment configuration, and operational verification.

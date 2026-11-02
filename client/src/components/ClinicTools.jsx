@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ClinicInbox from "./ClinicInbox";
 import { api } from "../api";
 
 const categories = ["Preventive", "Restorative", "Cosmetic", "Surgical", "Orthodontic", "General"];
@@ -8,7 +9,7 @@ const emptyService = { name: "", category: "General", description: "", price: ""
 const emptyDentist = { name: "", title: "", credentials: "", isActive: true };
 
 function Input({ label, multiline, ...props }) {
-  return <label className="field">{label}{multiline ? <textarea rows={4} {...props} /> : <input {...props} />}</label>;
+  return <label className="field">{label}{multiline ? <textarea aria-label={label} rows={4} {...props} /> : <input {...props} />}</label>;
 }
 function Published({ checked, onChange, noun }) {
   return <label className="clinic-check"><input type="checkbox" checked={checked} onChange={onChange} />Publish this {noun} on the clinic profile</label>;
@@ -60,34 +61,43 @@ function ServiceEditor({ item, request, saved, cancel }) {
     <p className="summary-note">Uncheck to hide a service while keeping its saved details and appointment history.</p>
   </Editor>;
 }
-function DentistEditor({ item, request, saved, cancel }) {
-  const [form, setForm] = useState(item ? { ...item, credentials: item.credentials || "" } : { ...emptyDentist });
+function DentistEditor({ item, request, saved, cancel, services = [], assignments = [] }) {
+  const [form, setForm] = useState(item ? { ...item, credentials: item.credentials || "", serviceIds: assignments.filter(assignment => assignment.dentistId === item.id).map(assignment => assignment.serviceId) } : { ...emptyDentist, serviceIds: [] });
   const change = event => setForm({ ...form, [event.target.name]: event.target.value });
   return <Editor title={item ? "Edit dentist" : "Add a dentist"} submitLabel={item ? "Save dentist" : "Add dentist"} request={body => request(`/dentists${item ? `/${item.id}` : ""}`, item ? "PUT" : "POST", body)} body={form} onSaved={() => saved("Dentist saved. Published dentists appear on your public profile.")} onCancel={item ? cancel : undefined}>
     <Input label="Dentist name" name="name" value={form.name} onChange={change} required maxLength={150} />
     <Input label="Professional title" name="title" value={form.title} onChange={change} required maxLength={100} />
     <Input label="Credentials and qualifications" name="credentials" value={form.credentials} onChange={change} multiline maxLength={3000} />
     <p className="summary-note">Enter accurate, verified qualifications for this dentist. A profile does not create a staff sign-in account.</p>
+    <fieldset className="clinic-assignment-list">
+      <legend>Treatments this dentist provides</legend>
+      <p className="summary-note">Assign services to enable appointment requests with this dentist. Only published services and dentists can be booked.</p>
+      {services.length === 0 ? <p>Add services under Services &amp; prices first.</p> : services.map(service => <label className="clinic-check" key={service.id}>
+        <input type="checkbox" checked={form.serviceIds.includes(service.id)} onChange={event => setForm(previous => ({ ...previous,
+          serviceIds: event.target.checked ? [...previous.serviceIds, service.id] : previous.serviceIds.filter(id => id !== service.id),
+        }))} />{service.name}{!service.isActive ? " (hidden)" : ""}
+      </label>)}
+    </fieldset>
     <Published noun="dentist" checked={form.isActive} onChange={event => setForm({ ...form, isActive: event.target.checked })} />
   </Editor>;
 }
-function Catalog({ type, data, request, saved }) {
+function Catalog({ type, data, request, saved, services, assignments }) {
   const [editing, setEditing] = useState(null);
   const [version, setVersion] = useState(0);
-  const services = type === "services";
-  const EditorComponent = services ? ServiceEditor : DentistEditor;
+  const isServices = type === "services";
+  const EditorComponent = isServices ? ServiceEditor : DentistEditor;
   return <div className="clinic-tool-grid">
     <div className="clinic-records">
-      <h3>{services ? "Your services" : "Your dentists"}</h3>
-      <p className="muted">{services ? "Manage the treatments and prices patients can browse." : "Manage the dentists shown on your clinic profile."}</p>
-      {data.length === 0 ? <p className="clinic-empty">{services ? "No services saved yet. Add your first service below." : "No dentists saved yet. Add your first dentist below."}</p> : data.map(item => <article className="clinic-record" key={item.id}>
+      <h3>{isServices ? "Your services" : "Your dentists"}</h3>
+      <p className="muted">{isServices ? "Manage the treatments and prices patients can browse." : "Manage the dentists shown on your clinic profile."}</p>
+      {data.length === 0 ? <p className="clinic-empty">{isServices ? "No services saved yet. Add your first service below." : "No dentists saved yet. Add your first dentist below."}</p> : data.map(item => <article className="clinic-record" key={item.id}>
         <div className="clinic-record-heading"><h4>{item.name}</h4><span className={`status ${item.isActive ? "accepted" : "neutral"}`}>{item.isActive ? "Published" : "Hidden"}</span></div>
-        <p>{services ? `${item.category} · ${money(item.price)} · ${item.duration} min` : item.title}</p>
-        <p className="muted">{services ? item.description : item.credentials}</p>
-        <button className="button secondary" onClick={() => setEditing(item)} aria-label={`Edit ${item.name}`}>Edit {services ? "service" : "dentist"}</button>
+        <p>{isServices ? `${item.category} · ${money(item.price)} · ${item.duration} min` : item.title}</p>
+        <p className="muted">{isServices ? item.description : item.credentials}</p>
+        <button className="button secondary" onClick={() => setEditing(item)} aria-label={`Edit ${item.name}`}>Edit {isServices ? "service" : "dentist"}</button>
       </article>)}
     </div>
-    <EditorComponent key={`${editing?.id || "new"}-${version}`} item={editing} request={request} saved={message => { setEditing(null); setVersion(n => n + 1); saved(message); }} cancel={() => setEditing(null)} />
+    <EditorComponent key={`${editing?.id || "new"}-${version}`} item={editing} services={services} assignments={assignments} request={request} saved={message => { setEditing(null); setVersion(n => n + 1); saved(message); }} cancel={() => setEditing(null)} />
   </div>;
 }
 function Schedules({ data, request, saved }) {
@@ -99,7 +109,7 @@ function Schedules({ data, request, saved }) {
   return <div className="clinic-tool-grid">
     <div className="clinic-records">
       <h3>Weekly working hours</h3>
-      <p className="muted">Set recurring hours in Philippine time. These hours do not create appointment slots; online booking is not available yet.</p>
+      <p className="muted">Set recurring hours in Philippine time. Published dentists with assigned services can receive requests during these hours. Existing appointments keep their saved times when hours change.</p>
       {error && <p className="form-error" role="alert">{error}</p>}
       {data.schedules.length === 0 ? <p className="clinic-empty">No working hours saved yet.</p> : data.schedules.map(item => {
         const dentist = data.dentists.find(d => d.id === item.dentistId);
@@ -142,17 +152,20 @@ export function ClinicTools({ clinicId, owner, onUpdated }) {
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [query, attempt]);
-  const request = (path, method, body) => api(`${base}${path}${query}`, { method, body });
+  const request = (path, method, body) => api(`${base}${path}${path.includes("?") ? query.replace("?", "&") : query}`, { method, body });
   const saved = message => { setNotice(message); setAttempt(n => n + 1); };
   return <section className="panel clinic-tools" aria-label="Clinic setup tools">
     <h2>Manage your clinic</h2>
     <p className="muted">Keep your public profile, services, and team up to date.</p>
-    <div className="clinic-tool-nav" aria-label="Clinic tools">{[["profile", "Clinic profile"], ["services", "Services & prices"], ["dentists", "Dentists"], ["schedules", "Working hours"]].map(([id, label]) => <button key={id} className={`button ${tab === id ? "" : "secondary"}`} aria-pressed={tab === id} onClick={() => { setTab(id); setNotice(""); }}>{label}</button>)}</div>
+    <div className="clinic-tool-nav" aria-label="Clinic tools">{[["profile", "Clinic profile"], ["services", "Services & prices"], ["dentists", "Dentists"], ["schedules", "Working hours"], ["appointments", "Appointment inbox"]].map(([id, label]) => <button key={id} className={`button ${tab === id ? "" : "secondary"}`} aria-pressed={tab === id} onClick={() => { setTab(id); setNotice(""); }}>{label}</button>)}</div>
     {notice && <p className="notice" role="status">{notice}</p>}
     {loading ? <p role="status">Loading clinic tools…</p> : error ? <div role="alert"><p>{error}</p><button className="button secondary" onClick={() => setAttempt(n => n + 1)}>Reload clinic tools</button></div> : data && <>
       {tab === "profile" && <Profile key={attempt} clinic={data.clinic} request={request} saved={saved} />}
-      {(tab === "services" || tab === "dentists") && <Catalog key={tab} type={tab} data={data[tab]} request={request} saved={saved} />}
+      {(tab === "services" || tab === "dentists") && <Catalog key={tab} type={tab} data={data[tab]} services={data.services} assignments={data.assignments || []} request={request} saved={saved} />}
       {tab === "schedules" && <Schedules data={data} request={request} saved={saved} />}
+      {tab === "appointments" && <ClinicInbox request={request} onReviewed={pendingAppointments => {
+        setData(previous => ({ ...previous, pendingAppointments })); onUpdated({ ...data, pendingAppointments });
+      }} />}
     </>}
   </section>;
 }

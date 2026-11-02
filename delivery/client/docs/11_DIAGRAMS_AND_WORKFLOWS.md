@@ -1,6 +1,10 @@
 # Diagrams and workflows
 
-These diagrams explain the delivered application and the remaining development plan. **Current** means available behavior or an existing schema/process. **Planned** means not implemented. A schema diagram describes stored relationships, not a promise that the corresponding management screens exist.
+**Diagram snapshot notice:** the original diagrams on this page describe the 31 October foundation and planning roadmap. They are retained as historical references. For the 3 November development preview, clinic setup, assignments, availability, patient requests, and clinic acceptance/decline are now implemented. Payment, confirmation, appointment changes, and reminders remain planned. The [current status](06_STATUS_AND_DEVELOPMENT_PLAN.md) supersedes earlier planned labels for those completed preview features.
+
+The implemented request flow is: patient sign-in → choose an active assigned treatment and dentist → server-derived slot → atomic saved pending request → owning clinic accepts or declines → patient refreshes the saved outcome. This preview flow does not collect payment or issue final confirmation.
+
+These earlier diagrams explain the foundation snapshot and its original development plan. **Current** means available behavior or an existing schema/process. **Planned** means not implemented. A schema diagram describes stored relationships, not a promise that the corresponding management screens exist.
 
 Blue boxes represent current behavior. Dashed amber boxes explicitly marked PLANNED describe future work. Grey boxes mark an unavailable operation or a boundary. Labels preserve these meanings when printed without color.
 
@@ -39,7 +43,7 @@ The public hostname is dentabook.forgroup.space; administration uses dentabook-a
 
 ![Patient browsing and account workflow — Current workflow](diagrams/02-patient-workflow.svg)
 
-Visitors do not need an account to browse or estimate costs. Personal pages require a server-validated patient session. Existing appointment records can be read; new booking submission is not implemented.
+Visitors do not need an account to browse or estimate costs. Personal pages require a server-validated patient session. In the earlier foundation snapshot, existing records could only be read. The newer preview adds the request flow described above.
 
 [Open full-size SVG](diagrams/02-patient-workflow.svg) · [Editable Mermaid source](diagrams/src/02-patient-workflow.mmd)
 
@@ -89,7 +93,7 @@ This is a simplified view of actual foreign keys, not every column. Clinic owner
 
 ![Appointment and payment data foundations — Existing schema; management workflows planned](diagrams/07-appointment-data-relationships.svg)
 
-The tables already exist, but they do not establish a working booking or payment feature. Only reading existing patient-linked appointments is available. Appointment creation, payment integration, and review submission remain planned. The appointment foreign keys point to users, clinics, and dentists; the service-line foreign key points to services, shown in the preceding core-data diagram. Those parent entities and scheduling/assignment tables are omitted here for readability; see the schema for the full structure.
+The tables already exist, but they do not establish a working booking or payment feature. The earlier snapshot only read existing records. Request creation and clinic request review are now implemented in the development preview; payment integration and patient feedback remain planned. The appointment foreign keys point to users, clinics, and dentists; the service-line foreign key points to services, shown in the preceding core-data diagram. Those parent entities and scheduling/assignment tables are omitted here for readability; see the schema for the full structure.
 
 [Open full-size SVG](diagrams/07-appointment-data-relationships.svg) · [Editable Mermaid source](diagrams/src/07-appointment-data-relationships.mmd)
 

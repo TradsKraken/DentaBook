@@ -48,7 +48,9 @@ The deployed-listener checks read real APIs without creating live account record
 | Administrator review | Only an administrator can approve/reject; a rejection requires a reason |
 | Approved clinic access | The clinic owner sees its own saved information and counts |
 | Wrong role | Patient, clinic, and administrator permissions remain distinct |
-| Online booking | A clear unavailable notice until booking submission is implemented |
+| Online booking (preview) | Only signed-in patients can request active assigned treatments; times and quotes are rechecked on the server; requests persist after reload |
+| Clinic inbox (preview) | Only the approved owning clinic can accept/decline pending requests; declines require a reason and patients can see the decision |
+| Booking conflicts/retries | Concurrent overlapping requests cannot both reserve a dentist; identical retries return one durable record |
 | Logout | The server session is revoked; private requests fail afterward |
 | Main-host admin URL | Administration routes are blocked on the public hostname |
 | Administrator root | The redirect preserves its HTTPS hostname or LAN port 3005 |

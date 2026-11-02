@@ -1,5 +1,12 @@
 # Website update history
 
+## 3 November 2026 — Appointment requests and clinic setup (development preview)
+
+The supplied source and development preview now let approved clinics edit their profile, services/prices, dentist profiles, and weekly working hours, including publication controls and dentist-service assignments. Signed-in patients can choose real available times and send persistent requests for one treatment. Pending requests reserve time, overlapping submissions are rejected atomically, and identical retries return the saved request. Clinics can accept or decline pending requests with an audited decision and patient-visible notes. Patients can refresh their own appointments to read the outcome.
+
+These changes are **development-preview-only** and have not been deployed to production. Payments, final confirmation, appointment changes, reminders, completion, and reviews remain planned. The [status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) records the booking rules and limitations.
+
+
 **Reviewed through 31 October 2026.** This history records changes to DentaBook's pages, features, account access, and website behavior. Dates use Philippine time (UTC+8). Earlier dates identify recorded feature changes; they do not establish the exact production launch date of each feature.
 
 ## 31 October 2026 — Public website access fixed
@@ -63,6 +70,6 @@ The development website now supports an operator-created owner account that can 
 
 ## Next planned website update
 
-Clinic content management is the next planned increment: authorized clinics maintaining their own profile, service prices, and dentist information. Scheduling, appointment creation/review, payments, appointment changes, notifications, feedback, and account recovery remain later planned phases.
+Payments and final confirmation are the next proposed increment, followed by appointment-change policies, reminders, completion/feedback, and account recovery. Clinic setup, weekly scheduling, requests, and request review are now available in the development preview described above. Earlier entries describe the behavior at their recorded date.
 
 See the [current status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) for scope and completion criteria. Future entries should describe what changed on the website, who can use it, and whether it is live, in development preview, or planned. Requirements drafting, documentation edits, repository setup, and other project administration are not website-update entries.

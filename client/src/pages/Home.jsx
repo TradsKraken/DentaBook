@@ -239,8 +239,8 @@ export default function Home() {
             ],
             [
               "03",
-              "Contact your clinic",
-              "Discuss your care and arrange your visit directly with the clinic while online booking is unavailable.",
+              "Request your visit",
+              "Sign in, choose an available time, and send a request. Follow the clinic’s decision in My appointments.",
             ],
           ].map(([number, title, text]) => (
             <div className="how-step" key={number}>

@@ -11,8 +11,9 @@ The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) includes the current session-c
 | Dentists and services | Active public profile information and clinic service prices when records are provisioned |
 | Sessions | Token hash, user, sign-in role, creation time, and expiry |
 | Schema migrations | Database updates already applied |
-| Appointments and appointment services | Existing patient-linked records can be read; website booking creation is not implemented |
-| Schedules, assignments, payments, reviews | Schema foundations for later workflows; their complete management features are not available |
+| Appointments and appointment services | Development preview: persistent patient requests, reserved times, quoted price/name snapshots, retry keys, and audited clinic decisions; patient reads remain account-scoped |
+| Schedules and assignments | Development preview: own-clinic recurring hours and dentist-service assignments used for real availability |
+| Payments and reviews | Schema foundations; provider payment and completed-visit review workflows remain planned |
 
 Database relationships link clinics to their owners, dentists/services to clinics, and appointments to patients and clinics. The API uses the session's account identity for private data rather than trusting a patient or clinic identifier supplied by the browser.
 
@@ -41,3 +42,11 @@ Operators with host or database access can access stored records. Control access
 ## Configuration and backups
 
 Actual database passwords belong in a private `.env`, not in source control. Keep backup files private and outside release archives. Preserve included dependency and asset notices. Transfer access through the agreed private process and rotate credentials when access responsibility changes.
+
+## Booking privacy and reservation safety (development preview)
+
+New requests use the signed-in patient identity rather than a submitted account ID. Contact details and visit notes are visible only to the authorized owning clinic; public clinic responses and other patients’ lists do not include them. Clinic review notes are visible to the owning patient.
+
+Booking, setup, and review writes lock the clinic record and use a database transaction. Reservations are checked for the full service duration before inserts. Patient-scoped UUID request keys and a unique index prevent duplicate submissions on retry. New service lines retain their name and quoted price. Review actions record the reviewer and time and reject stale decisions.
+
+The additive appointment migration preserves existing records. No production test accounts, appointments, or clinic records were created during verification. Pending requests do not expire automatically; the inbox must be reviewed until an expiry policy is implemented.

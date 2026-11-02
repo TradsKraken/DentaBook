@@ -38,6 +38,14 @@ test("LAN development owner can use every portal through the real APIs", async (
         expect(session.httpOnly).toBe(true);
         expect(session.sameSite).toBe("Strict");
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        if (portal === "patient") {
+          const unavailable = await context.request.get(publicURL + "/api/workspaces/patient/booking-options?clinicId=00000000-0000-4000-8000-000000000000");
+          expect(unavailable.status()).toBe(404);
+          const invalidRequest = await context.request.post(publicURL + "/api/workspaces/patient/appointments", {
+            headers: { Origin: publicURL, "X-DentaBook-Request": "1" }, data: {},
+          });
+          expect(invalidRequest.status()).toBe(400);
+        }
         if (portal === "clinic") {
           const options = await context.request.get(publicURL + "/api/workspaces/clinic/options");
           expect(options.status()).toBe(200);
@@ -49,11 +57,15 @@ test("LAN development owner can use every portal through the real APIs", async (
             await expect(page.getByText("No clinics have been registered yet.")).toBeVisible();
           }
           expect((await context.request.get(publicURL + "/api/workspaces/patient/appointments")).status()).toBe(403);
+          expect((await context.request.post(publicURL + "/api/workspaces/patient/appointments", {
+            headers: { Origin: publicURL, "X-DentaBook-Request": "1" }, data: {},
+          })).status()).toBe(403);
           expect((await context.request.get(publicURL + "/api/workspaces/admin/clinics")).status()).toBe(404);
         }
         if (portal === "admin") {
           expect((await context.request.get(adminURL + "/api/workspaces/admin/clinics")).status()).toBe(200);
           expect((await context.request.get(adminURL + "/api/workspaces/clinic/options")).status()).toBe(404);
+          expect((await context.request.get(adminURL + "/api/workspaces/clinic/manage/appointments")).status()).toBe(404);
         }
         for (const control of await page.locator("input:not([type=checkbox]), select, textarea").all()) {
           expect(await control.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);

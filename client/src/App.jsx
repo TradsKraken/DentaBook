@@ -13,6 +13,7 @@ import { ClinicProvider } from "./hooks/useClinics";
 import { Brand, Unavailable, PortalLink } from "./components/Shared";
 import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
+import Booking from "./pages/Booking";
 import About from "./pages/About";
 import { patientAuthSuffix } from "./patientNavigation";
 import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
@@ -183,10 +184,7 @@ function Site() {
             path="/patient/book"
             element={
               <WorkspaceGate role="patient">
-                <Unavailable
-                  title="Online booking is not available yet."
-                  text="You can contact a listed clinic directly using the details on its profile."
-                />
+                <Booking />
               </WorkspaceGate>
             }
           />

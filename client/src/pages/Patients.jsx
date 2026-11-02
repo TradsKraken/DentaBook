@@ -225,9 +225,10 @@ export function PatientAppointments() {
           title="My appointments."
           text="Your latest 50 appointment records. Only appointments linked to your account appear here."
         />
-        <Link className="button secondary" to="/patient/account">
-          My account
-        </Link>
+        <div className="clinic-actions">
+          <button className="button secondary" disabled={state.loading} onClick={() => setAttempt(value => value + 1)}>Refresh appointments</button>
+          <Link className="button secondary" to="/patient/account">My account</Link>
+        </div>
       </div>
       {state.loading ? (
         <p role="status">Loading your appointments…</p>
@@ -247,8 +248,7 @@ export function PatientAppointments() {
           <CalendarDays size={38} />
           <h2>No appointments yet.</h2>
           <p>
-            Your appointment records will appear here once a booking is linked
-            to your account.
+            Send an appointment request to a clinic. Your saved requests and the clinic’s decisions will appear here.
           </p>
           <Link className="button" to="/patient/book">
             Plan your next visit <ArrowRight size={17} />
@@ -274,6 +274,9 @@ export function PatientAppointments() {
               <p className="notice">
                 Status: {appointment.status.replaceAll("_", " ")}
               </p>
+              {appointment.reviewNotes && <p className="clinic-visit-notes"><strong>Clinic’s note: </strong>{appointment.reviewNotes}</p>}
+              {appointment.status === "pending_review" && <p className="muted">Your request is awaiting the clinic’s review.</p>}
+              {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Contact the clinic to arrange payment and final confirmation. Online payments are not available.</p>}
               <p>
                 Estimated cost:{" "}
                 {new Intl.NumberFormat("en-PH", {

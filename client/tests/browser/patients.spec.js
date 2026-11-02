@@ -103,7 +103,7 @@ test("patient signup and sign-in return to the original booking page", async ({
   await page.getByRole("button", { name: "Sign in", exact: true }).tap();
   await expect(page).toHaveURL(/\/patient\/book\?clinic=chosen-clinic$/);
   await expect(
-    page.getByRole("heading", { name: "Online booking is not available yet." }),
+    page.getByRole("heading", { name: "Request a dental appointment." }),
   ).toBeVisible();
   expect(state.writes[0].path).toBe("/api/auth/register-patient");
   expect(state.writes[0].body.role).toBeUndefined();

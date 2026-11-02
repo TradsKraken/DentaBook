@@ -4,92 +4,57 @@
 
 DentaBook helps people find approved dental clinics, explore treatments, and estimate costs using a clinic's published prices. Patients can create accounts, clinic representatives can submit their clinics for review, and platform administrators can approve or reject those submissions.
 
-**Development status, last updated 31 October 2026:** the clinic discovery, accounts, and clinic-approval foundation is delivered. **Clinic content management is the next planned increment.** Online appointment submission, live scheduling, and payments remain planned work.
+**Updated 3 November 2026.** The supplied source and development preview now include clinic setup, dentist-service assignments, available appointment times, patient requests, and clinic acceptance/decline. These new tools are **development preview only**; updating this repository does not deploy production.
 
 [Development status](#development-status) · [Recent updates](#recent-updates) · [Website history](#website-update-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
 
 ## Development status
 
-| Area | Status | What this means for the client |
+| Area | Status | What users can do |
 | --- | --- | --- |
-| Public website | Available | Visitors can use the homepage, treatment information, about page, and navigation without signing in |
-| Clinic discovery | Available | Search approved clinics and view their saved public details, active services, and active dentist information |
-| Cost calculator | Available | Estimate selected treatments using a clinic's published prices; the estimate does not create a booking or collect payment |
-| Patient accounts | Available | Register, sign in/out, view account information, and access protected patient pages |
-| Patient appointment list | Read-only | Display existing records linked to the signed-in patient, or an empty state; new appointment requests cannot yet be submitted |
-| Clinic registration | Available | Submit an authorized clinic/staff registration and check its review status and notes |
-| Approved-clinic workspace | Read-only | The clinic owner can view saved clinic information and database counts after approval |
-| Administrator review | Available | Administrators use a separate website to review pending clinics and save approval or rejection decisions |
-| Clinic profile, service, and dentist editing | Next — planned | This is the next proposed feature release; editing screens and save operations are not delivered yet |
-| Scheduling, booking, and payments | Planned | These depend on the later development phases described below |
+| Public discovery and estimates | Existing foundation | Browse approved clinics, published services/dentists, and cost estimates without signing in |
+| Patient and clinic accounts | Existing foundation | Register, sign in/out, and use server-protected personal or clinic pages |
+| Administrator review | Existing foundation | Review pending clinic registrations through the separate administration website |
+| Clinic setup | Development preview | Edit the clinic profile, services, estimated prices/durations, dentist profiles, and weekly working hours |
+| Dentist-service assignments | Development preview | Choose which treatments each dentist provides within the clinic |
+| Appointment availability | Development preview | Choose a published treatment, assigned dentist, and time derived from working hours and existing reservations |
+| Patient booking requests | Development preview | Submit one treatment per request; the server validates availability and saves the request durably |
+| Clinic appointment inbox | Development preview | Review the latest 100 requests for a selected status; accept or decline pending requests with an audited decision |
+| Patient status tracking | Development preview | Refresh the latest 50 own appointments to read the clinic’s saved decision and note |
+| Payments, final confirmation, appointment changes, reminders, and reviews | Planned | These operations are not implemented in this increment |
 
-**Available** means the stated function is delivered. **Read-only** means saved information can be viewed, with the limitations shown. **Next — planned** identifies the next proposed increment. **Planned** means future work. Planned items are not marked as actively in progress in this release.
-
-Clinic listings come from approved database records. A new installation can legitimately show an empty directory until records are approved and relevant clinic information is provisioned.
+Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account.
 
 ## Recent updates
 
-| Date | Website change | What users experience | Status |
-| --- | --- | --- | --- |
-| 31 October 2026 | Redirect-loop fix | Patient and clinic pages open successfully; administrator access reaches sign-in normally | Live fix verified |
-| 30 October 2026 | Patient accounts | Register, sign in/out, view account information, and read personal appointment records | Included in the delivered foundation |
-| 30 October 2026 | Access and phone usability | Separate account-role access, stronger sign-in protection, readable phone controls, and accessible page transitions | Included in the delivered foundation |
-| 29 October 2026 | Clinic discovery and estimates | Browse approved clinics and treatment information and estimate costs using published prices | Included in the delivered foundation |
-| 29 October 2026 | Clinic registration and review | Submit a clinic, check review status/notes, and approve or reject pending registrations | Included in the delivered foundation |
+| Date | Website change | Status |
+| --- | --- | --- |
+| 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Development preview; supplied source included |
+| 3 November 2026 | Clinic profile, service/price, dentist, and weekly working-hour management | Development preview; supplied source included |
+| 31 October 2026 | Patient/clinic redirect-loop fix and administrator sign-in access | Previously verified live fix |
+| 30 October 2026 | Patient accounts, personal records, role separation, and phone usability | Existing delivered foundation |
+| 29 October 2026 | Approved-clinic discovery, cost estimates, registration, and administrator review | Existing delivered foundation |
 
-The development preview also supports an owner account that can sign in separately to each portal and select existing clinic workspaces. **That change is awaiting production release and is implemented in the supplied source for development use.** Ordinary-account permissions and personal-appointment restrictions remain enforced.
-
-See [website updates](CHANGELOG.md), the [full website history](docs/12_DEVELOPMENT_HISTORY.md), and the [verification record](docs/VERIFICATION.md) for the behavior and limits. Documentation, repository, and project-administration tasks are kept out of this website-update history.
+An operator-provisioned owner can sign in separately to each portal and select an existing clinic. Ordinary accounts remain restricted to their own records. Development-only credentials are not accepted in production and are not bundled with this delivery.
 
 ## Website update history
 
-The earliest recorded website features date from **29 October 2026**. The history follows changes to public pages, clinic discovery, estimates, clinic registration/review, patient accounts, access protection, phone usability, and the redirect fix.
-
-Dates use **Philippine time (UTC+8)**. Earlier feature dates describe recorded implementation changes, not the exact day each feature first appeared in production. Each new update should state the affected website behavior and whether it is **live**, **development preview**, or **planned**. Read the [full website update history](docs/12_DEVELOPMENT_HISTORY.md) for details.
+Read [website updates](CHANGELOG.md) and the [full website history](docs/12_DEVELOPMENT_HISTORY.md). Dates use Philippine time (UTC+8). Earlier dates describe recorded feature changes, not exact production rollout dates. New entries identify whether behavior is live, in the development preview, or planned. Project-administration work is excluded from this website history.
 
 ## Next planned release
 
-### Clinic content management
+Payment and final-confirmation rules need the next implementation phase. The current preview saves requests and clinic acceptance; it does not charge a deposit or mark a visit confirmed. After payment integration, the roadmap covers cancellation/rescheduling policies, reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
 
-**Status: next planned increment.** This phase will let an approved clinic maintain the information that patients see. Its completion criteria are:
+## Booking rules and current limitations
 
-| Work | Expected result when delivered |
-| --- | --- |
-| Clinic profile editing | Authorized clinic staff can update their own approved fields and see the saved changes after reloading |
-| Service and price management | Clinics can maintain their own treatment information, prices, and active/publication settings |
-| Dentist information management | Clinics can maintain their own dentist profiles and the agreed credential information |
-| Permission and publication checks | Other accounts cannot change the clinic's records; public pages use only information allowed by the publication rules |
-| Review and testing | Changes persist in the database, work on phones and desktop, handle validation/errors, and pass the agreed access-control tests |
-
-Before implementation, confirm the editable fields, publication rules, and credential-handling requirements with the project owner. Review the completed behavior in the test environment before approving a production release.
-
-## Following development phases
-
-| Order | Planned work | Intended outcome |
-| --- | --- | --- |
-| 2 | Dentist assignments and schedules | Availability based on saved working hours, services, durations, and closures |
-| 3 | Persistent appointment requests | Signed-in patients can submit valid requests with server-side conflict checks |
-| 4 | Clinic appointment review | Clinics can review only their own requests and patients can see the saved decision |
-| 5 | Deposits and payment confirmation | Confirm payments through the selected provider with server-validated amounts and safe handling of duplicate callbacks |
-| 6 | Cancellation, rescheduling, and notifications | Apply agreed appointment-change policies and notify the appropriate people |
-| 7 | Completed-visit feedback | Allow eligible patients to leave feedback under the agreed publication rules |
-| 8 | Account recovery and operational strengthening | Add recovery/verification workflows and the agreed backup, monitoring, and account-protection improvements |
-
-All rows above are **planned**, not completed or currently marked as started. The [detailed development plan](docs/06_STATUS_AND_DEVELOPMENT_PLAN.md) contains dependencies and acceptance criteria. The [roadmap and future booking diagrams](docs/11_DIAGRAMS_AND_WORKFLOWS.md) show how the phases fit together. Dates and effort estimates are agreed after each phase's requirements are confirmed.
-
-### Client decisions needed for upcoming phases
-
-The planning discussion should confirm which clinic fields can be changed, how credential information is handled, schedule/booking rules, deposit and refund policies, the payment provider, notification channels, and operational ownership. These decisions define what each future release must support.
-
-## Current limitations
-
-- Online appointment submission and live time-slot selection are unavailable. Signing in does not create an appointment.
-- The appointment list can read existing patient-linked records; it does not yet provide booking creation, cancellation, or rescheduling.
-- Clinic profile, service/price, dentist, and schedule editing are not available in the delivered workspace. An authorized operator must arrange controlled data updates until management features are delivered.
-- Deposit collection, payment-provider integration, automated notifications, and completed-visit reviews are not implemented.
-- Self-service password recovery, email verification, MFA, and scheduled backup automation remain future work. Current operational procedures are in the [operations manual](docs/05_OPERATIONS_MANUAL.md).
-
-Unavailable operations have clear interface notices. The application does not create temporary browser appointment records or invented clinic listings to represent unfinished features.
+- A request contains one treatment and one assigned dentist. Prices and durations come from the server; new requests preserve the treatment name and quoted price.
+- Working hours recur weekly in Philippine time. Available starts are 15 minutes apart, require 15 minutes of lead time, and cover today through 90 days ahead. Date-specific closures and configurable booking policies remain planned.
+- Pending, accepted, and confirmed appointments reserve time for the same dentist. A declined request releases its reservation. Changing working hours does not change existing appointments.
+- Identical retries with the same request key return the saved appointment. A changed payload with a used key is rejected.
+- Clinics can accept or decline pending requests. Declines require a patient-visible reason. Acceptance rechecks the current configuration and does not process payment or complete final confirmation.
+- Pending requests remain reserved until reviewed; automatic expiry is not implemented. Clinic staff should review their inbox regularly.
+- The inbox and patient lists are bounded and can be refreshed; live push updates, notifications, self-service cancellation/rescheduling, visit completion, payment collection, and feedback are not implemented.
+- Self-service password recovery, email verification, MFA, and scheduled backup automation remain future work. Production releases use the [five-version release guide](docs/13_RELEASE_VERSIONS.md).
 
 ## Website addresses
 
@@ -108,7 +73,7 @@ Patients and clinics share the main website, with different account permissions.
 
 The interface uses **React 19, React Router 7, Vite 6, and mobile-first CSS**. The server uses **Node.js 22 and Express 4**, with **PostgreSQL 16** for saved records and sessions. **Nginx, Docker, and Docker Compose** package and run the services. Exact dependencies and responsibilities are explained in the [technical overview](docs/03_TECHNICAL_OVERVIEW.md) and [dependency versions](docs/DEPENDENCIES.md).
 
-The latest recorded delivery checks include **33 backend tests**, **two production browser checks**, and layouts at **320px, 390px, 768px, and 1440px**, with a phone checked first. The diagram/handbook checks also cover image loading, contained phone scrolling, print sizing, and relationship-label readability. See the [verification record](docs/VERIFICATION.md) for scope and limitations. These are recorded release checks, not continuous uptime monitoring.
+Booking verification includes the isolated backend suite, separate real PostgreSQL concurrency checks, and a full browser journey through real test APIs. Changed journeys are checked at **390px first, then 320px, 768px, and 1440px**. See the [verification record](docs/VERIFICATION.md) for recorded results and limits. Preview test results do not claim production deployment or continuous monitoring.
 
 ## How development progress is reported
 

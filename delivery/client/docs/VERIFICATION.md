@@ -1,6 +1,27 @@
 # Delivery verification
 
-Reviewed on 31 October 2026.
+Latest application verification: **3 November 2026**. Clinic setup and booking/request review are development-preview features; production was not updated. Earlier delivery checks below remain historical records.
+
+## Clinic setup and appointment requests — 3 November 2026
+
+| Check | Result |
+| --- | --- |
+| Source export | 89 tracked source/configuration files checked against the source snapshot; local Markdown links resolved and private paths excluded |
+| Default backend suite | 61 passed; two native concurrency cases are intentionally skipped by the isolated PGlite run |
+| Real PostgreSQL booking suite | 12 passed, including concurrent overlapping submissions and identical retry races |
+| Browser regression suite | 24 passed; five environment-specific checks intentionally skipped in that run (the real booking and development-preview checks are run separately) |
+| Real-API browser workflow | Staff treatment assignments and working hours, patient requests, clinic acceptance and decline, patient-visible notes/status, and reload persistence verified in isolated PostgreSQL |
+| Required layouts | Booking, clinic inbox, and patient appointments checked at 390px first, then 320px, 768px, and 1440px |
+| Development-preview smoke test | Real patient/clinic/administrator sign-ins and new booking role/route checks passed at all four widths without creating customer records |
+| Handbook | Phone/desktop overflow, loaded images, 44px contents navigation, A4 print width, and refreshed PDF generation passed |
+| Failure states | Booking option/slot load retry, preserved contact input, stale-slot rejection, and clinics without bookable assignments checked |
+| Ownership/portal checks | Ordinary clinic ownership, owner-selected clinic query parameters, patient record scope, current approval, origin verification, and separate administrator routes checked |
+
+Requests retain server identity, price, duration, and new treatment-name snapshots. Clinic decisions record reviewer, timestamp, and patient-visible notes. Pending/accepted reservations block overlapping slots; declining releases time. Identical retries return the saved appointment. Tests do not claim payment processing, final confirmation, cancellations/rescheduling, notifications, or production deployment.
+
+All created clinic, patient, schedule, and appointment test records were confined to disposable test databases. No records were inserted into production or the development-preview database for test display. The development stack was rebuilt separately. Source delivery excludes private runtime configuration, backups, test reports, and internal development history.
+
+## Earlier foundation verification — 31 October 2026
 
 | Check | Result |
 | --- | --- |

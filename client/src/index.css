@@ -2482,3 +2482,33 @@ td small {
   .clinic-tool-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .clinic-tool-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
+
+.booking-fieldset { border: 0; min-width: 0; padding: 0; margin: 0; }
+.booking-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.booking-layout > .panel { overflow-wrap: anywhere; }
+.booking-time-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-bottom: 16px; }
+.booking-times { margin-top: 24px; }
+.booking-times > .button { margin-top: 12px; }
+.booking-summary > .text-link { margin-top: 16px; }
+.clinic-editor .clinic-assignment-list { margin: 20px 0; }
+.clinic-assignment-list legend { font-weight: 700; }
+.clinic-inbox-filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.clinic-inbox-filters .field { margin: 0; }
+.clinic-inbox-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.clinic-inbox-list .clinic-record { margin-top: 0; }
+.clinic-review-form { padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); }
+.clinic-visit-notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+.clinic-inbox a { overflow-wrap: anywhere; }
+.clinic-inbox .text-link { min-height: 44px; }
+@media (min-width: 390px) {
+  .booking-time-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .clinic-inbox-filters { flex-direction: row; align-items: flex-end; }
+  .clinic-inbox-filters .field { flex: 1; }
+}
+@media (min-width: 900px) {
+  .booking-layout { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+  .clinic-tool-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .clinic-inbox-list { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}

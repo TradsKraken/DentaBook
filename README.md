@@ -20,7 +20,9 @@ Patient registration, sign-in, account information, and an account-scoped appoin
 
 In the development preview, approved clinics can now edit their public profile, add and edit services with estimated PHP prices and durations, publish or hide services and dentist profiles, and manage recurring weekly dentist working hours. Changes are saved in PostgreSQL and published records update the public directory and calculator. Working hours use Philippine time and reject overlaps for the same dentist. Hiding records preserves their details and appointment references.
 
-Online booking submission, dentist-service assignments, appointment review, booking slots, notifications, payments, cancellation/rescheduling, reviews, and password recovery remain future increments. Working hours do not create booking slots or change existing appointments. Signing in does not simulate unfinished features.
+The development preview now includes dentist-service assignments, duration-based available times, persistent patient appointment requests, and a clinic inbox for accepting or declining them. Patients must sign in; all dates and times use Philippine time. Slots cover the next 90 days, require 15 minutes of lead time, and are checked again in a database transaction when a request is saved. Pending and accepted requests reserve the dentist’s time. Requests preserve their treatment name and price, and retrying a saved request does not create a duplicate. Patients can refresh their appointments to read the clinic’s decision and note.
+
+Each request currently covers one treatment. Clinic acceptance does not collect payment or mark a visit confirmed. Payments, final confirmation, cancellations/rescheduling, notifications, visit completion, reviews, special-date closures, and password recovery remain future increments. Production has not been updated with the clinic setup or booking preview.
 
 ## Development on this server
 
@@ -40,7 +42,7 @@ npm.cmd run dev
 
 Open the URL printed by Vite (normally http://localhost:3000). Start the backend and provision PostgreSQL for clinic data; the frontend shows a connection error when the API is unavailable. The Docker setup below runs all three services. No production clinic data is seeded automatically.
 
-The cost calculator uses a selected clinic's published prices and links to its contact details. It does not collect payment or submit an appointment request. Staff tools require server-side authentication and approval. Clinic staff use `/register-clinic`, `/clinic/sign-in`, and `/clinic`. Administrators use the separate `/admin/sign-in` and `/admin` area. The server checks roles at sign-in and restricts dashboard access by role and clinic status.
+The cost calculator uses a selected clinic's published prices. It does not collect payment or submit a request. Signed-in patients use `/patient/book` to request a treatment and an available time. Staff tools require server-side authentication and approval. Clinic staff use `/register-clinic`, `/clinic/sign-in`, and `/clinic`. Administrators use the separate `/admin/sign-in` and `/admin` area. The server checks roles at sign-in and restricts dashboard access by role and clinic status.
 
 ```powershell
 # From client/

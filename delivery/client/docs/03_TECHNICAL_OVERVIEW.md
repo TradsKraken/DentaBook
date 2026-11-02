@@ -59,4 +59,4 @@ When an administrator reviews a registration, the administrator API checks the s
 
 The application is organized into incremental capabilities: public discovery, account registration and permissions, clinic review, production separation, and testing. Interfaces use actual API data and explicit states for incomplete operations. Database changes are applied through versioned migration files rather than relying on manual changes to every installation.
 
-The next increments extend clinic data management and scheduling before enabling appointment submission. The [development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) explains this order and its acceptance criteria.
+The supplied source now includes clinic data management, dentist-service assignments, server-derived slots, persistent requests, and clinic acceptance/decline in the development preview. Booking and setup writes lock the same clinic record while validating current configuration and saving reservations. Separate request keys prevent duplicate retries. The [development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) records the implemented rules and remaining payment/appointment-change work.

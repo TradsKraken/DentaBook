@@ -607,6 +607,7 @@ export function ClinicWorkspace() {
               ...previous, clinic: data.clinic, counts: { ...previous.counts,
                 dentists: data.dentists.filter(item => item.isActive).length,
                 services: data.services.filter(item => item.isActive).length,
+                pendingAppointments: data.pendingAppointments ?? previous.counts.pendingAppointments,
               },
             } : previous);
             if (owner) setClinics(previous => previous.map(item => item.id === data.clinic.id ? { ...item, name: data.clinic.name } : item));

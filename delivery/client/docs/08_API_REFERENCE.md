@@ -23,7 +23,20 @@ State-changing requests use JSON, `Content-Type: application/json`, and `X-Denta
 | GET | `/auth/me` | Valid session; current account and owned clinic information when applicable |
 | POST | `/auth/logout` | Revokes the presented session and clears its cookie |
 | GET | `/workspaces/patient/appointments` | Patient session; latest 50 linked appointments |
-| GET | `/workspaces/clinic` | Approved clinic owner's saved clinic details and counts |
+| GET | `/workspaces/clinic` | Approved clinic owner’s saved clinic details and counts |
+| GET | `/workspaces/clinic/manage` | Clinic session: private setup data, assignments, and pending count |
+| PUT | `/workspaces/clinic/manage/profile` | Edit the approved owning clinic’s public details |
+| POST | `/workspaces/clinic/manage/services` | Add a service with price, duration, and publication flag |
+| PUT | `/workspaces/clinic/manage/services/:id` | Edit only a service in the owning clinic |
+| POST | `/workspaces/clinic/manage/dentists` | Add a dentist profile with optional service assignments |
+| PUT | `/workspaces/clinic/manage/dentists/:id` | Edit a dentist and optionally replace own-clinic service assignments |
+| POST | `/workspaces/clinic/manage/schedules` | Add recurring working hours; reject invalid/overlapping shifts |
+| DELETE | `/workspaces/clinic/manage/schedules/:id` | Remove only an owned dentist’s shift; preserve existing appointments |
+| GET | `/workspaces/patient/booking-options?clinicId=...` | Patient session: published services, dentists/assignments, contact defaults, date window |
+| GET | `/workspaces/patient/availability?clinicId=...&serviceId=...&dentistId=...&date=YYYY-MM-DD` | Patient session: current server-derived slots and treatment quote |
+| POST | `/workspaces/patient/appointments` | Patient session: atomically validate and save one treatment request |
+| GET | `/workspaces/clinic/manage/appointments?status=pending_review` | Approved clinic session: latest 100 own records for a selected status |
+| PUT | `/workspaces/clinic/manage/appointments/:id/review` | Approved clinic session: accept/decline only a pending own request |
 
 Patient registration accepts `name`, `email`, `phone`, and `password`. Clinic registration accepts `ownerName`, `email`, `password`, `clinicName`, `address`, `phone`, `contactEmail`, `registrationReference`, and `consent: true`. Client-side password confirmation is not a stored field. Unknown role/status fields cannot select elevated privileges.
 
@@ -55,4 +68,18 @@ Successful endpoints return JSON, except logout returns HTTP 204. Sign-in sets a
 | 429 | Temporary request-rate limit; follow `Retry-After` |
 | 503 | Service or database temporarily unavailable |
 
-Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. No appointment-creation, payment, scheduling, or password-reset API is delivered in this snapshot.
+Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are development-preview features. Payment, final-confirmation, appointment-change, completion, and password-reset APIs are not delivered.
+
+## Booking request contract (development preview)
+
+`POST /workspaces/patient/appointments` accepts `clinicId`, `serviceId`, `dentistId`, `date` (YYYY-MM-DD), `time` (HH:MM), `email`, `phone`, `notes` (up to 2,000 characters), `requestKey` (UUID), `expectedPrice` (decimal string), and `expectedDuration` (integer minutes). Each request contains one treatment. The patient identity, stored price, duration, and initial `pending_review` status are assigned by the server. A changed quote or unavailable time returns 409.
+
+Generate a new request key for a new request and reuse it for an identical retry. A saved identical retry returns HTTP 200 with the same appointment; initial creation returns 201. Reusing a key with changed details returns 409. The response includes `appointment` with its code, status, visit date/time, quoted total, clinic/dentist names, and service names.
+
+Dates use Asia/Manila, today through 90 days ahead. Slots start every 15 minutes within a saved shift, fit the full treatment duration, and require 15 minutes of lead time. Pending, accepted, and confirmed reservations block overlapping times for the same dentist. The final check and inserts occur in one transaction under a clinic row lock shared with setup/review writes.
+
+Dentist creates/updates accept optional `serviceIds`: up to 100 unique own-clinic service UUIDs. Omitting the field preserves existing assignments on updates; an empty array removes all assignments. Public booking uses active services and active dentists only.
+
+The clinic review body uses `decision: "accepted"` or `decision: "declined"` and `notes` (string, up to 2,000 characters). Declining requires nonempty notes. Acceptance rechecks future time, active assignments, working hours, and conflicts. Reviewer/time/notes are saved. The response includes `pendingAppointments` for the workspace count. A stale decision returns 409.
+
+Owner clinic sessions must supply `clinicId` on every clinic-tool read/write. Ordinary staff cannot use a clinic selector. Administrator portal routes and patient/clinic roles remain separate.
