@@ -45,7 +45,7 @@ Actual database passwords belong in a private `.env`, not in source control. Kee
 
 ## Booking privacy and reservation safety (development preview)
 
-New requests use the signed-in patient identity rather than a submitted account ID. Contact details and visit notes are visible only to the authorized owning clinic; public clinic responses and other patients’ lists do not include them. Clinic review notes are visible to the owning patient.
+New requests use the signed-in patient identity and registered email rather than a submitted account ID or email. Booking displays the account email read-only. Missing account emails prevent new requests; existing saved requests keep their original email. Contact details and visit notes are visible only to the authorized owning clinic; public clinic responses and other patients’ lists do not include them. Clinic review notes are visible to the owning patient.
 
 Booking, setup, and review writes lock the clinic record and use a database transaction. Reservations are checked for the full service duration before inserts. Patient-scoped UUID request keys and a unique index prevent duplicate submissions on retry. New service lines retain their name and quoted price. Review actions record the reviewer and time and reject stale decisions.
 

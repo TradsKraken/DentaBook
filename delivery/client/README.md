@@ -29,6 +29,7 @@ Listings, prices, credentials, schedules, and requests use backend records. Empt
 
 | Date | Website change | Status |
 | --- | --- | --- |
+| 3 November 2026 | Booking automatically uses the signed-in patient’s registered email | Development preview; supplied source included |
 | 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Development preview; supplied source included |
 | 3 November 2026 | Clinic profile, service/price, dentist, and weekly working-hour management | Development preview; supplied source included |
 | 31 October 2026 | Patient/clinic redirect-loop fix and administrator sign-in access | Previously verified live fix |
@@ -47,6 +48,7 @@ Payment and final-confirmation rules need the next implementation phase. The cur
 
 ## Booking rules and current limitations
 
+- Booking fills the registered patient email automatically and keeps it read-only. The server uses the account email even if a different email is submitted. Accounts without an email, including the development owner login, must use a registered patient account to create requests.
 - A request contains one treatment and one assigned dentist. Prices and durations come from the server; new requests preserve the treatment name and quoted price.
 - Working hours recur weekly in Philippine time. Available starts are 15 minutes apart, require 15 minutes of lead time, and cover today through 90 days ahead. Date-specific closures and configurable booking policies remain planned.
 - Pending, accepted, and confirmed appointments reserve time for the same dentist. A declined request releases its reservation. Changing working hours does not change existing appointments.

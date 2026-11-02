@@ -72,7 +72,7 @@ Most errors use an `error` message, with `fields` where relevant. `/health` uses
 
 ## Booking request contract (development preview)
 
-`POST /workspaces/patient/appointments` accepts `clinicId`, `serviceId`, `dentistId`, `date` (YYYY-MM-DD), `time` (HH:MM), `email`, `phone`, `notes` (up to 2,000 characters), `requestKey` (UUID), `expectedPrice` (decimal string), and `expectedDuration` (integer minutes). Each request contains one treatment. The patient identity, stored price, duration, and initial `pending_review` status are assigned by the server. A changed quote or unavailable time returns 409.
+`POST /workspaces/patient/appointments` accepts `clinicId`, `serviceId`, `dentistId`, `date` (YYYY-MM-DD), `time` (HH:MM), `phone`, `notes` (up to 2,000 characters), `requestKey` (UUID), `expectedPrice` (decimal string), and `expectedDuration` (integer minutes). Each request contains one treatment. The patient identity, registered account email, stored price, duration, and initial `pending_review` status are assigned by the server. The request body does not need `email`; a supplied email is ignored. Creating a new request requires a valid email on the account (otherwise 400), including owner accounts. Existing identical retries retain the originally saved email. A changed quote or unavailable time returns 409.
 
 Generate a new request key for a new request and reuse it for an identical retry. A saved identical retry returns HTTP 200 with the same appointment; initial creation returns 201. Reusing a key with changed details returns 409. The response includes `appointment` with its code, status, visit date/time, quoted total, clinic/dentist names, and service names.
 

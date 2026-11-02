@@ -35,9 +35,11 @@ Opening a personal page while signed out leads to patient sign-in. After a succe
 
 1. Open **Book an appointment** or a clinic’s **Request an appointment** link.
 2. Select a clinic, treatment, assigned dentist, and date.
-3. Choose an available time, check the estimated cost, and enter contact details and optional visit notes.
+3. Choose an available time and check the estimated cost. Your registered email is filled automatically and cannot be changed in booking. Check your phone number and add optional visit notes.
 4. Submit once and read the saved request code. The initial status is **pending review**.
 5. Open **My appointments** and use **Refresh appointments** to see the clinic’s decision and note.
+
+An account without an email cannot create a new request. Sign out and use a patient account registered with an email address; the development owner login has no email by default.
 
 All times use Philippine time. Requests cover one treatment, today through 90 days ahead, with 15 minutes of lead time. If a time or quote changes, refresh and choose from the current options. A saved pending request reserves the time while the clinic reviews it. Identical submission retries return the same saved request.
 

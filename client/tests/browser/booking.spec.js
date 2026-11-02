@@ -5,13 +5,13 @@ const service={id:"22222222-2222-4222-8222-222222222222",name:"Test treatment",p
 const dentist={id:"33333333-3333-4333-8333-333333333333",name:"Test Dentist",serviceIds:[service.id]};
 const date=new Date(Date.now()+8*3600000+86400000).toISOString().slice(0,10);
 async function fixture(page) {
-  const state={failOptions:true,failSlots:true,conflict:true,assigned:true,writes:[]};
+  const state={failOptions:true,failSlots:true,conflict:true,assigned:true,accountEmail:"patient@example.test",writes:[]};
   await page.route("**/api/**",async route=>{
     const req=route.request(),url=new URL(req.url()),path=url.pathname;
     const respond=(json,status=200)=>route.fulfill({json,status});
-    if(path==="/api/auth/me") return respond({user:{id:"44444444-4444-4444-8444-444444444444",name:"Test Patient",email:"patient@example.test",role:"patient"},clinic:null});
+    if(path==="/api/auth/me") return respond({user:{id:"44444444-4444-4444-8444-444444444444",name:"Test Patient",email:state.accountEmail,role:"patient"},clinic:null});
     if(path==="/api/clinics") return respond({clinics:[clinic]});
-    if(path==="/api/workspaces/patient/booking-options") return state.failOptions?respond({error:"Booking options could not be loaded."},503):respond({clinic,services:[service],dentists:[{...dentist,serviceIds:state.assigned?[service.id]:[]}],patient:{phone:"09123456789"},minDate:date,maxDate:date});
+    if(path==="/api/workspaces/patient/booking-options") return state.failOptions?respond({error:"Booking options could not be loaded."},503):respond({clinic,services:[service],dentists:[{...dentist,serviceIds:state.assigned?[service.id]:[]}],patient:{email:state.accountEmail,phone:"09123456789"},minDate:date,maxDate:date});
     if(path==="/api/workspaces/patient/availability") return state.failSlots?respond({error:"Available times could not be loaded."},503):respond({service,slots:[{time:"09:00",end:"09:30"}],timezone:"Asia/Manila"});
     if(path==="/api/workspaces/patient/appointments"&&req.method()==="POST") {
       state.writes.push(req.postDataJSON());
@@ -40,6 +40,7 @@ test("booking preserves contact input across load errors and requires a new slot
   state.conflict=false;await page.getByRole("button",{name:"09:00–09:30",exact:true}).tap();
   await page.getByRole("button",{name:"Send appointment request",exact:true}).tap();
   await expect(page.getByRole("heading",{name:"Your appointment request is saved."})).toBeVisible();
+  expect(state.writes[0].email).toBeUndefined();
   expect(state.writes[0].expectedPrice).toBe("1500.00");expect(state.writes[0].expectedDuration).toBe(30);
   expect(state.writes[0].requestKey).not.toBe(state.writes[1].requestKey);
 });
@@ -80,4 +81,27 @@ test("owner inbox keeps the selected clinic in status-filtered requests and clea
   await expect(page.getByText("SECOND-REQUEST",{exact:true})).toBeVisible();
   await expect(page.getByText("FIRST-REQUEST",{exact:true})).toHaveCount(0);
   expect(reads.at(-1)).toEqual({clinicId:second.id,status:"pending_review"});
+});
+
+
+test("booking fills the account email automatically at every required screen size",async({page})=>{
+  const state=await fixture(page);state.failOptions=false;state.failSlots=false;
+  for(const width of [390,320,768,1440]) {
+    await page.setViewportSize({width,height:900});await page.goto(`/patient/book?clinic=${clinic.id}`);
+    const input=page.getByLabel("Contact email",{exact:true});
+    await expect(input).toHaveValue(state.accountEmail);await expect(input).toHaveAttribute("readonly","");
+    await expect(page.getByText("Your booking uses the email address from your signed-in patient account.",{exact:true})).toBeVisible();
+    expect(await input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  }
+});
+test("an owner account without an email cannot substitute a booking contact email",async({page})=>{
+  const state=await fixture(page);state.failOptions=false;state.failSlots=false;state.accountEmail=null;
+  await page.goto(`/patient/book?clinic=${clinic.id}`);
+  await page.getByLabel("Treatment",{exact:true}).selectOption(service.id);
+  await page.getByLabel("Dentist",{exact:true}).selectOption(dentist.id);
+  await page.getByRole("button",{name:"09:00–09:30",exact:true}).tap();
+  await expect(page.getByLabel("Contact email",{exact:true})).toHaveValue("");
+  await expect(page.getByText("This account has no email address. Sign out and use a patient account registered with an email address to book.",{exact:true})).toBeVisible();
+  await expect(page.getByRole("button",{name:"Send appointment request",exact:true})).toBeDisabled();
 });

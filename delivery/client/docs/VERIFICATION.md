@@ -21,6 +21,12 @@ Requests retain server identity, price, duration, and new treatment-name snapsho
 
 All created clinic, patient, schedule, and appointment test records were confined to disposable test databases. No records were inserted into production or the development-preview database for test display. The development stack was rebuilt separately. Source delivery excludes private runtime configuration, backups, test reports, and internal development history.
 
+## Automatic booking email — 3 November 2026
+
+The focused booking API suite passed 11 checks; its two native concurrency checks are unchanged and intentionally skipped in this focused PGlite run. Five browser checks passed, covering registered-email auto-fill/read-only behavior at 390/320/768/1440px, missing emails, booking load/slot errors, and clinic selection. New requests use the email read from the database even if a different or missing email is sent in the body. Accounts without an email are rejected for new requests. Older saved request hashes/emails continue to support safe identical retries.
+
+The real-API patient-to-clinic journey passed separately against disposable PostgreSQL, including the automatically filled email and the same registered email shown in the clinic inbox. The development preview is rebuilt for this change; production is unchanged.
+
 ## Earlier foundation verification — 31 October 2026
 
 | Check | Result |

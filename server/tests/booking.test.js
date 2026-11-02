@@ -25,10 +25,11 @@ test("patient requests and clinic decisions persist with protected, atomic reser
   const base = "/workspaces/patient";
   const management = "/workspaces/clinic/manage";
   async function account(role, ownerAccess = false, sessionRole = role) {
-    const id = (await db.query("INSERT INTO users (full_name,email,phone,password_hash,role,owner_access) VALUES ('Booking Test User',$1,'09123456789','unused',$2,$3) RETURNING id", [`${crypto.randomUUID()}@example.test`,role,ownerAccess])).rows[0].id;
+    const id = (await db.query("INSERT INTO users (full_name,email,phone,password_hash,role,owner_access,username) VALUES ('Booking Test User',$1,'09123456789','unused',$2,$3,$4) RETURNING id", [`${crypto.randomUUID()}@example.test`,role,ownerAccess,ownerAccess ? `u${crypto.randomUUID().replaceAll("-","")}` : null])).rows[0].id;
     const token = crypto.randomBytes(32).toString("hex");
     await db.query("INSERT INTO sessions (token_hash,user_id,role,expires_at) VALUES ($1,$2,$3,CURRENT_TIMESTAMP + INTERVAL '1 day')", [hashToken(token),id,sessionRole]);
-    return { id, cookie: `dentabook_public_session=${token}` };
+    const accountEmail=(await db.query("SELECT email FROM users WHERE id=$1",[id])).rows[0].email;
+    return { id, email: accountEmail, cookie: `dentabook_public_session=${token}` };
   }
   const patient = await account("patient"), secondPatient = await account("patient"), staff = await account("clinic_staff"), otherStaff = await account("clinic_staff"), owner = await account("system_admin",true,"clinic_staff");
   async function request(route, { method = "GET", body, cookie = patient.cookie, headers = {} } = {}) {
@@ -90,8 +91,8 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       assert.equal(created.status,201); appointmentId=created.data.appointment.id;
       assert.equal(created.data.appointment.status,"pending_review"); assert.equal(Number(created.data.appointment.total),1200.5);
       assert.deepEqual(created.data.appointment.services,["Original treatment"]);
-      const record = (await db.query("SELECT patient_user_id,start_time::text,end_time::text,estimated_total_cost,status FROM appointments WHERE id=$1",[appointmentId])).rows[0];
-      assert.equal(record.patient_user_id,patient.id); assert.equal(record.end_time,"09:45:00"); assert.equal(record.status,"pending_review");
+      const record = (await db.query("SELECT patient_user_id,patient_email,start_time::text,end_time::text,estimated_total_cost,status FROM appointments WHERE id=$1",[appointmentId])).rows[0];
+      assert.equal(record.patient_user_id,patient.id); assert.equal(record.patient_email,patient.email); assert.notEqual(record.patient_email,body.email); assert.equal(record.end_time,"09:45:00"); assert.equal(record.status,"pending_review");
       assert.equal(await totalRequests(),1);
       const slots = (await request(`${base}/availability?${query()}`)).data.slots;
       assert.ok(!slots.some(slot=>["09:00","09:15","09:30"].includes(slot.time)));
@@ -162,6 +163,23 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       const results=await Promise.all([request(base+"/appointments",{method:"POST",body:retry}),request(base+"/appointments",{method:"POST",body:retry})]);
       assert.deepEqual(results.map(item=>item.status).sort(),[200,201]);
       assert.equal(results[0].data.appointment.id,results[1].data.appointment.id);
+    });
+    await t.test("bookings use the database account email, ignore supplied emails, and preserve older retries",async()=>{
+      const ignoredEmail=await request(base+"/appointments",{method:"POST",body:{...body,email:"a-different-address@example.test"}});
+      assert.equal(ignoredEmail.status,200);assert.equal(ignoredEmail.data.appointment.id,appointmentId);
+      const noEmailBody={...body,time:"14:00",requestKey:crypto.randomUUID()};delete noEmailBody.email;
+      const saved=await request(base+"/appointments",{method:"POST",body:noEmailBody});assert.equal(saved.status,201);
+      const savedEmail=(await db.query("SELECT patient_email FROM appointments WHERE id=$1",[saved.data.appointment.id])).rows[0].patient_email;
+      assert.equal(savedEmail,patient.email);
+      const missingEmail=await account("system_admin",true,"patient");
+      await db.query("UPDATE users SET email=NULL WHERE id=$1",[missingEmail.id]);
+      const unavailable=await request(base+"/appointments",{method:"POST",body:{...body,time:"14:45",requestKey:crypto.randomUUID()},cookie:missingEmail.cookie});
+      assert.equal(unavailable.status,400);assert.match(unavailable.data.error,/account needs a valid email/);
+      const legacyEmail="older-contact@example.test";
+      const legacyHash=crypto.createHash("sha256").update(JSON.stringify([body.clinicId,body.serviceId,body.dentistId,body.date,body.time,legacyEmail,body.phone.trim(),body.notes.trim(),body.expectedPrice,body.expectedDuration])).digest("hex");
+      await db.query("UPDATE appointments SET patient_email=$1,booking_request_hash=$2 WHERE id=$3",[legacyEmail,legacyHash,appointmentId]);
+      const legacy=await request(base+"/appointments",{method:"POST",body});assert.equal(legacy.status,200);
+      assert.equal((await db.query("SELECT patient_email FROM appointments WHERE id=$1",[appointmentId])).rows[0].patient_email,legacyEmail);
     });
     await t.test("administrator API cannot reach patient or clinic booking routes",async()=>{
       process.env.APP_PORTAL="admin";

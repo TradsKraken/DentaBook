@@ -1,5 +1,10 @@
 # Website update history
 
+## 3 November 2026 — Account email in booking (development preview)
+
+Booking now fills the signed-in patient’s registered email automatically and displays it read-only. The server saves the account email, so a submitted alternative cannot replace it. Accounts without an email show a clear message to use a registered patient account. Previously saved requests and their retry behavior are preserved. This improvement is available in the development preview and supplied source; production is unchanged.
+
+
 ## 3 November 2026 — Appointment requests and clinic setup (development preview)
 
 The supplied source and development preview now let approved clinics edit their profile, services/prices, dentist profiles, and weekly working hours, including publication controls and dentist-service assignments. Signed-in patients can choose real available times and send persistent requests for one treatment. Pending requests reserve time, overlapping submissions are rejected atomically, and identical retries return the saved request. Clinics can accept or decline pending requests with an audited decision and patient-visible notes. Patients can refresh their own appointments to read the outcome.

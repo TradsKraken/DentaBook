@@ -47,6 +47,8 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
       await expect(patient.getByRole("button",{name:"09:00–09:30",exact:true})).toBeVisible();
     }
     await chooseVisit();
+    await expect(patient.getByLabel("Contact email",{exact:true})).toHaveValue("patient@example.test");
+    await expect(patient.getByLabel("Contact email",{exact:true})).toHaveAttribute("readonly","");
     for(const width of [390,320,768,1440]) {
       await patient.setViewportSize({width,height:900}); await mobileControls(patient,`Booking at ${width}`);
       await patient.evaluate(()=>scrollTo(0,0));
@@ -62,6 +64,7 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
     await expect(patient.getByText("Status: pending review",{exact:true})).toBeVisible();
     await staff.getByRole("button",{name:"Appointment inbox",exact:true}).tap();
     await expect(staff.getByRole("heading",{name:"Test Patient",exact:true})).toBeVisible();
+    await expect(staff.getByRole("link",{name:"patient@example.test",exact:true})).toBeVisible();
     await staff.getByRole("button",{name:`Accept ${firstCode}`,exact:true}).tap();
     await staff.getByLabel("Note to patient (optional)",{exact:true}).fill("Please contact the clinic for the next steps.");
     await staff.getByRole("button",{name:"Confirm acceptance",exact:true}).tap();

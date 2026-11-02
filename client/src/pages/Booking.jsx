@@ -19,7 +19,7 @@ export default function Booking() {
   const directory = useClinics();
   const params = new URLSearchParams(useLocation().search);
   const [selection, setSelection] = useState({ clinicId: params.get("clinic") || "", serviceId: "", dentistId: "", date: "", time: "" });
-  const [contact, setContact] = useState({ email: session.user.email || "", phone: "", notes: "" });
+  const [contact, setContact] = useState({ phone: "", notes: "" });
   const [key, setKey] = useState(requestKey);
   const [options, setOptions] = useState({ loading: false, error: "", data: null });
   const [times, setTimes] = useState({ loading: false, error: "", slots: [], service: null });
@@ -101,6 +101,7 @@ export default function Booking() {
     <Link className="button" to="/patient/appointments">View my appointments</Link>
   </section></div>;
   const data = options.data;
+  const accountEmail = data ? data.patient?.email || "" : session.user.email || "";
   const service = times.service || data?.services.find(item => item.id === serviceId);
   const dentists = data?.dentists.filter(item => item.serviceIds.includes(serviceId)) || [];
   const availableServices = data?.services.filter(item => data.dentists.some(dentist => dentist.serviceIds.includes(item.id))) || [];
@@ -141,14 +142,16 @@ export default function Booking() {
           <section className="panel booking-summary">
             <h2>Your details and estimate</h2>
             <p>Booking for {session.user.name}</p>
-            <label className="field">Contact email<input type="email" autoComplete="email" value={contact.email} maxLength={254} required onChange={event => { setContact(previous => ({ ...previous, email: event.target.value })); setKey(requestKey()); }} /></label>
+            <label className="field">Contact email<input type="email" autoComplete="email" value={accountEmail} readOnly aria-describedby="booking-email-help" /></label>
+            <p className="summary-note" id="booking-email-help">Your booking uses the email address from your signed-in patient account.</p>
+            {!accountEmail && <p className="notice" role="status">This account has no email address. Sign out and use a patient account registered with an email address to book.</p>}
             <label className="field">Contact phone<input type="tel" autoComplete="tel" value={contact.phone} maxLength={30} required onChange={event => { setContact(previous => ({ ...previous, phone: event.target.value })); setKey(requestKey()); }} /></label>
             <label className="field">Visit notes (optional)<textarea aria-label="Visit notes (optional)" rows={4} maxLength={2000} value={contact.notes} onChange={event => { setContact(previous => ({ ...previous, notes: event.target.value })); setKey(requestKey()); }} /></label>
             <p className="summary-note">Your contact details and notes are shared with this clinic for your visit.</p>
             {service ? <p className="notice">Estimated treatment cost: {money(service.price)} · {service.duration} minutes</p> : <p className="muted">Choose a treatment to see its estimated cost.</p>}
             <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
             {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="button full" disabled={busy || times.loading || !selection.time || !data || !!options.error} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
+            <button className="button full" disabled={busy || times.loading || !selection.time || !data || !accountEmail || !!options.error} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
             <Link className="text-link" to="/patient/appointments">View my saved requests</Link>
           </section>
         </div>
