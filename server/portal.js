@@ -31,7 +31,12 @@ function restrictPortal(req, res, next) {
     (clinic && ["/auth/register-clinic", "/auth/login"].includes(path))
   );
   const workspace = (patient && read && path === "/workspaces/patient/appointments") ||
-    (clinic && read && ["/workspaces/clinic", "/workspaces/clinic/options"].includes(path)) ||
+    (clinic && ((read && ["/workspaces/clinic", "/workspaces/clinic/options"].includes(path)) ||
+      (read && ["/workspaces/clinic/manage"].includes(path)) ||
+      (req.method === "PUT" && path === "/workspaces/clinic/manage/profile") ||
+      (req.method === "POST" && /^\/workspaces\/clinic\/manage\/(services|dentists|schedules)$/.test(path)) ||
+      (req.method === "PUT" && /^\/workspaces\/clinic\/manage\/(services|dentists)\/[^/]+$/.test(path)) ||
+      (req.method === "DELETE" && /^\/workspaces\/clinic\/manage\/schedules\/[^/]+$/.test(path)))) ||
     (portal === "admin" && ((read && path === "/workspaces/admin/clinics") ||
       (req.method === "POST" && /^\/workspaces\/admin\/clinics\/[^/]+\/review$/.test(path))));
   if (common || login || registration || workspace) return next();

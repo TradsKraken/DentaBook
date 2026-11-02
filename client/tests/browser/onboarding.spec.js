@@ -34,6 +34,7 @@ async function fixture(page, initial = null) {
         header: request.headers()["x-dentabook-request"],
         body: request.postDataJSON(),
       });
+    if (path === "/api/workspaces/clinic/manage") return respond({ clinic: record, services: [], dentists: [], schedules: [] });
     if (path === "/api/clinics")
       return respond({ clinics: record.status === "approved" ? [record] : [] });
     if (path === "/api/auth/me")

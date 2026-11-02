@@ -2459,3 +2459,26 @@ td small {
     min-height: calc(100svh - 94px);
   }
 }
+
+/* Clinic setup tools start stacked on phones. */
+.clinic-tools { margin-top: 20px; overflow-wrap: anywhere; }
+.clinic-tool-nav { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 20px 0; }
+.clinic-tool-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.clinic-editor, .clinic-records { min-width: 0; }
+.clinic-editor fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+.clinic-tools h3 { margin-top: 0; }
+.clinic-record { padding: 16px; border: 1px solid var(--line); border-radius: 10px; margin-top: 12px; }
+.clinic-record h4 { font-size: 17px; margin: 0; }
+.clinic-record p { margin: 10px 0; white-space: pre-wrap; }
+.clinic-record-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.clinic-check { display: flex; gap: 12px; align-items: center; min-height: 48px; cursor: pointer; margin: 16px 0; }
+.clinic-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+.clinic-empty { padding: 18px; background: #f2f8fa; border-radius: 10px; }
+@media (min-width: 520px) {
+  .clinic-tool-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .clinic-actions { flex-direction: row; flex-wrap: wrap; }
+}
+@media (min-width: 900px) {
+  .clinic-tool-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .clinic-tool-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}

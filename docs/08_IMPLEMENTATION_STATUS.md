@@ -23,7 +23,23 @@ Database records must be provisioned before listings can appear. Clinics can now
 - Private first-administrator setup command and versioned schema migrations.
 - Separate administrator sign-in (`/admin/sign-in`) and clinic sign-in (`/clinic/sign-in`), with portal-specific server role checks. Administrator pages use their own layout and are not linked from patient navigation.
 
-See [clinic accounts setup](09_CLINIC_ACCOUNTS_SETUP.md). Profile/service/dentist editing and scheduling are still the next increment, and password recovery/email verification are not yet available.
+See [clinic accounts setup](09_CLINIC_ACCOUNTS_SETUP.md). Password recovery/email verification are not yet available.
+
+## Clinic setup tools (development preview)
+
+These tools are available in the development preview on port 3013. Production has not been updated with this increment.
+
+Approved clinic staff can use the setup tools in `/clinic`:
+
+- Edit the public clinic name, description, address, phone, and email. Public contact email remains separate from account sign-in email.
+- Create and edit services, categories, estimated PHP prices, and durations. Publish or hide each service; published services appear in discovery and the calculator.
+- Create and edit dentist names, professional titles, and supplied credentials. Publish or hide each profile without deleting its history. Dentist profiles do not create sign-in accounts.
+- Add and remove recurring weekly working hours in Philippine time for published dentists. Split shifts are supported; overlapping hours for the same dentist are rejected.
+- Read real database records with loading, empty, error/retry, and save feedback states.
+
+Every tool requires a current server-validated clinic session and an approved clinic. Ordinary staff are scoped to their owned clinic, including every record update and schedule removal. Operator owner access must select an approved clinic before using these tools. Writes lock the clinic record while validating approval and saving changes.
+
+These are setup tools: they do not create appointment slots, submit bookings, process payments, or alter existing appointments. Dentist-service assignments and appointment management remain planned.
 
 ## Patient accounts and public browsing
 
@@ -41,7 +57,7 @@ Source support now includes an explicit owner account with a username, separate 
 
 ## Subsequent parts
 
-1. Clinic management: profile editing, dentist credentials, service/price management, dentist-service assignments, and staff ownership rules.
+1. Further clinic management: dentist-service assignments and additional staff access. Profile, service, dentist, and weekly working-hour tools are implemented above.
 2. Account lifecycle: password recovery, email verification, and staff/dentist access. Patient sign-in is now required for booking and personal features by the user's later instruction; browsing remains public.
 3. Scheduling and booking: actual availability, duration and conflict checks in database transactions, patient intake, persistent requests, and authorized review actions.
 4. Appointment management: tracking, policy-based cancellation/rescheduling, and notifications.

@@ -18,7 +18,9 @@ Clinic registration, sign-in, administrator approval/rejection, and the protecte
 
 Patient registration, sign-in, account information, and an account-scoped appointment list are implemented. Visitors can browse clinics, services, and estimates without an account. Booking, personal appointments, and account pages require patient sign-in. Use `/patient/register` and `/patient/sign-in`; `/sign-in` is now a shortcut to patient sign-in.
 
-Online booking submission is still unavailable. Profile/service/dentist editing, schedules, booking creation, notifications, payments, cancellation/rescheduling, reviews, and password recovery remain future increments. Signing in does not simulate these unfinished features.
+In the development preview, approved clinics can now edit their public profile, add and edit services with estimated PHP prices and durations, publish or hide services and dentist profiles, and manage recurring weekly dentist working hours. Changes are saved in PostgreSQL and published records update the public directory and calculator. Working hours use Philippine time and reject overlaps for the same dentist. Hiding records preserves their details and appointment references.
+
+Online booking submission, dentist-service assignments, appointment review, booking slots, notifications, payments, cancellation/rescheduling, reviews, and password recovery remain future increments. Working hours do not create booking slots or change existing appointments. Signing in does not simulate unfinished features.
 
 ## Development on this server
 

@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Stethoscope,
 } from "lucide-react";
+import { ClinicTools } from "../components/ClinicTools";
 import { api } from "../api";
 import { PageTitle } from "../components/Shared";
 import { useAuth } from "../hooks/useAuth";
@@ -451,7 +452,7 @@ export function ClinicWorkspace() {
   const [selectedClinic, setSelectedClinic] = useState("");
   const [optionsLoading, setOptionsLoading] = useState(owner);
   const [optionsError, setOptionsError] = useState("");
-  const clinic = owner ? workspace?.clinic : session.clinic;
+  const clinic = workspace?.clinic || (owner ? null : session.clinic);
   useEffect(() => {
     if (session.clinic?.status === "approved") refreshDirectory();
   }, [session.clinic?.status, refreshDirectory]);
@@ -600,11 +601,17 @@ export function ClinicWorkspace() {
             {clinic.status === "approved" && <Link className="button secondary" to={`/clinics/${clinic.id}`}>
               View public clinic profile <ArrowRight size={16} />
             </Link>}
-            <p className="summary-note">
-              Clinic profile editing, dentist/service management, schedules, and
-              booking tools are the next development stage.
-            </p>
           </section>
+          {workspace.clinic.status === "approved" ? <ClinicTools key={workspace.clinic.id} clinicId={workspace.clinic.id} owner={owner} onUpdated={data => {
+            setWorkspace(previous => previous?.clinic.id === data.clinic.id ? {
+              ...previous, clinic: data.clinic, counts: { ...previous.counts,
+                dentists: data.dentists.filter(item => item.isActive).length,
+                services: data.services.filter(item => item.isActive).length,
+              },
+            } : previous);
+            if (owner) setClinics(previous => previous.map(item => item.id === data.clinic.id ? { ...item, name: data.clinic.name } : item));
+            refreshDirectory();
+          }} /> : <p className="notice">Clinic setup tools become available when this clinic is approved.</p>}
         </>
       )}
     </div>

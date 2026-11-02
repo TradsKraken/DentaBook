@@ -1,5 +1,6 @@
 const express = require("express");
 const { requireSession, requireRole } = require("../auth");
+const { createClinicToolsRouter } = require("./clinic-tools");
 const { ownedClinic, clinicColumns } = require("./accounts");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
@@ -32,6 +33,7 @@ function createWorkspaceRouter(pool) {
       }
     },
   );
+  router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool));
   router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {
     if (!req.user.ownerAccess)
       return res.status(403).json({ error: "Owner access is required to select another clinic." });

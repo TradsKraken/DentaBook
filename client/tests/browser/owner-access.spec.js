@@ -27,6 +27,7 @@ async function fixture(page, { records = clinics, failOptions = false, failWorks
       if (failOptions) return respond({ error: "Clinic list is temporarily unavailable." }, 503);
       return respond({ clinics: records });
     }
+    if (path === "/api/workspaces/clinic/manage") return respond({ clinic: records.find(clinic => clinic.id === url.searchParams.get("clinicId")), services: [], dentists: [], schedules: [] });
     if (path === "/api/workspaces/clinic") {
       reads.push(url.searchParams.get("clinicId"));
       if (failWorkspace) return respond({ error: "Clinic workspace is temporarily unavailable." }, 503);
@@ -53,7 +54,7 @@ test("owner signs into each portal and selects existing clinics on phone and des
   for (const clinic of clinics) {
     await page.getByLabel("Clinic", { exact: true }).selectOption(clinic.id);
     await expect(page.getByRole("heading", { name: clinic.name, exact: true })).toBeVisible();
-    await expect(page.getByText(clinic.address, { exact: true })).toBeVisible();
+    await expect(page.getByRole("definition").filter({ hasText: clinic.address })).toBeVisible();
   }
   await expect(page.getByText("Owner access. Clinic status: pending review.")).toBeVisible();
   await expect(page.getByRole("link", { name: "View public clinic profile" })).toHaveCount(0);
