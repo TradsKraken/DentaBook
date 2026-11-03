@@ -1,6 +1,6 @@
 # Delivery verification
 
-Latest application verification: **3 November 2026**. Clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic are released on production. Cancellation/rescheduling is implemented and tested, with production verification pending. Earlier checks below are historical records.
+Latest application verification: **3 November 2026**. Clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic are released on production. Cancellation/rescheduling is also released and verified on production. Earlier checks below are historical records.
 
 ## Cancellation, rescheduling, and baseline release — 3 November 2026
 
@@ -10,7 +10,7 @@ Latest application verification: **3 November 2026**. Clinic setup, booking, edi
 - The existing preview was released with the required version-saving manager. Four real HTTPS portal/security checks passed at all required widths without creating production records. The previous running website was saved as verified restore point `20261103T125319228146Z-2a39d811`.
 - Release safeguard suite: 20 passed, including exact manifest recovery, refusal to substitute newer images, temporary image pin cleanup, failed builds/backups, retention, and data-preserving rollback.
 - The final optimized frontend build and whitespace checks passed. Clinic defaults keep patient changes and payment methods disabled until explicitly configured. Cancellation never claims a refund; reschedule approval never claims an unpaid visit was paid.
-- The development rebuild passed four additional checks: three appointment-change UI journeys against the built preview with test-only APIs, and the real development owner sign-in/workspace/logout journey at all four widths. No clinic policies or customer records were changed. New production release verification is recorded after completion. Off-host recovery and recurring restore drills remain future work.
+- The development rebuild passed four additional checks: three appointment-change UI journeys against the built preview with test-only APIs, and the real development owner sign-in/workspace/logout journey at all four widths. No clinic policies or customer records were changed. The new release passed seven checks against the deployed HTTPS website: four real portal/security journeys and three appointment-change interface journeys using test-only APIs. Production migration `006_appointment_changes.sql`, disabled default actions, and absence of test change records were verified. Restore point `20261103T132446813168Z-5ce6c7a9` preserves the previous running booking/payment website, and all three retained restore points passed integrity checks. Off-host recovery and recurring restore drills remain future work.
 
 ## GCash and Pay at clinic — 3 November 2026
 

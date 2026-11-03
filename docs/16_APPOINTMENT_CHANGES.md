@@ -1,6 +1,6 @@
 # Cancellation and rescheduling
 
-Status: implemented and tested in source; production release pending. The existing clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic confirmation were released on 3 November 2026.
+Status: released on production and verified on 3 November 2026. The existing clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic confirmation were released on 3 November 2026.
 
 ## Configure a clinic
 

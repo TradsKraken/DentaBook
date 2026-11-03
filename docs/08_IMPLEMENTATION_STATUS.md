@@ -16,7 +16,7 @@ Owning clinics accept or decline requests with an audited decision and patient-v
 
 The baseline was released from committed source with the required version-saving release manager. HTTPS portal checks passed at 390px, 320px, 768px, and 1440px. Production has no clinic listings at the time of this review; empty/unavailable states remain intentional.
 
-## Cancellation and rescheduling — implemented; production release pending
+## Cancellation and rescheduling — released 3 November 2026
 
 Clinics explicitly configure patient actions, deadlines, and terms. Patient cancellation/rescheduling remains unavailable until enabled. Server checks enforce ownership, clinic approval, status transitions, and notice deadlines. Reasons and reviewer/requester history are saved. Cancellation releases time while preserving payments/receipts and flagging financial follow-up.
 
@@ -31,3 +31,5 @@ Notifications/reminders, password recovery and verification, date-specific closu
 The backend suite covers account/clinic isolation and booking/payment/change behavior using the real schema and migrations. Real PostgreSQL checks exercise competing reservations, retries, replacement approvals, and cancellation/payment races. Browser fixtures remain test-only; the real browser journey uses a disposable PostgreSQL database and actual API requests for setup, booking, GCash verification, Pay at clinic, policy setup, rescheduling, and cancellation. No production records are created by these tests.
 
 Release-manager safeguard tests and the existing restore-point integrity checks passed. The production baseline portal checks verify health, public access, protected-page redirects, origin checks, security headers, and layout/accessibility controls without using customer credentials. These checks do not claim completed off-host disaster recovery or notification delivery.
+
+The appointment-change release passed seven additional checks against the deployed HTTPS website: four real portal/security journeys and three interface journeys using test-only API fixtures. The production migration and disabled default policy settings were verified without inserting customer records. All three retained restore points passed integrity verification.

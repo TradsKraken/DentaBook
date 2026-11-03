@@ -4,9 +4,9 @@
 
 Patients can request available appointments with an editable contact email and use clinic-enabled GCash or Pay at clinic after acceptance. Clinics manage profiles, treatments, dentists, assignments, working hours, request decisions, and payment verification in the redesigned workspace. Staff verify actual GCash transfers before issuing private deposit receipts; Pay at clinic stays unpaid. These features are now released and verified on both HTTPS portals. Existing clinics are not enrolled in payment methods automatically.
 
-## 3 November 2026 — Cancellation and clinic-approved rescheduling (implemented; release pending)
+## 3 November 2026 — Cancellation and clinic-approved rescheduling (live)
 
-Clinics set their own enabled patient actions, deadlines, and terms. Patients can cancel eligible visits, request another available time, or withdraw a pending reschedule. The original reservation remains until owning clinic staff approve a replacement after an atomic availability check. Change history records reasons, policies, requester/reviewer, and original/requested times. Original quotes, treatment duration, appointment references, payment records, and issued receipts are preserved. Cancellation flags any financial follow-up without recording a refund. Production verification for this increment is pending.
+Clinics set their own enabled patient actions, deadlines, and terms. Patients can cancel eligible visits, request another available time, or withdraw a pending reschedule. The original reservation remains until owning clinic staff approve a replacement after an atomic availability check. Change history records reasons, policies, requester/reviewer, and original/requested times. Original quotes, treatment duration, appointment references, payment records, and issued receipts are preserved. Cancellation flags any financial follow-up without recording a refund. This increment is now released and verified on production; clinics must explicitly enable patient actions.
 
 
 ## 3 November 2026 — GCash deposits and Pay at clinic (development preview)

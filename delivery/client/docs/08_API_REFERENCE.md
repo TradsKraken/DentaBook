@@ -101,7 +101,7 @@ All reads require the relevant server-validated role/session; mutations also req
 
 Clinic owner selectors retain `clinicId` on all clinic payment requests. All payment choices/reviews lock the clinic and appointment in a transaction. Payment choice keys, active choices, receipt codes, and verified GCash references have database uniqueness protection. The server computes deposits with integer centavo rounding and snapshots terms/recipient before a transfer. Pay at clinic stores the estimated amount due with pending status; it never creates a received-payment receipt.
 
-## Appointment change endpoints (implemented; release pending)
+## Appointment change endpoints (live)
 
 Patient session/ownership is required for `GET /api/workspaces/patient/appointments/:id/changes`, `GET .../:id/reschedule-availability?date=YYYY-MM-DD`, `POST .../:id/cancel`, `POST .../:id/reschedule`, and `POST .../:id/changes/:changeId/withdraw`. Mutations require the existing request header and origin checks. Cancellation/reschedule submissions include `reason`, `requestKey`, and the reviewed `policyHash`; rescheduling also includes `date` and `time`.
 

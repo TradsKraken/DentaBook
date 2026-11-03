@@ -4,7 +4,7 @@
 
 DentaBook helps people find approved dental clinics, explore treatments, and estimate costs using a clinic's published prices. Patients can create accounts, clinic representatives can submit their clinics for review, and platform administrators can approve or reject those submissions.
 
-**Updated 3 November 2026.** Clinic setup, booking requests, editable appointment email, manually verified GCash deposits, and unpaid Pay at clinic confirmation are released on production. Cancellation and clinic-approved rescheduling are implemented and tested, awaiting their production release.
+**Updated 3 November 2026.** Clinic setup, booking requests, editable appointment email, manually verified GCash deposits, and unpaid Pay at clinic confirmation are released on production. Cancellation and clinic-approved rescheduling are also released and verified on production.
 
 [Development status](#development-status) · [Recent updates](#recent-updates) · [Website history](#website-update-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
 
@@ -22,7 +22,7 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 | Clinic appointment inbox | Live | Review the latest 100 requests for a selected status; accept or decline pending requests with an audited decision |
 | Patient status tracking | Live | Refresh the latest 50 own appointments to read the clinic’s saved decision and note |
 | GCash and Pay at clinic | Live | Clinic-specific policy/recipient, patient reference claims, audited staff verification, private deposit receipts, and unpaid Pay at clinic confirmation |
-| Cancellation and rescheduling | Implemented; release pending | Clinics configure policy/deadlines; patients cancel or request another time; staff atomically approve replacements while preserving payments |
+| Cancellation and rescheduling | Live | Clinics configure policy/deadlines; patients cancel or request another time; staff atomically approve replacements while preserving payments |
 | Reminders and reviews | Planned | Notifications, completion, and feedback remain future increments |
 
 Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, deposits/payments, appointment policies, services, dentists, working hours, and the public profile editor.
@@ -33,11 +33,11 @@ The live website now supports each clinic’s own direct GCash account, deposit 
 
 | Date | Website change | Status |
 | --- | --- | --- |
-| 3 November 2026 | Direct GCash deposits, staff verification, private receipts, and unpaid Pay at clinic confirmation with each clinic’s own policy | Development preview; supplied source included |
-| 3 November 2026 | Clinic workspace redesigned with task navigation, searchable lists, focused edit/review panels, grouped schedules, and booking setup guidance | Development preview; supplied source included |
-| 3 November 2026 | Booking prefills an editable contact email; entering another address leaves account email unchanged | Development preview; supplied source included |
-| 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Development preview; supplied source included |
-| 3 November 2026 | Clinic profile, service/price, dentist, and weekly working-hour management | Development preview; supplied source included |
+| 3 November 2026 | Direct GCash deposits, staff verification, private receipts, and unpaid Pay at clinic confirmation with each clinic’s own policy | Live; released 3 November 2026 |
+| 3 November 2026 | Clinic workspace redesigned with task navigation, searchable lists, focused edit/review panels, grouped schedules, and booking setup guidance | Live; released 3 November 2026 |
+| 3 November 2026 | Booking prefills an editable contact email; entering another address leaves account email unchanged | Live; released 3 November 2026 |
+| 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Live; released 3 November 2026 |
+| 3 November 2026 | Clinic profile, service/price, dentist, and weekly working-hour management | Live; released 3 November 2026 |
 | 31 October 2026 | Patient/clinic redirect-loop fix and administrator sign-in access | Previously verified live fix |
 | 30 October 2026 | Patient accounts, personal records, role separation, and phone usability | Existing delivered foundation |
 | 29 October 2026 | Approved-clinic discovery, cost estimates, registration, and administrator review | Existing delivered foundation |
@@ -50,11 +50,12 @@ Read [website updates](CHANGELOG.md) and the [full website history](docs/12_DEVE
 
 ## Next planned release
 
-The development preview supports clinic-configured direct GCash deposits and Pay at clinic. GCash references require actual account verification by clinic staff; verified deposits confirm eligible accepted visits and issue deposit receipts. Pay at clinic requires staff confirmation and remains unpaid. No gateway, automatic refund, or cash-collection recording is included. Cancellation and rescheduling are implemented and awaiting release: clinics explicitly enable patient actions and set deadlines/terms; paid receipts and original quotes are preserved. Next, the roadmap covers reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
+The development preview supports clinic-configured direct GCash deposits and Pay at clinic. GCash references require actual account verification by clinic staff; verified deposits confirm eligible accepted visits and issue deposit receipts. Pay at clinic requires staff confirmation and remains unpaid. No gateway, automatic refund, or cash-collection recording is included. Cancellation and rescheduling are live: clinics explicitly enable patient actions and set deadlines/terms; paid receipts and original quotes are preserved. Next, the roadmap covers reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
 
 ## Booking rules and current limitations
 
 - Booking prefills the account email when available. Patients may enter a different appointment contact address, including when their account has no email. The server validates and saves it without changing account email or ownership.
+- Clinics explicitly enable patient cancellation/rescheduling and set deadlines/terms under Appointment policies. Original reservations remain until reschedule approval; estimates, payments, and issued receipts are preserved. Cancellation flags financial review without recording a refund.
 - A request contains one treatment and one assigned dentist. Prices and durations come from the server; new requests preserve the treatment name and quoted price.
 - Working hours recur weekly in Philippine time. Available starts are 15 minutes apart, require 15 minutes of lead time, and cover today through 90 days ahead. Date-specific closures and configurable booking policies remain planned.
 - Pending, accepted, and confirmed appointments reserve time for the same dentist. A declined request releases its reservation. Changing working hours does not change existing appointments.

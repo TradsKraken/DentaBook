@@ -7,12 +7,12 @@ Updated 3 November 2026. Work through the numbered items in order, completing an
 - [x] Public clinic discovery, service information, and clinic-based cost estimation.
 - [x] Patient accounts and server-protected personal pages; separate clinic and administrator portals with server-side role checks.
 - [x] Clinic registration and administrator approval/rejection.
-- [x] Development preview: clinic profiles, services/prices/durations, dentist profiles, treatment assignments, and weekly working hours.
-- [x] Development preview: available times, persistent appointment requests, clinic acceptance/decline, and patient status tracking.
-- [x] Development preview: direct GCash reference claims, manual clinic verification, private receipts, and unpaid Pay at clinic confirmation.
-- [x] Development preview: editable appointment contact email, prefilled when available, with manual entry for accounts without an email. The saved contact address does not change the account email or appointment ownership.
+- [x] Live: clinic profiles, services/prices/durations, dentist profiles, treatment assignments, and weekly working hours.
+- [x] Live: available times, persistent appointment requests, clinic acceptance/decline, and patient status tracking.
+- [x] Live: direct GCash reference claims, manual clinic verification, private receipts, and unpaid Pay at clinic confirmation.
+- [x] Live: editable appointment contact email, prefilled when available, with manual entry for accounts without an email. The saved contact address does not change the account email or appointment ownership.
 
-Clinic setup, booking, payments, and the editable appointment email were released and verified on production on 3 November 2026. Cancellation and rescheduling are implemented and tested; production verification is pending.
+Clinic setup, booking, payments, and the editable appointment email were released and verified on production on 3 November 2026. Cancellation and rescheduling were also released and verified on production on 3 November 2026. Items 1–3 are complete.
 
 ## Ordered work
 
@@ -35,7 +35,7 @@ Completed: committed baseline released with the required release manager and ver
 - [x] Preserve payments and receipts, recording any refund review required rather than claiming money was returned.
 - [x] Test cross-patient/cross-clinic access, duplicate actions, deadline boundaries, and payment-review races.
 
-Done when eligible visits can be cancelled safely and both portals show the same saved result.
+Completed and live: eligible visits can be cancelled safely, both portals show the saved result, and payments/receipts are preserved.
 
 ### 3. Appointment rescheduling
 
@@ -45,7 +45,7 @@ Done when eligible visits can be cancelled safely and both portals show the same
 - [x] Keep an auditable link between the original appointment and the reschedule decision.
 - [x] Test competing bookings, repeated submissions, declined requests, and paid appointments.
 
-Done when rescheduling cannot lose the original booking or double-book the replacement time.
+Completed and live: pending requests preserve the original reservation, and clinic approval rechecks/replaces the time atomically.
 
 ### 4. Email notifications and reminders
 

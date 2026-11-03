@@ -20,7 +20,7 @@ Patient registration, sign-in, account information, and an account-scoped appoin
 
 Clinic setup, dentist-service assignments, duration-based appointment requests, clinic review, manually verified GCash deposits, private receipts, and unpaid Pay at clinic confirmation were released to production on 3 November 2026. Booking prefills the account email when available; patients can enter a different appointment contact email without changing their account email or record ownership. Unconfigured clinics show honest unavailable payment states.
 
-Cancellation and clinic-approved rescheduling are now implemented and tested in source, awaiting production release. Clinics explicitly set enabled patient actions, notice deadlines, and terms. Cancellation preserves payments and flags refund review. Reschedule requests retain the original reservation until the replacement time is approved atomically, preserving the dentist, treatment, original quote/duration, and payment records. See [appointment changes](docs/16_APPOINTMENT_CHANGES.md).
+Cancellation and clinic-approved rescheduling are now live, released and verified on 3 November 2026. Clinics explicitly set enabled patient actions, notice deadlines, and terms. Cancellation preserves payments and flags refund review. Reschedule requests retain the original reservation until the replacement time is approved atomically, preserving the dentist, treatment, original quote/duration, and payment records. See [appointment changes](docs/16_APPOINTMENT_CHANGES.md).
 
 Notifications, completion, feedback, password recovery, date-specific closures, automated refunds, cash-collection recording, and expanded staff/account tools remain future increments.
 

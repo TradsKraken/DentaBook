@@ -1,8 +1,8 @@
 # Status and development plan
 
-**Snapshot: 3 November 2026.** Clinic setup, booking/request review, editable appointment contact email, direct GCash verification, and Pay at clinic confirmation are now released on production. Cancellation/rescheduling is implemented and tested, with production release pending. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
+**Snapshot: 3 November 2026.** Clinic setup, booking/request review, editable appointment contact email, direct GCash verification, and Pay at clinic confirmation are now released on production. Cancellation/rescheduling is also released and verified on production. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
 
-## Development preview
+## Available website features
 
 | Area | Available behavior |
 | --- | --- |
@@ -13,6 +13,7 @@
 | Retry protection | A request key returns the same saved record on an identical retry |
 | Clinic review | Approved owning clinics accept or decline pending requests, with recorded reviewer/time and patient-visible notes |
 | Payments | Per-clinic deposit/refund policy, direct GCash recipient, patient reference claims, staff account verification, private receipts, and unpaid Pay at clinic confirmation |
+| Appointment changes | Explicit clinic policy/deadlines, patient/staff cancellation, pending reschedules, atomic clinic approval, retained quotes/payments, and auditable history |
 | Patient tracking | The latest 50 own records show the saved decision; patients can refresh the list |
 
 No browser-only appointments, invented clinics, or simulated payments are supplied. Setup changes preserve existing appointments. New treatment lines preserve their name and quoted price.
@@ -36,7 +37,6 @@ Each approved clinic sets its own enabled actions, whole-hour notice periods, an
 | Work | Needed before completion |
 | --- | --- |
 | Further payment automation | Optional gateway, automatic reconciliation, refund actions, and recording on-site cash collection |
-| Cancellation and rescheduling | Implemented: explicit clinic policy, patient/staff cancellation, pending requests, atomic clinic approval, retained quotes/payments, and auditable history; production release pending |
 | Reminders and notifications | Delivery channels, consent, retries, and delivery-state handling |
 | Visit completion and feedback | Authorized completion rules and eligible patient review/moderation |
 | Further scheduling controls | Date-specific closures, configurable lead time/horizon, and reservation-expiry policy |
