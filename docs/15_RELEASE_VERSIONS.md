@@ -66,3 +66,7 @@ Write notes about the website: what changed, who can use it, or what problem was
 Automated isolated tests cover the sixth-save deletion rule, exactly five retained versions, unrelated-folder protection, archive corruption, failure paths, locking, production-project selection, and database-preserving rollback. The installed current production baseline was saved and its restore configuration and PostgreSQL archive validated without restarting the website. A production deploy or rollback is not run merely to test this tooling.
 
 Versions are stored on the same server. They support recovery from a bad release; protection against loss of the entire server requires separate off-host backups. Page/API release checks do not replace feature review, the application test suites, or public-path checks from outside the LAN.
+
+## Image references during builds
+
+The release manager temporarily pins the exact running images before mutable build tags change. On containerd-backed Docker installations, recovery accepts an available image reference only when its platform manifest digest matches the running container. It never substitutes a newer image merely because the tag name is the same. Pins remain through the build and verified snapshot, then are removed; verified restore tags keep the saved images available. A failed build or unresolved manifest stops the release before replacing containers. Recovery-only image reconstruction must be checked against the exact running platform digest.

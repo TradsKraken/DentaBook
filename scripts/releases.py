@@ -186,6 +186,51 @@ class Releases:
                 raise ValueError('Refusing to snapshot a development API as production.')
         return result
 
+    def image_reference(self, container):
+        """Resolve the exact running image, including containerd platform manifests."""
+        try:
+            self.run(['docker', 'image', 'inspect', container['Image']], capture=True, stderr=subprocess.PIPE)
+            return container['Image']
+        except subprocess.CalledProcessError:
+            pass
+        descriptor = container.get('ImageManifestDescriptor') or {}
+        expected = descriptor.get('digest')
+        platform = descriptor.get('platform') or {}
+        if not expected or not platform.get('os') or not platform.get('architecture'):
+            raise ValueError('Cannot resolve the exact running image for a verified backup.')
+        selected = platform['os'] + '/' + platform['architecture']
+        if platform.get('variant'):
+            selected += '/' + platform['variant']
+        candidates = self.run(['docker', 'image', 'ls', '--all', '--quiet', '--no-trunc'], capture=True).stdout.split()
+        for candidate in dict.fromkeys(candidates):
+            try:
+                images = json.loads(self.run(['docker', 'image', 'inspect', '--platform', selected, candidate],
+                                            capture=True, stderr=subprocess.PIPE).stdout)
+            except subprocess.CalledProcessError:
+                continue
+            if images and (images[0].get('Descriptor') or {}).get('digest') == expected:
+                return candidate
+        raise ValueError('The exact running image is unavailable. Recover its matching platform manifest before releasing.')
+
+    @contextmanager
+    def pin_runtime_images(self):
+        # A containerd-backed build can replace the last tag of an image that is
+        # still serving traffic. Pin exact running images before mutable build tags move.
+        token = uuid.uuid4().hex
+        pinned = []
+        try:
+            for service, container in self.containers().items():
+                tag = f'dentabook-release-build/{service}:{token}'
+                self.run(['docker', 'image', 'tag', self.image_reference(container), tag])
+                pinned.append(tag)
+            yield
+        finally:
+            for tag in pinned:
+                try:
+                    self.run(['docker', 'image', 'rm', tag], capture=True, stderr=subprocess.PIPE)
+                except subprocess.CalledProcessError:
+                    print('Temporary release image pin retained: ' + tag)
+
     def export_images(self, tags, destination):
         with tempfile.TemporaryFile() as errors:
             with subprocess.Popen(['docker', 'image', 'save', *tags], stdout=subprocess.PIPE, stderr=errors) as process:
@@ -205,8 +250,8 @@ class Releases:
         previous = self.versions()
         value = {'kind': KIND, 'version': version, 'sequence': previous[-1][1]['sequence'] + 1 if previous else 1,
                  'created_at': datetime.now(timezone.utc).isoformat(), 'note': note,
-                 'images': {service: {'id': item['Image'], 'tag': f'dentabook-restore/{service}:{version}'} for service, item in containers.items()}}
-        images = json.loads(self.run(['docker', 'image', 'inspect', *{item['Image'] for item in containers.values()}], capture=True).stdout)
+                 'images': {service: {'id': self.image_reference(item), 'runtime_id': item['Image'], 'tag': f'dentabook-restore/{service}:{version}'} for service, item in containers.items()}}
+        images = json.loads(self.run(['docker', 'image', 'inspect', *{item['id'] for item in value['images'].values()}], capture=True).stdout)
         if shutil.disk_usage(self.store).free < sum(image['Size'] for image in images) + 256 * 1024 * 1024:
             raise ValueError('Insufficient free disk space to safely save the current website.')
         pending = Path(tempfile.mkdtemp(prefix='.pending-', dir=self.store))
@@ -278,8 +323,9 @@ class Releases:
         if self.run(['git', 'status', '--porcelain'], capture=True).stdout.strip():
             raise ValueError('Commit the tested source changes before deploying.')
         self.containers()
-        self.run(self.compose('build'))
-        version = self.save('Before website update: ' + note)
+        with self.pin_runtime_images():
+            self.run(self.compose('build'))
+            version = self.save('Before website update: ' + note)
         try:
             self.run(self.compose('up', '-d', '--no-build', '--pull', 'never', '--no-deps',
                                   '--wait', '--wait-timeout', '180', *APPLICATIONS))

@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import Mock
+from contextlib import nullcontext
 
 spec = importlib.util.spec_from_file_location('releases', Path(__file__).resolve().parents[1] / 'releases.py')
 release = importlib.util.module_from_spec(spec)
@@ -18,6 +19,7 @@ class ReleaseTests(unittest.TestCase):
         self.manager = release.Releases(Path(self.temp.name))
         self.manager.store.mkdir(parents=True)
         self.manager.run = Mock(return_value=Mock(stdout=''))
+        self.manager.pin_runtime_images = Mock(return_value=nullcontext())
 
     def version(self, number):
         key = f'20261031T1200{number:02d}000000Z-abcdef12'
@@ -174,6 +176,63 @@ class ReleaseTests(unittest.TestCase):
             self.manager.rollback(path.name, 'Restored working sign-in.')
         self.manager.prune.assert_called_once()
         self.manager.record_update.assert_not_called()
+
+    def test_exact_platform_manifest_recovers_an_untagged_running_image(self):
+        missing = subprocess.CalledProcessError(1, 'inspect')
+        self.manager.run.side_effect = [missing, Mock(stdout='new-image recovered-image'),
+            Mock(stdout=json.dumps([{'Descriptor': {'digest': 'sha256:newer'}}])),
+            Mock(stdout=json.dumps([{'Descriptor': {'digest': 'sha256:running'}}]))]
+        container = {'Image': 'old-index', 'ImageManifestDescriptor': {
+            'digest': 'sha256:running', 'platform': {'os': 'linux', 'architecture': 'amd64'}}}
+        self.assertEqual(self.manager.image_reference(container), 'recovered-image')
+        self.assertIn('--platform', self.manager.run.call_args_list[-1].args[0])
+
+    def test_image_recovery_never_substitutes_a_newer_manifest(self):
+        self.manager.run.side_effect = [subprocess.CalledProcessError(1, 'inspect'), Mock(stdout='new-image'),
+            Mock(stdout=json.dumps([{'Descriptor': {'digest': 'sha256:newer'}}]))]
+        container = {'Image': 'old-index', 'ImageManifestDescriptor': {
+            'digest': 'sha256:running', 'platform': {'os': 'linux', 'architecture': 'amd64'}}}
+        with self.assertRaisesRegex(ValueError, 'exact running image'):
+            self.manager.image_reference(container)
+
+    def test_missing_image_without_platform_proof_stops_the_release(self):
+        self.manager.run.side_effect = subprocess.CalledProcessError(1, 'inspect')
+        with self.assertRaisesRegex(ValueError, 'exact running image'):
+            self.manager.image_reference({'Image': 'missing'})
+
+    def test_temporary_image_pins_are_removed_even_when_build_fails(self):
+        del self.manager.pin_runtime_images
+        self.manager.containers = Mock(return_value={'api': {'Image': 'running-api'}})
+        self.manager.image_reference = Mock(return_value='exact-api')
+        with self.assertRaisesRegex(ValueError, 'build failed'):
+            with self.manager.pin_runtime_images():
+                raise ValueError('build failed')
+        commands = [call.args[0] for call in self.manager.run.call_args_list]
+        self.assertEqual(commands[0][:4], ['docker','image','tag','exact-api'])
+        self.assertEqual(commands[1][:3], ['docker','image','rm'])
+        self.assertEqual(commands[0][-1], commands[1][-1])
+        self.assertTrue(commands[1][-1].startswith('dentabook-release-build/api:'))
+
+    def test_image_pins_remain_through_both_build_and_verified_save(self):
+        from contextlib import contextmanager
+        events = []
+        @contextmanager
+        def pins():
+            events.append('pinned')
+            yield
+            events.append('unpinned')
+        self.manager.pin_runtime_images = pins
+        self.manager.containers = Mock()
+        self.manager.save = Mock(side_effect=lambda _: events.append('saved') or 'saved-version')
+        def command(args, **kwargs):
+            if 'build' in args: events.append('built')
+            return Mock(stdout='{}' if 'config' in args else '')
+        self.manager.run.side_effect = command
+        self.manager.check_website = Mock()
+        self.manager.record_update = Mock()
+        self.manager.prune = Mock()
+        self.manager.deploy('Patients can reschedule eligible visits.')
+        self.assertEqual(events, ['pinned','built','saved','unpinned'])
 
     def test_lock_prevents_two_release_operations(self):
         with self.manager.locked():
