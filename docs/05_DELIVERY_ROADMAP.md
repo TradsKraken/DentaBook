@@ -1,47 +1,150 @@
-# Delivery Roadmap & Milestones
+# DentaBook completion checklist
 
-This document tracks development phases, client review milestones, and delivery boundaries for the DentaBook commission project.
+Updated 3 November 2026. Work through the numbered items in order, completing and reviewing one increment before starting the next. This is a development checklist, not a website release announcement. Checking a development task does not mean it is live in production.
 
----
+## Already implemented
 
-## Project Milestones
+- [x] Public clinic discovery, service information, and clinic-based cost estimation.
+- [x] Patient accounts and server-protected personal pages; separate clinic and administrator portals with server-side role checks.
+- [x] Clinic registration and administrator approval/rejection.
+- [x] Development preview: clinic profiles, services/prices/durations, dentist profiles, treatment assignments, and weekly working hours.
+- [x] Development preview: available times, persistent appointment requests, clinic acceptance/decline, and patient status tracking.
+- [x] Development preview: direct GCash reference claims, manual clinic verification, private receipts, and unpaid Pay at clinic confirmation.
+- [x] Development preview: editable appointment contact email, prefilled when available, with manual entry for accounts without an email. The saved contact address does not change the account email or appointment ownership.
 
-```
-Phase 1: Requirements & Documentation [Current]
-   ├── Client brief analysis
-   ├── Workflow architecture (Patient & Clinic)
-   └── Feature specifications approval
-         │
-Phase 2: Database Schema & Backend Architecture
-   ├── Data models (Users, Clinics, Dentists, Appointments, Services)
-   ├── Authentication & Role-Based Access Control
-   └── Cost calculator API & Booking validation logic
-         │
-Phase 3: Frontend Development & UI/UX
-   ├── Public Landing & Clinic Directory
-   ├── Interactive Cost Estimator & Booking Wizard
-   └── Responsive Clinic Admin Dashboard
-         │
-Phase 4: Integrations & Testing
-   ├── Payment gateway for down payments (or simulated test gateway)
-   ├── Email/Notification triggers
-   └── End-to-end user testing across devices
-         │
-Phase 5: Client Handoff & Separate Clean Repo Delivery
-   ├── Clean repository extraction (excluding development notes)
-   ├── Deployment guide & setup instructions
-   └── Final client demonstration and review
-```
+Clinic setup, booking, payments, and the editable appointment email remain development-preview features pending a production release. Do not rebuild these features as missing work.
 
----
+## Ordered work
 
-## Client Sign-Off Checklist
+### 1. Review and release the existing preview
 
-Before presenting each milestone to the student/client, verify the following:
+- [ ] Review the complete patient and clinic journey in development, including an alternate appointment email and an account without an email.
+- [ ] Verify real clinic setup and explicit payment-method configuration. Unconfigured clinics must show an honest unavailable state.
+- [ ] Run relevant functional/security checks and phone-first layout checks at 390px, 320px, 768px, and 1440px.
+- [ ] Confirm backup/recovery ownership, production configuration, and the restore procedure before releasing.
+- [ ] Commit the intended source, then release using `python3 scripts/releases.py deploy --note "Website feature or fix"`, retaining the five newest verified restore points.
+- [ ] Verify the deployed patient, clinic, and administrator journeys and accurately label the release in website history.
 
-- [ ] **Workflow Alignment**: Does the 18-step customer journey reflect all expected interactions?
-- [ ] **Clinic Operational Flow**: Are all administrative capabilities (prices, schedules, request management) accounted for?
-- [ ] **Calculator Formula**: Is the price estimation logic and down-payment policy consistent with the client's guidelines?
-- [ ] **UI Responsiveness**: Will the website function properly on both mobile phones and desktop screens?
-- [ ] **Deliverables Isolation**: Ensure all developer notes, agent transcripts, and experimental files stay contained within this private repository.
+Done when the current preview increment is verified on production. Planning this item does not itself deploy it.
 
+### 2. Appointment cancellation
+
+- [ ] Agree on patient/staff cancellation permissions, deadlines, reasons, and deposit consequences; do not invent a deadline or refund promise.
+- [ ] Add server-authorized cancellation actions and patient/clinic controls with confirmation and useful failure messages.
+- [ ] Record who cancelled, when, why, and the applicable policy; release the reserved time atomically.
+- [ ] Preserve payments and receipts, recording any refund review required rather than claiming money was returned.
+- [ ] Test cross-patient/cross-clinic access, duplicate actions, deadline boundaries, and payment-review races.
+
+Done when eligible visits can be cancelled safely and both portals show the same saved result.
+
+### 3. Appointment rescheduling
+
+- [ ] Agree on request/approval rules, deadlines, pricing changes, and how existing deposits apply.
+- [ ] Let patients request a new available time and let the owning clinic review it.
+- [ ] Recheck and reserve the replacement time in a transaction. Preserve the original reservation if replacement fails.
+- [ ] Keep an auditable link between the original appointment and the reschedule decision.
+- [ ] Test competing bookings, repeated submissions, declined requests, and paid appointments.
+
+Done when rescheduling cannot lose the original booking or double-book the replacement time.
+
+### 4. Email notifications and reminders
+
+- [ ] Configure a real email provider and sender; decide notification preferences and reminder timing. SMS is a later optional channel.
+- [ ] Add durable queued delivery with retries, duplicate prevention, and delivery/failure records.
+- [ ] Send appointment requests/decisions, confirmations, cancellations, and rescheduling updates to the saved appointment contact email.
+- [ ] Schedule reminders only for eligible upcoming visits; invalidate outdated reminders after cancellation or rescheduling.
+- [ ] Show saved appointment state independently of delivery success, and give staff useful delivery failures.
+
+Done when real messages arrive and a provider outage does not lose or duplicate appointment actions.
+
+### 5. Password recovery and email verification
+
+- [ ] Add expiring, single-use recovery and verification links with rate limits and responses that do not reveal whether an account exists.
+- [ ] Use the account email for account-security messages; an alternate appointment email must never grant account access.
+- [ ] Define recovery for provisioned accounts without email and the effect of password changes on active sessions.
+- [ ] Test expired/reused links, wrong accounts, portal boundaries, and delivery failures.
+
+Done when supported accounts can recover access and verify account email safely. Depends on item 4's email delivery foundation.
+
+### 6. Scheduling controls
+
+- [ ] Add date-specific holidays, leave, closures, and one-off working-hour overrides.
+- [ ] Add configurable appointment buffers, booking lead time, and booking horizon.
+- [ ] Agree on expiry rules for unanswered requests and accepted-but-unpaid reservations; protect verified payments from accidental expiry.
+- [ ] Define staff handling of existing bookings affected by schedule changes; do not silently cancel them.
+- [ ] Test Philippine-time boundaries and conflicts across booking, review, and schedule edits.
+
+Done when clinics can manage exceptions without publishing unusable slots or silently changing existing visits.
+
+### 7. Visit completion
+
+- [ ] Define eligible completion transitions and staff permissions, including treatment of cancelled and future visits.
+- [ ] Add an authorized completion action with staff identity and timestamp.
+- [ ] Keep visit completion and payment status separate; completion must not imply an unpaid balance was collected.
+- [ ] Test duplicate completion, invalid transitions, and cross-clinic access.
+
+Done when clinics can record completed visits and patients see the saved outcome.
+
+### 8. Patient feedback
+
+- [ ] Permit feedback only from the owning patient after an eligible completed visit, with duplicate protection.
+- [ ] Add review submission, moderation/reporting rules, and appropriate patient identity display.
+- [ ] Show only real published feedback and calculate ratings only from eligible records.
+- [ ] Test unauthorized submissions, moderation visibility, and empty states.
+
+Done when completed visits can produce authentic, appropriately moderated feedback. Depends on item 7.
+
+### 9. Payment collection and refunds
+
+- [ ] Record money collected at the clinic with amount, method, staff identity, timestamp, and a private acknowledgement.
+- [ ] Track deposit, remaining balance, and adjustments without marking Pay at clinic paid merely because the visit is confirmed.
+- [ ] Implement refund review and recording of actual refunds with reference, amount, author, and audit history.
+- [ ] Test duplicate collection/refunds, amount limits, and cancelled/rescheduled appointments.
+
+Done when staff can reconcile actual money received and returned. A payment gateway and automatic reconciliation are optional later work, separate from this manual workflow.
+
+### 10. Patient intake and clinic follow-up
+
+- [ ] Agree on the minimum medical/allergy questions and treatment-specific follow-up fields needed by clinics.
+- [ ] Add intake forms and restricted storage with clear purpose, access, and retention rules.
+- [ ] Add a clinic request-for-information action and a patient response flow, preserving the conversation and appointment state.
+- [ ] Test required/optional answers, access boundaries, mobile forms, and notification routing.
+
+Done when clinics can gather necessary information and follow up through a saved patient workflow.
+
+### 11. Account editing and staff access
+
+- [ ] Let patients edit supported profile fields; verify account-email changes before applying security-sensitive effects.
+- [ ] Add staff invitations, clinic membership, scoped permissions, and removal of access.
+- [ ] Define dentist-specific access and the required MFA scope before implementing them.
+- [ ] Test invitation expiry, revoked access, role escalation, and cross-clinic boundaries.
+
+Done when profile changes and additional staff access work without weakening portal separation or patient ownership.
+
+### 12. Complete history and record navigation
+
+- [ ] Add server-side pagination and useful date/status filters for patient appointments, clinic appointments, and payment records.
+- [ ] Ensure records beyond the current latest-50/latest-100 limits remain reachable.
+- [ ] Keep filters and pagination usable on phones, with loading, empty, and retry states.
+- [ ] Test ordering, page boundaries, and access restrictions on every query.
+
+Done when patients and staff can find their full authorized history.
+
+### 13. Ongoing production recovery and monitoring
+
+- [ ] Establish scheduled off-host backups with retention, restricted access, and named ownership.
+- [ ] Perform and document a restore drill in an isolated environment and repeat it on an agreed schedule.
+- [ ] Monitor site/API/database health, background jobs, message delivery failures, and backup failures with actionable alerts.
+- [ ] Document incident ownership and recovery steps without exposing credentials or personal records.
+
+Done when failures can be detected and recovery has been demonstrated. Start the basic ownership/recovery decisions in item 1; expand these controls as features are released. Existing five-version release restore points remain in use.
+
+## Definition of done for each increment
+
+- [ ] Behavior and unresolved policy decisions are written down before implementation.
+- [ ] Data comes from the backend, with server-enforced roles, record ownership, and valid status transitions.
+- [ ] Phone layouts are checked first at 390px, then 320px, 768px, and 1440px; actions have at least 44 by 44 CSS pixel targets, form controls use at least 16px text, and the page has no horizontal overflow.
+- [ ] Relevant functional/security tests pass, including retries and competing actions where applicable.
+- [ ] The development preview is rebuilt and the changed journey is reviewed there.
+- [ ] Documentation identifies whether the feature is planned, preview-only, or live. Project administration is not added to website-update history.
+- [ ] Any production release uses tested, committed source and the required version-saving release command; rollback preserves current customer data unless separate database recovery is authorized.

@@ -59,7 +59,7 @@ npm.cmd test
 
 Automated browser checks use Playwright with installed Microsoft Edge and test-only API fixtures. The account integration tests exercise the Express API using the real schema and migrations in an isolated PGlite PostgreSQL engine. A separate real-browser verification has also passed against the running native PostgreSQL 16 instance, without intercepted requests. The Docker deployment and portal security checks have passed; external domain proxy routing still needs completion. On other systems, adjust `channel` in `client/playwright.config.js` to an available Playwright browser. The automated checks start a local development server when needed.
 
-See [incremental delivery status](docs/08_IMPLEMENTATION_STATUS.md) for the next parts and validation limits.
+See the [ordered completion checklist](docs/05_DELIVERY_ROADMAP.md) for the remaining work, and [incremental delivery status](docs/08_IMPLEMENTATION_STATUS.md) for implementation details and validation limits.
 
 ## File organization
 
