@@ -276,7 +276,8 @@ export function PatientAppointments() {
               </p>
               {appointment.reviewNotes && <p className="clinic-visit-notes"><strong>Clinic’s note: </strong>{appointment.reviewNotes}</p>}
               {appointment.status === "pending_review" && <p className="muted">Your request is awaiting the clinic’s review.</p>}
-              {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Contact the clinic to arrange payment and final confirmation. Online payments are not available.</p>}
+              {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Choose GCash or Pay at clinic from the payment details, where enabled by the clinic.</p>}
+              <Link className="button secondary" to={`/patient/appointments/${appointment.id}/payment`}>Deposit &amp; payment details</Link>
               <p>
                 Estimated cost:{" "}
                 {new Intl.NumberFormat("en-PH", {

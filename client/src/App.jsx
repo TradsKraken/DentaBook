@@ -14,6 +14,7 @@ import { Brand, Unavailable, PortalLink } from "./components/Shared";
 import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import Booking from "./pages/Booking";
+import PatientPayment from "./pages/PatientPayment";
 import About from "./pages/About";
 import { patientAuthSuffix } from "./patientNavigation";
 import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
@@ -162,6 +163,7 @@ function Site() {
               </WorkspaceGate>
             }
           />
+          <Route path="/patient/appointments/:id/payment" element={<WorkspaceGate role="patient"><PatientPayment /></WorkspaceGate>} />
           <Route path="/clinic/sign-in" element={<SignIn portal="clinic" />} />
           <Route path="/admin/sign-in" element={<SignIn portal="admin" />} />
           <Route

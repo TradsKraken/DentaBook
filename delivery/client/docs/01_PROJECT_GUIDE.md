@@ -4,7 +4,7 @@
 
 DentaBook brings clinic information, treatment information, and account access into one website. A visitor can compare available clinic information and understand published treatment prices before contacting a clinic.
 
-The supplied source includes clinic setup and patient requests with clinic review in the development preview. Deposits, final confirmation, appointment changes, reminders, completion, and feedback remain future work. The development plan distinguishes the preview from the unchanged production release.
+The supplied source includes clinic setup and patient requests with clinic review in the development preview. Direct GCash deposits, staff verification, authenticated receipts, and unpaid Pay at clinic confirmation are also available in the preview. Appointment changes, reminders, completion, and feedback remain future work. The development plan distinguishes the preview from the unchanged production release.
 
 ## Who uses the website
 
@@ -27,7 +27,7 @@ The calculator uses a selected clinic's saved service prices. It does not make a
 
 The development preview and supplied source include editable approved-clinic profiles, service prices/durations, dentist profiles, treatment assignments, and weekly working hours. Only the owning approved clinic can use those tools; published records update discovery and cost estimates. Production remains on its existing release until separately deployed.
 
-The development preview and supplied source now include real available times, signed-in patient appointment requests, and clinic acceptance/decline. Patients can refresh their account-scoped appointments to see the saved decision. Clinic setup and these booking tools have not been deployed to production. Payments, final confirmation, appointment changes, reminders, and reviews remain planned.
+The development preview and supplied source now include real available times, signed-in patient appointment requests, and clinic acceptance/decline. Patients can refresh their account-scoped appointments to see the saved decision. Clinic setup and these booking tools have not been deployed to production. The preview also includes direct-to-clinic GCash deposits and staff verification, plus unpaid Pay at clinic confirmation. Gateways, automatic refunds, appointment changes, reminders, and reviews remain planned.
 
 ## Design approach
 

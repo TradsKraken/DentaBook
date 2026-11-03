@@ -68,7 +68,7 @@ Successful endpoints return JSON, except logout returns HTTP 204. Sign-in sets a
 | 429 | Temporary request-rate limit; follow `Retry-After` |
 | 503 | Service or database temporarily unavailable |
 
-Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are development-preview features. Payment, final-confirmation, appointment-change, completion, and password-reset APIs are not delivered.
+Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are development-preview features. GCash and Pay at clinic endpoints are described below. Gateway callbacks, cash collection, refund actions, appointment-change, completion, and password-reset APIs are not delivered.
 
 ## Booking request contract (development preview)
 
@@ -83,3 +83,20 @@ Dentist creates/updates accept optional `serviceIds`: up to 100 unique own-clini
 The clinic review body uses `decision: "accepted"` or `decision: "declined"` and `notes` (string, up to 2,000 characters). Declining requires nonempty notes. Acceptance rechecks future time, active assignments, working hours, and conflicts. Reviewer/time/notes are saved. The response includes `pendingAppointments` for the workspace count. A stale decision returns 409.
 
 Owner clinic sessions must supply `clinicId` on every clinic-tool read/write. Ordinary staff cannot use a clinic selector. Administrator portal routes and patient/clinic roles remain separate.
+
+## GCash and Pay at clinic (development preview)
+
+All reads require the relevant server-validated role/session; mutations also require the existing origin/CSRF checks. No public callback or browser success flag can mark payments paid.
+
+| Method | Path under `/api` | Behavior |
+| --- | --- | --- |
+| PUT | `/workspaces/clinic/manage/deposit-policy` | Save `gcashEnabled`, `walkInEnabled`, `percentage`, `refundTerms`, `gcashAccountName`, `gcashNumber`; GCash requires a valid explicit policy and recipient |
+| GET | `/workspaces/patient/appointments/:id/payment` | Own appointment, server quote, allowed choices, and latest payment state |
+| POST | `/workspaces/patient/appointments/:id/payment-choice` | `channel: gcash or walk_in`, UUID `requestKey`; GCash also requires current `quoteHash` and `acceptTerms: true` |
+| POST | `/workspaces/patient/appointments/:id/payment-reference` | Submit `reference` for an own pending GCash choice; no paid status is accepted |
+| GET | `/workspaces/clinic/manage/payments?status=all` | Latest 100 own-clinic records; pending/paid/failed/needs_review filters |
+| POST | `/workspaces/clinic/manage/payments/:id/review` | `decision: verify`, `confirm_walk_in`, or `reject`; verify requires `receivedAmount`, exact `matchedReference`, and `checkedAccount: true`; rejection requires `notes` |
+| GET | `/workspaces/patient/payments/:id/receipt` | Own verified deposit receipt |
+| GET | `/workspaces/clinic/manage/payments/:id/receipt` | Owning clinic’s verified receipt |
+
+Clinic owner selectors retain `clinicId` on all clinic payment requests. All payment choices/reviews lock the clinic and appointment in a transaction. Payment choice keys, active choices, receipt codes, and verified GCash references have database uniqueness protection. The server computes deposits with integer centavo rounding and snapshots terms/recipient before a transfer. Pay at clinic stores the estimated amount due with pending status; it never creates a received-payment receipt.

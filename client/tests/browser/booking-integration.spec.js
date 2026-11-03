@@ -19,9 +19,10 @@ async function mobileControls(page,label) {
   }
 }
 test("real clinic setup, patient booking, acceptance, decline, and patient status work across phone and desktop",async({browser},testInfo)=>{
+  test.setTimeout(300000);
   test.skip(process.env.PLAYWRIGHT_BOOKING_INTEGRATION!=="1","Requires the isolated booking API and PostgreSQL test harness");
-  const staffContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
-  const patientContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
+  const staffContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,reducedMotion:"reduce"});
+  const patientContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,reducedMotion:"reduce"});
   staffContext.setDefaultTimeout(15000); patientContext.setDefaultTimeout(15000);
   const staff=await staffContext.newPage(),patient=await patientContext.newPage();
   const errors=[]; staff.on("pageerror",error=>errors.push(error.message));patient.on("pageerror",error=>errors.push(error.message));
@@ -46,7 +47,7 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
       await patient.getByLabel("Treatment",{exact:true}).selectOption(serviceId);
       await patient.getByLabel("Dentist",{exact:true}).selectOption(dentistId);
       await patient.getByLabel("Visit date",{exact:true}).fill(tomorrow());
-      await expect(patient.getByRole("button",{name:"09:00–09:30",exact:true})).toBeVisible();
+      await expect(patient.getByRole("button",{name:/09:00–09:30|09:30–10:00/}).first()).toBeVisible();
     }
     await chooseVisit();
     await expect(patient.getByLabel("Contact email",{exact:true})).toHaveValue("patient@example.test");
@@ -106,6 +107,80 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
       await staff.screenshot({path:testInfo.outputPath(`real-clinic-inbox-${width}.png`),fullPage:true});
       await patient.screenshot({path:testInfo.outputPath(`real-patient-appointments-${width}.png`),fullPage:true});
     }
+    // Real database-backed payment setup and patient claims; no mocked payment API.
+    await clinicSection(staff,"Deposits & payments");
+    await staff.getByLabel("Accept GCash deposits",{exact:true}).check();
+    await staff.getByLabel("Allow Pay at clinic",{exact:true}).check();
+    await staff.getByLabel("Clinic GCash account name",{exact:true}).fill("Isolated test clinic account");
+    await staff.getByLabel("Clinic GCash mobile number",{exact:true}).fill("09123456789");
+    await staff.getByLabel("Deposit percentage (%)",{exact:true}).fill("25");
+    await staff.getByLabel("Cancellation and refund terms",{exact:true}).fill("Contact this isolated test clinic for refund review before cancelling.");
+    await staff.getByRole("button",{name:"Save payment options",exact:true}).click();
+    await expect(staff.getByRole("status").filter({hasText:"Payment options saved"})).toBeVisible();
+    await patient.locator("article").filter({hasText:firstCode}).getByRole("link",{name:"Deposit & payment details",exact:true}).click();
+    await patient.getByLabel("I agree to the deposit amount",{exact:false}).check();
+    await patient.getByRole("button",{name:"Choose GCash · ₱375.00",exact:true}).click();
+    await expect(patient.getByRole("heading",{name:"Clinic GCash details",exact:true})).toBeVisible();
+    for(const width of [390,320,768,1440]) {
+      await staff.setViewportSize({width,height:900});await patient.setViewportSize({width,height:900});
+      await mobileControls(staff,`Payment settings at ${width}`);await mobileControls(patient,`GCash instructions at ${width}`);
+      await staff.evaluate(()=>scrollTo(0,0));await patient.evaluate(()=>scrollTo(0,0));
+      await staff.screenshot({path:testInfo.outputPath(`real-payment-settings-${width}.png`),fullPage:true});
+      await patient.screenshot({path:testInfo.outputPath(`real-gcash-instructions-${width}.png`),fullPage:true});
+    }
+    await patient.getByLabel("GCash transaction reference",{exact:true}).fill("1234567890123");
+    await patient.getByRole("button",{name:"Submit reference for verification",exact:true}).click();
+    await expect(patient.getByText("Your GCash reference is awaiting the clinic’s verification. Do not pay again.",{exact:true})).toBeVisible();
+    await expect(patient.getByText("Appointment: accepted",{exact:true})).toBeVisible();
+    await staff.getByRole("button",{name:"Refresh payments",exact:true}).click();
+    await staff.getByRole("button",{name:"Review payment choice",exact:true}).click();
+    await staff.getByLabel("Amount received (PHP)",{exact:true}).fill("375");
+    await staff.getByLabel("Matching GCash reference",{exact:true}).fill("1234567890123");
+    await staff.getByLabel("I checked the clinic’s GCash account",{exact:false}).check();
+    await staff.getByRole("button",{name:"Save payment review",exact:true}).click();
+    await expect(staff.getByRole("status").filter({hasText:"GCash verified"})).toBeVisible();
+    await patient.getByRole("button",{name:"Refresh payment status",exact:true}).click();
+    await expect(patient.getByText("Appointment: confirmed",{exact:true})).toBeVisible();
+    await expect(patient.getByRole("article",{name:"Deposit receipt",exact:true})).toBeVisible();
+    for(const width of [390,320,768,1440]) {
+      await patient.setViewportSize({width,height:900});await mobileControls(patient,`Verified receipt at ${width}`);
+      await patient.evaluate(()=>scrollTo(0,0));
+      await patient.screenshot({path:testInfo.outputPath(`real-gcash-receipt-${width}.png`),fullPage:true});
+    }
+    async function checkReceiptPrint(page,name) {
+      await page.emulateMedia({media:"print"});
+      const pdf=await page.pdf({path:testInfo.outputPath(name),format:"A4",printBackground:true,margin:{top:"14mm",bottom:"14mm",left:"14mm",right:"14mm"}});
+      expect((pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length).toBe(1);
+      await page.emulateMedia({media:"screen"});
+    }
+    await checkReceiptPrint(patient,"patient-deposit-receipt.pdf");
+    await staff.getByRole("button",{name:"View receipt",exact:true}).click();
+    await expect(staff.getByRole("article",{name:"Deposit receipt",exact:true})).toBeVisible();
+    await checkReceiptPrint(staff,"clinic-deposit-receipt.pdf");
+    await staff.getByRole("button",{name:"Close panel",exact:true}).click();
+    // Reuse the slot that the earlier decline released, then defer payment.
+    await chooseVisit();
+    await patient.getByRole("button",{name:"09:30–10:00",exact:true}).click();
+    await patient.getByRole("button",{name:"Send appointment request",exact:true}).click();
+    await expect(patient.getByRole("heading",{name:"Your appointment request is saved."})).toBeVisible();
+    const walkCode=await patient.locator("main .eyebrow").textContent();
+    await clinicSection(staff,"Appointment inbox");
+    await staff.getByRole("button",{name:`View ${walkCode}`,exact:true}).click();
+    await staff.getByRole("button",{name:`Accept ${walkCode}`,exact:true}).click();
+    await staff.getByRole("button",{name:"Confirm acceptance",exact:true}).click();
+    await expect(staff.getByRole("status").filter({hasText:`Request ${walkCode} accepted.`})).toBeVisible();
+    await patient.goto("/patient/appointments");
+    await patient.locator("article").filter({hasText:walkCode}).getByRole("link",{name:"Deposit & payment details",exact:true}).click();
+    await patient.getByRole("button",{name:"Choose Pay at clinic",exact:true}).click();
+    await expect(patient.getByText("Pay at clinic · unpaid",{exact:true})).toBeVisible();
+    await clinicSection(staff,"Deposits & payments");
+    await staff.getByRole("button",{name:"Review payment choice",exact:true}).click();
+    await staff.getByRole("button",{name:"Save payment review",exact:true}).click();
+    await expect(staff.getByRole("status").filter({hasText:"Visit confirmed as Pay at clinic"})).toBeVisible();
+    await patient.getByRole("button",{name:"Refresh payment status",exact:true}).click();
+    await expect(patient.getByText("Appointment: confirmed",{exact:true})).toBeVisible();
+    await expect(patient.getByText("Pay at clinic · unpaid",{exact:true})).toBeVisible();
+    await expect(patient.getByRole("article",{name:"Deposit receipt",exact:true})).toHaveCount(0);
     expect(errors).toEqual([]);
   } finally {await Promise.allSettled([staffContext.close(),patientContext.close()]);}
 });

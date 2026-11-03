@@ -13,7 +13,8 @@ The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) includes the current session-c
 | Schema migrations | Database updates already applied |
 | Appointments and appointment services | Development preview: persistent patient requests, reserved times, quoted price/name snapshots, retry keys, and audited clinic decisions; patient reads remain account-scoped |
 | Schedules and assignments | Development preview: own-clinic recurring hours and dentist-service assignments used for real availability |
-| Payments and reviews | Schema foundations; provider payment and completed-visit review workflows remain planned |
+| Payments | Direct GCash claims and clinic-verified amounts, immutable receipt details, reviewer/time/notes, and unpaid Pay at clinic choices; no PINs, OTPs, card data, or gateway credentials |
+| Reviews | Completed-visit review workflows remain planned |
 
 Database relationships link clinics to their owners, dentists/services to clinics, and appointments to patients and clinics. The API uses the session's account identity for private data rather than trusting a patient or clinic identifier supplied by the browser.
 

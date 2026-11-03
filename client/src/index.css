@@ -2778,3 +2778,49 @@ td small {
 .clinic-app .clinic-table td { font-size: 13px; }
 .clinic-shift h4 { font-size: 13px; }
 .clinic-shift p { color: #6c7e8f; font-size: 12px; }
+
+/* Deposits remain readable and reachable on narrow phones. */
+.clinic-payments { display:grid; gap:20px; min-width:0; }
+.clinic-payment-policy,.clinic-payment-ledger { padding:20px; min-width:0; }
+.clinic-payments h2 { font-size:22px; margin:0 0 12px; }
+.clinic-payment-policy > p,.clinic-payment-ledger > p { color:var(--muted); line-height:1.65; }
+.clinic-payment-policy .notice { margin:20px 0; }
+.clinic-payments .clinic-toolbar { align-items:end; }
+.clinic-payments .clinic-toolbar h2 { margin-right:auto; }
+.clinic-payments .field { min-width:0; }
+.payment-records { display:grid; gap:12px; }
+.payment-record { display:flex; flex-direction:column; gap:12px; padding:18px; border:1px solid #dce5f0; border-radius:12px; overflow-wrap:anywhere; }
+.payment-record h3 { margin:5px 0; font-size:18px; }
+.payment-record p { margin:6px 0; }
+.payment-record > div:last-child { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.patient-payment { max-width:900px; }
+.patient-payment h1 { margin:20px 0; }
+.patient-payment .panel { margin-bottom:24px; padding:20px; }
+.payment-back { display:inline-flex; align-items:center; min-height:44px; }
+.payment-details { display:grid; gap:16px; margin:24px 0; }
+.payment-details > div { min-width:0; }
+.payment-details dt { color:#5c6c82; font-size:14px; margin-bottom:4px; }
+.payment-details dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
+.payment-terms { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; padding:16px; border-radius:10px; background:#f3f7fc; }
+.payment-agreement { display:flex; align-items:flex-start; gap:12px; min-height:44px; padding:12px 0; line-height:1.6; }
+.payment-agreement input { width:22px; height:22px; flex-shrink:0; margin-top:3px; }
+.payment-actions { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+.payment-receipt { overflow-wrap:anywhere; }
+.payment-receipt h2 { font-size:22px; }
+@media (min-width:768px) {
+ .clinic-payment-policy,.clinic-payment-ledger,.patient-payment .panel { padding:28px; }
+ .payment-record { flex-direction:row; justify-content:space-between; }
+ .payment-details { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .payment-actions { flex-direction:row; flex-wrap:wrap; }
+}
+@media print {
+ body:has(.payment-receipt) *:not(:has(.payment-receipt)):not(.payment-receipt):not(.payment-receipt *) { display:none !important; }
+ body:has(.payment-receipt), body:has(.payment-receipt) :has(.payment-receipt) { display:block !important; position:static !important; overflow:visible !important; margin:0 !important; padding:0 !important; width:auto !important; max-width:none !important; height:auto !important; min-height:0 !important; max-height:none !important; border:0 !important; box-shadow:none !important; }
+ body:has(.payment-receipt) .payment-receipt { background:white; padding:0; }
+ body:has(.payment-receipt) .receipt-print { display:none !important; }
+ body:has(.payment-receipt) .clinic-drawer::backdrop { display:none; }
+}
+
+.payment-option { margin-top:24px; padding-top:20px; border-top:1px solid #dce5f0; }
+.payment-option form { display:grid; gap:16px; }
+.clinic-status-needs_review { color:#8b5c13; background:#fff6df; }

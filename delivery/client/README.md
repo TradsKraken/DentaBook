@@ -21,14 +21,18 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 | Patient booking requests | Development preview | Submit one treatment per request; the server validates availability and saves the request durably |
 | Clinic appointment inbox | Development preview | Review the latest 100 requests for a selected status; accept or decline pending requests with an audited decision |
 | Patient status tracking | Development preview | Refresh the latest 50 own appointments to read the clinic’s saved decision and note |
-| Payments, final confirmation, appointment changes, reminders, and reviews | Planned | These operations are not implemented in this increment |
+| GCash and Pay at clinic | Development preview | Clinic-specific policy/recipient, patient reference claims, audited staff verification, private deposit receipts, and unpaid Pay at clinic confirmation |
+| Appointment changes, reminders, and reviews | Planned | These operations are not implemented in this increment |
 
-Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, services, dentists, working hours, and the public profile editor.
+Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, deposits/payments, services, dentists, working hours, and the public profile editor.
 
 ## Recent updates
 
+The development preview now supports each clinic’s own direct GCash account, deposit percentage/refund terms, staff transaction verification, private receipts, and unpaid Pay at clinic confirmation. Open **Deposits & payments** in the clinic workspace to enable the desired methods. Existing clinics start with both methods disabled.
+
 | Date | Website change | Status |
 | --- | --- | --- |
+| 3 November 2026 | Direct GCash deposits, staff verification, private receipts, and unpaid Pay at clinic confirmation with each clinic’s own policy | Development preview; supplied source included |
 | 3 November 2026 | Clinic workspace redesigned with task navigation, searchable lists, focused edit/review panels, grouped schedules, and booking setup guidance | Development preview; supplied source included |
 | 3 November 2026 | Booking automatically uses the signed-in patient’s registered email | Development preview; supplied source included |
 | 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Development preview; supplied source included |
@@ -45,7 +49,7 @@ Read [website updates](CHANGELOG.md) and the [full website history](docs/12_DEVE
 
 ## Next planned release
 
-Payment and final-confirmation rules need the next implementation phase. The current preview saves requests and clinic acceptance; it does not charge a deposit or mark a visit confirmed. After payment integration, the roadmap covers cancellation/rescheduling policies, reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
+The development preview supports clinic-configured direct GCash deposits and Pay at clinic. GCash references require actual account verification by clinic staff; verified deposits confirm eligible accepted visits and issue deposit receipts. Pay at clinic requires staff confirmation and remains unpaid. No gateway, automatic refund, or cash-collection recording is included. Next, the roadmap covers cancellation/rescheduling policies, reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
 
 ## Booking rules and current limitations
 
@@ -54,9 +58,9 @@ Payment and final-confirmation rules need the next implementation phase. The cur
 - Working hours recur weekly in Philippine time. Available starts are 15 minutes apart, require 15 minutes of lead time, and cover today through 90 days ahead. Date-specific closures and configurable booking policies remain planned.
 - Pending, accepted, and confirmed appointments reserve time for the same dentist. A declined request releases its reservation. Changing working hours does not change existing appointments.
 - Identical retries with the same request key return the saved appointment. A changed payload with a used key is rejected.
-- Clinics can accept or decline pending requests. Declines require a patient-visible reason. Acceptance rechecks the current configuration and does not process payment or complete final confirmation.
+- Clinics can accept or decline pending requests. Declines require a patient-visible reason. Acceptance rechecks the current configuration. Patients then choose an enabled payment method; separate clinic payment review completes eligible visits’ confirmation.
 - Pending requests remain reserved until reviewed; automatic expiry is not implemented. Clinic staff should review their inbox regularly.
-- The inbox and patient lists are bounded and can be refreshed; live push updates, notifications, self-service cancellation/rescheduling, visit completion, payment collection, and feedback are not implemented.
+- The inbox and patient lists are bounded and can be refreshed; live push updates, notifications, self-service cancellation/rescheduling, visit completion, gateway processing, cash collection recording, automatic refunds, and feedback are not implemented.
 - Self-service password recovery, email verification, MFA, and scheduled backup automation remain future work. Production releases use the [five-version release guide](docs/13_RELEASE_VERSIONS.md).
 
 ## Website addresses

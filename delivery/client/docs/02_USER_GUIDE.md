@@ -43,7 +43,7 @@ An account without an email cannot create a new request. Sign out and use a pati
 
 All times use Philippine time. Requests cover one treatment, today through 90 days ahead, with 15 minutes of lead time. If a time or quote changes, refresh and choose from the current options. A saved pending request reserves the time while the clinic reviews it. Identical submission retries return the same saved request.
 
-**Accepted** means the clinic accepted the request. Arrange payment and final confirmation directly with the clinic; online payments are not available. A declined request shows the clinic’s reason. Patient cancellation and rescheduling controls remain planned.
+**Accepted** means the clinic accepted the request. Open **Deposit & payment details** to see the clinic’s enabled GCash and Pay at clinic options. GCash requires agreeing to the saved deposit/refund terms, transferring in your own GCash app to the displayed clinic account, then submitting the transaction reference. Never provide your PIN or OTP. Staff check their actual account before verifying payment; an eligible accepted visit is then confirmed and a deposit receipt is available to you. Pay at clinic requires staff confirmation and remains unpaid without a receipt. If no method is enabled, contact the clinic. A declined request shows the clinic’s reason. Patient cancellation and rescheduling controls remain planned.
 
 ## Registering a clinic
 
@@ -73,11 +73,19 @@ The workspace provides these tools:
 2. **Services & prices:** search or filter the saved service list. Choose **Add a service** or **Edit service** to open a focused form panel for categories, descriptions, estimated PHP prices, durations, and publication. Unpublish a service to hide it while retaining its details/history.
 3. **Dentists:** search/filter the team list, then choose **Add a dentist** or **Edit dentist**. In the panel, edit accurate details, publication, and assigned treatments. A profile does not create a staff account.
 4. **Working hours:** view shifts grouped by weekday or filter them by dentist. Choose **Add working hours**, select a published dentist, weekday, start/end time, then **Save working hours**. Split shifts are supported; overlaps are rejected. Hours recur in Philippine time. Existing appointments retain their saved times after hours change.
-5. **Appointments:** search loaded requests, choose a status, or refresh the inbox. Choose **Review request** to open the patient/visit details, then **Accept request** or **Decline request** and confirm your decision. Declining requires a reason the patient can read. Reviewed records have **View details**. An accepted request still needs payment/final confirmation arranged separately.
+5. **Appointments:** search loaded requests, choose a status, or refresh the inbox. Choose **Review request** to open the patient/visit details, then **Accept request** or **Decline request** and confirm your decision. Declining requires a reason the patient can read. Reviewed records have **View details**. An accepted request proceeds to the clinic’s enabled payment choices. Use **Deposits & payments** to review submitted references or Pay at clinic requests.
 
 Editor and review panels keep the current list in context. **Close panel**, **Cancel editing**, or Escape dismisses an idle panel. A failed save keeps the entered fields so you can correct or retry it.
 
 Keep the inbox current: pending requests reserve the dentist’s time until reviewed and do not expire automatically. Acceptance rechecks current assignments, working hours, publication, and conflicts. Existing decisions cannot be overwritten through the pending-request review action. The current administrator interface approves or rejects pending clinics; it does not provide a complete suspension-management workflow.
+
+### Deposits & payments
+
+Enable only the methods your clinic accepts. For GCash, save your actual account name and 11-digit mobile number, an explicit deposit percentage, and cancellation/refund terms. Pay at clinic may be enabled without a deposit percentage. Existing GCash choices retain their saved amount, terms, and recipient when settings change.
+
+In payment records, choose **Review payment choice**. For GCash, open your clinic’s actual GCash transaction history, match the incoming reference and exact amount, then enter both and acknowledge the account check. A patient-submitted reference is only a claim. Verification records the reviewer/time and creates a deposit receipt; future accepted visits are confirmed. Payments verified after a visit becomes unavailable are recorded for follow-up without confirming the visit. Rejecting a choice requires a patient-visible reason. Verified references cannot be reused.
+
+For Pay at clinic, confirm the visit while leaving payment unpaid. No cash payment or receipt is invented. Cash collection recording and automatic refunds are future work. Receipts are payment acknowledgements, not tax invoices.
 
 ## Reviewing clinics as an administrator
 

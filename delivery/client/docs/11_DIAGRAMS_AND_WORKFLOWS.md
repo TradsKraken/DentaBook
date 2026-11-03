@@ -2,7 +2,7 @@
 
 **Diagram snapshot notice:** the original diagrams on this page describe the 31 October foundation and planning roadmap. They are retained as historical references. For the 3 November development preview, clinic setup, assignments, availability, patient requests, and clinic acceptance/decline are now implemented. Payment, confirmation, appointment changes, and reminders remain planned. The [current status](06_STATUS_AND_DEVELOPMENT_PLAN.md) supersedes earlier planned labels for those completed preview features.
 
-The implemented request flow is: patient sign-in → choose an active assigned treatment and dentist → server-derived slot → atomic saved pending request → owning clinic accepts or declines → patient refreshes the saved outcome. This preview flow does not collect payment or issue final confirmation.
+The implemented request flow is: patient sign-in → choose an active assigned treatment and dentist → server-derived slot → atomic saved pending request → owning clinic accepts or declines → patient refreshes the saved outcome. After acceptance, the current preview also supports direct GCash reference submission and clinic account verification (confirming an eligible visit and issuing a receipt), or staff confirmation of unpaid Pay at clinic. The diagrams below retain their earlier planning scope; the current status guide describes the implemented payment flow.
 
 These earlier diagrams explain the foundation snapshot and its original development plan. **Current** means available behavior or an existing schema/process. **Planned** means not implemented. A schema diagram describes stored relationships, not a promise that the corresponding management screens exist.
 
@@ -93,7 +93,7 @@ This is a simplified view of actual foreign keys, not every column. Clinic owner
 
 ![Appointment and payment data foundations — Existing schema; management workflows planned](diagrams/07-appointment-data-relationships.svg)
 
-The tables already exist, but they do not establish a working booking or payment feature. The earlier snapshot only read existing records. Request creation and clinic request review are now implemented in the development preview; payment integration and patient feedback remain planned. The appointment foreign keys point to users, clinics, and dentists; the service-line foreign key points to services, shown in the preceding core-data diagram. Those parent entities and scheduling/assignment tables are omitted here for readability; see the schema for the full structure.
+The tables already exist, but they do not establish a working booking or payment feature. The earlier snapshot only read existing records. Request creation and clinic request review are now implemented in the development preview; manual GCash verification, receipts, and unpaid Pay at clinic confirmation are also implemented. Gateway automation and patient feedback remain planned. The appointment foreign keys point to users, clinics, and dentists; the service-line foreign key points to services, shown in the preceding core-data diagram. Those parent entities and scheduling/assignment tables are omitted here for readability; see the schema for the full structure.
 
 [Open full-size SVG](diagrams/07-appointment-data-relationships.svg) · [Editable Mermaid source](diagrams/src/07-appointment-data-relationships.mmd)
 

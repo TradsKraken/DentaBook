@@ -1,6 +1,6 @@
 # Status and development plan
 
-**Snapshot: 3 November 2026.** Clinic setup and booking/request review are implemented in the supplied source and development preview. Production has not received these increments. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
+**Snapshot: 3 November 2026.** Clinic setup, booking/request review, direct GCash verification, and Pay at clinic confirmation are implemented in the supplied source and development preview. Production has not received these increments. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
 
 ## Development preview
 
@@ -12,6 +12,7 @@
 | Patient requests | A signed-in patient submits one treatment and dentist; a transaction rechecks the quote and time before saving |
 | Retry protection | A request key returns the same saved record on an identical retry |
 | Clinic review | Approved owning clinics accept or decline pending requests, with recorded reviewer/time and patient-visible notes |
+| Payments | Per-clinic deposit/refund policy, direct GCash recipient, patient reference claims, staff account verification, private receipts, and unpaid Pay at clinic confirmation |
 | Patient tracking | The latest 50 own records show the saved decision; patients can refresh the list |
 
 No browser-only appointments, invented clinics, or simulated payments are supplied. Setup changes preserve existing appointments. New treatment lines preserve their name and quoted price.
@@ -24,13 +25,13 @@ The development preview has dedicated navigation for overview, appointments, ser
 
 All times use Asia/Manila. Patients can request today through 90 days ahead, with at least 15 minutes of lead time. Slot starts are spaced 15 minutes apart within each saved shift, and the complete treatment duration must fit. Pending, accepted, and confirmed visits block overlaps for the same dentist. Declines release the time. Pending requests have no automatic expiry yet.
 
-Acceptance requires a future visit time, active service/dentist assignments, current working hours covering the saved visit, and no conflicting reservation. An accepted request remains distinct from final confirmation. Online payment, deposit collection, and final confirmation are not available in this increment.
+Acceptance requires a future visit time, active service/dentist assignments, current working hours covering the saved visit, and no conflicting reservation. An accepted request remains distinct from final confirmation. After acceptance, patients can choose an enabled GCash or Pay at clinic method. GCash is a direct transfer in the patient’s own app, followed by a reference claim. Clinic staff must match the actual incoming transaction before recording payment. This confirms eligible future accepted visits and issues a private deposit receipt. Pay at clinic requires staff confirmation and remains unpaid. Existing clinics start with both payment methods disabled.
 
 ## Remaining development
 
 | Work | Needed before completion |
 | --- | --- |
-| Deposits and final confirmation | Payment provider, verified callbacks, deposit/refund policy, duplicate-event handling, and reconciliation |
+| Further payment automation | Optional gateway, automatic reconciliation, refund actions, and recording on-site cash collection |
 | Cancellation and rescheduling | Agreed policy, authorized transitions, atomic replacement-slot checks, and patient/staff actions |
 | Reminders and notifications | Delivery channels, consent, retries, and delivery-state handling |
 | Visit completion and feedback | Authorized completion rules and eligible patient review/moderation |

@@ -97,7 +97,7 @@ export default function Booking() {
     <p>{receipt.clinicName} · {receipt.date} · {receipt.time} (Philippine time)</p>
     <p>{receipt.services.join(", ")} · {receipt.dentistName}</p>
     <p>Estimated cost: {money(receipt.total)}</p>
-    <p className="notice">Status: {receipt.status.replaceAll("_", " ")}. The clinic reviews requests before the next steps are arranged. Online payments are not available.</p>
+    <p className="notice">Status: {receipt.status.replaceAll("_", " ")}. The clinic reviews your request first. After acceptance, open your appointment’s payment details for the clinic’s GCash or Pay at clinic options.</p>
     <Link className="button" to="/patient/appointments">View my appointments</Link>
   </section></div>;
   const data = options.data;

@@ -1,6 +1,20 @@
 # Delivery verification
 
-Latest application verification: **3 November 2026**. Clinic setup and booking/request review are development-preview features; production was not updated. Earlier delivery checks below remain historical records.
+Latest application verification: **3 November 2026**. Clinic setup, booking/request review, GCash verification, and unpaid Pay at clinic confirmation are development-preview features; production was not updated. Earlier delivery checks below remain historical records.
+
+## GCash and Pay at clinic — 3 November 2026
+
+- Full backend suite: 69 passed; three native concurrency checks intentionally skipped in PGlite. The final focused payment suite passed seven applicable checks, with its native concurrency case skipped.
+- Native PostgreSQL payment suite: eight passed, including simultaneous payment choices returning one saved record.
+- Browser regression: 28 passed, five environment-specific skips. Two additional payment safety journeys passed, covering private sign-in return, load-error recovery, disabled methods, and forged success query parameters.
+- Real PostgreSQL browser journey: clinic account/policy setup, accepted patient GCash choice, saved instructions, reference submission, exact amount/reference verification, patient and clinic receipts, and unpaid Pay at clinic confirmation passed. All API calls use the real isolated backend/database.
+- Layout checks: phone-first at 390px, then 320/768/1440px, including payment settings, GCash instructions, verified receipts, touch targets, control text size, and page overflow. Screenshots were reviewed. Patient and clinic deposit receipts each print to one A4 page for the tested record.
+- Real development preview: patient, clinic, and administrator sign-ins, payment settings and own-clinic ledger reads, role restrictions, and separate administrator access passed at all four widths. No customer records were created or payment settings changed by this smoke test.
+- Final frontend production build and source whitespace checks passed. Production container IDs, images, and start times matched before/after the development rebuild.
+
+Tests verify server-computed centavo amounts, stale-term rejection, saved recipient/policy snapshots, retries, reused references, patient/clinic receipt ownership, origin/CSRF boundaries, explicit configuration, rejected claims, and unavailable visits. A reference alone never marks payment paid; no gateway or real GCash transfer is simulated in the running application. Test claims and recipients exist only in disposable test databases. The temporary PostgreSQL database and network were removed after testing.
+
+Earlier verification records below describe their own increment and do not limit the payment features tested above.
 
 ## Clinic setup and appointment requests — 3 November 2026
 

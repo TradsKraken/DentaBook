@@ -1,5 +1,10 @@
 # Website update history
 
+## 3 November 2026 — GCash deposits and Pay at clinic (development preview)
+
+Each approved clinic can enable its own GCash account and Pay at clinic, set its deposit percentage, and write cancellation/refund terms. After acceptance, patients choose a method. GCash uses the server-calculated deposit, saves the agreed terms and recipient, and lets patients submit a transaction reference. Staff must check their actual GCash account and match the received amount and reference before recording payment. Verification confirms an eligible future accepted visit and creates an account-scoped deposit receipt. Pay at clinic requires staff confirmation and remains unpaid, with no receipt. Retried submissions are protected, verified GCash references cannot be reused, and payment reviews record the staff member, time, and note. Existing records are preserved; no clinic is automatically enrolled and no gateway or automatic refund is supplied. Available in the development preview and source; production is unchanged.
+
+
 ## 3 November 2026 — Clinic workspace redesign (development preview)
 
 Reorganized clinic management into an overview and dedicated appointment, service, dentist, working-hour, and profile sections. Desktop navigation uses a persistent sidebar; phones use a compact menu. Added searchable/status-filtered lists, focused add/edit panels, weekday-grouped schedules, and a patient-details panel for reviewing requests. The overview now shows real pending/published counts and a booking setup checklist, including missing treatment assignments. Existing account permissions, database-backed records, and booking rules remain in place. This redesign is available in the development preview and supplied source; production is unchanged.
@@ -80,6 +85,6 @@ The development website now supports an operator-created owner account that can 
 
 ## Next planned website update
 
-Payments and final confirmation are the next proposed increment, followed by appointment-change policies, reminders, completion/feedback, and account recovery. Clinic setup, weekly scheduling, requests, and request review are now available in the development preview described above. Earlier entries describe the behavior at their recorded date.
+Direct GCash verification and unpaid Pay at clinic confirmation are now implemented in the development preview. The next increments cover appointment-change policies, reminders, completion/feedback, and account recovery. Clinic setup, weekly scheduling, requests, and request review are now available in the development preview described above. Earlier entries describe the behavior at their recorded date.
 
 See the [current status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) for scope and completion criteria. Future entries should describe what changed on the website, who can use it, and whether it is live, in development preview, or planned. Requirements drafting, documentation edits, repository setup, and other project administration are not website-update entries.

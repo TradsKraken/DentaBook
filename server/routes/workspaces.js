@@ -1,11 +1,12 @@
 const express = require("express");
 const { requireSession, requireRole } = require("../auth");
 const { createPatientBookingRouter } = require("./patient-booking");
+const { createPatientPaymentRouter } = require("./payments");
 const { createClinicToolsRouter } = require("./clinic-tools");
 const { ownedClinic, clinicColumns } = require("./accounts");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
-function createWorkspaceRouter(pool) {
+function createWorkspaceRouter(pool,{payments}={}) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
@@ -34,8 +35,8 @@ function createWorkspaceRouter(pool) {
       }
     },
   );
-  router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool));
-  router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool));
+  router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool),createPatientPaymentRouter(pool,payments));
+  router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool,{payments}));
   router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {
     if (!req.user.ownerAccess)
       return res.status(403).json({ error: "Owner access is required to select another clinic." });

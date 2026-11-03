@@ -1,8 +1,9 @@
+const paymentPath = path => /^\/patient\/appointments\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/payment$/i.test(path);
 // Only return to known patient pages; never trust an arbitrary next URL.
 export function patientAuthSuffix({ pathname, search }) {
   const requested =
     new URLSearchParams(search).get("next") ||
-    (["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname)
+    (["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname) || paymentPath(pathname)
       ? pathname + search
       : null);
   return requested
@@ -27,7 +28,7 @@ export function patientDestination(value) {
     const pathname = legacy[url.pathname] || url.pathname;
     if (
       url.origin !== "https://dentabook.invalid" ||
-      !["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname)
+      (!["/patient/book", "/patient/appointments", "/patient/account"].includes(pathname) && !paymentPath(pathname))
     )
       return "/patient/account";
     return pathname + url.search;

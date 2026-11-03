@@ -54,7 +54,7 @@ export default function About() {
           ],
           [
             "Can I book an appointment online?",
-            "Yes. Sign in as a patient, choose a clinic, treatment, dentist, and available time, then send a request. The clinic accepts or declines it, and you can follow the status in My appointments. Online payments and final confirmation are arranged separately.",
+            "Yes. Sign in as a patient, choose a clinic, treatment, dentist, and available time, then send a request. The clinic accepts or declines it, and you can follow the status in My appointments. After acceptance, choose GCash or Pay at clinic where enabled. Clinic staff verify GCash deposits or confirm unpaid Pay at clinic visits.",
           ],
           [
             "Where does the clinic information come from?",

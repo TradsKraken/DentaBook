@@ -3,6 +3,7 @@ const cors = require("cors");
 const { createClinicRouter } = require("./routes/clinics");
 const { createAccountRouter } = require("./routes/accounts");
 const { createWorkspaceRouter } = require("./routes/workspaces");
+const { createPaymentService } = require("./payment-service");
 const { protectMutation } = require("./auth");
 const { configuredPortal, restrictPortal } = require("./portal");
 
@@ -22,6 +23,7 @@ function createApp(pool, { logger = console } = {}) {
       credentials: true,
     }),
   );
+  const payments = createPaymentService(pool);
   app.use(express.json({ limit: "100kb" }));
   app.use("/api", restrictPortal, protectMutation);
   app.use((req, res, next) => {
@@ -55,7 +57,7 @@ function createApp(pool, { logger = console } = {}) {
   );
   app.use("/api/clinics", createClinicRouter(pool));
   app.use("/api/auth", createAccountRouter(pool));
-  app.use("/api/workspaces", createWorkspaceRouter(pool));
+  app.use("/api/workspaces", createWorkspaceRouter(pool,{payments}));
   app.use("/api", (req, res) =>
     res.status(404).json({ error: "API route not found." }),
   );

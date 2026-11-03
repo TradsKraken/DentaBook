@@ -58,7 +58,7 @@ The user has added a patient-access requirement beyond the original brief: guest
 - `/book`, `/appointments`, and `/account` require a patient session. Guests return to their requested patient page after registering/signing in. Return URLs are restricted to known local patient routes.
 - Patient accounts are stored in PostgreSQL with hashed passwords and database-backed sessions. Public patient registration cannot select a staff or administrator role.
 - Personal appointments are read from the database, restricted to the session's patient ID, with no client-supplied patient selector. The current screen shows the latest 50 linked records and an honest empty state.
-- Appointment submission, availability, and clinic acceptance/decline are available in the development preview described above. Payments, cancellation, and rescheduling remain planned.
+- Appointment submission, availability, and clinic acceptance/decline are available in the development preview described above. Direct GCash and unpaid Pay at clinic confirmation are implemented in the latest development preview described below. Cancellation and rescheduling remain planned.
 
 ## Operator-provisioned owner access
 
@@ -70,7 +70,7 @@ Source support now includes an explicit owner account with a username, separate 
 2. Account lifecycle: password recovery, email verification, and staff/dentist access. Patient sign-in is now required for booking and personal features by the user's later instruction; browsing remains public.
 3. Further booking controls: agreed reservation expiry, clinic-specific booking policies, and date-specific closures. Basic availability, persistent requests, and authorized review are implemented in the preview.
 4. Appointment management: tracking, policy-based cancellation/rescheduling, and notifications.
-5. Payment integration: provider-confirmed deposits, idempotent callbacks, reconciliation, refunds, and confirmation rules.
+5. Further payment automation: optional gateway, reconciliation, refunds, and cash collection recording; direct GCash verification and Pay at clinic confirmation are implemented in the preview.
 6. Completed-visit reviews, deployment configuration, and operational verification.
 
 These are implementation stages, not features claimed as already available to visitors.
@@ -80,3 +80,7 @@ These are implementation stages, not features claimed as already available to vi
 Public directory unit tests use a controlled query adapter. The account/approval integration suite uses the real schema and migrations with an isolated PGlite PostgreSQL engine. Browser tests use API fixtures confined to the test files. Test records are not inserted into the application's deployed database.
 
 The native Windows PostgreSQL 16 runtime has now been configured, the requested administrator created, and the complete registration/sign-in/approval/dashboard/logout flow verified in a real browser without API fixtures. See [local testing](10_LOCAL_TESTING.md). Temporary verification records were removed. Docker deployment remains unverified because WSL is unresponsive; this does not prevent local native testing. Public deployment still requires its own database, HTTPS, and operational verification.
+
+## 3 November 2026 — GCash and Pay at clinic (development preview)
+
+Clinic-configured direct GCash deposits and unpaid Pay at clinic choices are implemented in source. GCash references are claims until owning clinic staff check their actual account, exact amount, and reference. Verification records staff/time/notes and a patient/clinic-scoped receipt, confirming only future accepted visits. Pay at clinic requires staff confirmation and stays pending/unpaid. Clinics explicitly enable their own methods and deposit/refund policy; legacy data and unconfigured clinics are preserved. No gateway, OTP/PIN collection, automated refund, or on-site cash recording is implemented. Production remains unchanged.

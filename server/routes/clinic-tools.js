@@ -1,5 +1,7 @@
 const express = require("express");
 const { email, text } = require("../validation");
+const { paymentReceipt } = require("./payments");
+const { scaledInteger, decimal } = require("../payment-money");
 const { validId, offering } = require("../booking");
 const { clinicColumns } = require("./accounts");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -9,11 +11,11 @@ const fail = (message, status = 400) => Object.assign(new Error(message), { stat
 const serviceColumns = `id, name, category, description, estimated_price AS price, duration_minutes AS duration, is_active AS "isActive"`;
 const dentistColumns = `id, full_name AS name, title, credentials_summary AS credentials, is_active AS "isActive"`;
 
-function createClinicToolsRouter(pool) {
+function createClinicToolsRouter(pool,{payments}={}) {
   const router = express.Router();
   // Each mutation locks the clinic until commit: approval, ownership, and writes
   // are checked together, and concurrent schedule edits cannot overlap.
-  function endpoint(method, path, action) {
+  function endpoint(method, path, action, responseStatus = method === "post" ? 201 : 200) {
     router[method](path, async (req, res, next) => {
       let client;
       const writing = method !== "get";
@@ -28,9 +30,10 @@ function createClinicToolsRouter(pool) {
         if (req.params.id && !uuid.test(req.params.id)) throw fail("Record not found.", 404);
         const data = await action(client, clinic, req);
         if (writing) await client.query("COMMIT");
-        res.status(method === "post" ? 201 : 200).json(data);
+        res.status(responseStatus).json(data);
       } catch (error) {
         if (writing && client) await client.query("ROLLBACK");
+        if (error.code === "23505" && error.constraint === "payments_verified_gcash_reference_unique") return res.status(409).json({error:"This GCash reference has already been verified for another payment."});
         if (error.status) return res.status(error.status).json({ error: error.message });
         next(error);
       } finally { if (writing) client?.release(); }
@@ -50,6 +53,21 @@ function createClinicToolsRouter(pool) {
     if (!text(b.name, 200) || !text(b.address, 1000) || !email(b.email) || typeof b.phone !== "string" || !/^[+0-9() .-]{7,30}$/.test(b.phone.trim()) || b.phone.replace(/\D/g, "").length < 7 || !optionalText(b.description, 5000))
       throw fail("Enter a clinic name, address, valid contact details, and a description of up to 5,000 characters.");
     await db.query(`UPDATE clinics SET name=$1,address=$2,phone=$3,email=$4,description=$5,updated_at=CURRENT_TIMESTAMP WHERE id=$6`, [b.name.trim(), b.address.trim(), b.phone.trim(), b.email.trim().toLowerCase(), b.description.trim(), clinic.id]);
+    return { saved: true };
+  });
+  endpoint("put", "/deposit-policy", async (db, clinic, { body = {} }) => {
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw fail("Send valid payment settings.");
+    if (typeof body.gcashEnabled !== "boolean" || typeof body.walkInEnabled !== "boolean") throw fail("Choose the payment methods your clinic accepts.");
+    const configured=body.percentage !== "" && body.percentage != null;
+    const rate=configured ? scaledInteger(body.percentage,{maxWholeDigits:3,allowZero:false}) : null;
+    const terms=typeof body.refundTerms === "string" ? body.refundTerms.trim() : "";
+    if ((configured && (rate > 10000n || !terms || terms.length>5000)) || (!configured && body.gcashEnabled)) throw fail("GCash requires a deposit percentage above 0 and up to 100, and refund terms of up to 5,000 characters.");
+    const name=typeof body.gcashAccountName === "string" ? body.gcashAccountName.trim() : "";
+    const number=typeof body.gcashNumber === "string" ? body.gcashNumber.trim() : "";
+    if (body.gcashEnabled && (!name || name.length>150 || !/^09[0-9]{9}$/.test(number))) throw fail("Enter the clinic’s GCash account name and 11-digit mobile number starting with 09.");
+    await db.query(`UPDATE clinics SET deposit_percentage=$1,deposit_refund_terms=$2,deposit_policy_configured=$3,
+      gcash_enabled=$4,gcash_account_name=$5,gcash_number=$6,walk_in_enabled=$7,
+      deposit_policy_updated_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=$8`,[rate ? decimal(rate) : null,configured ? terms : null,configured,body.gcashEnabled,body.gcashEnabled ? name : null,body.gcashEnabled ? number : null,body.walkInEnabled,clinic.id]);
     return { saved: true };
   });
   function serviceValues(b) {
@@ -107,6 +125,20 @@ function createClinicToolsRouter(pool) {
     if (!result.rows.length) throw fail("Schedule not found in your clinic.", 404);
     return { removed: true };
   });
+  endpoint("get", "/payments",async(db,clinic,req)=>{
+    const status=req.query.status || "all";
+    if (!["all","pending","paid","failed","refunded","needs_review"].includes(status)) throw fail("Choose a valid payment status.");
+    const result=await db.query(`SELECT p.id,p.amount,p.currency,p.channel,p.payment_status AS status,p.verification_status AS verification,
+      p.receipt_code AS "receiptCode",p.paid_at AS "paidAt",p.created_at AS "createdAt",p.claimed_reference AS "claimedReference",
+      p.review_notes AS "reviewNotes",p.reviewed_at AS "reviewedAt",u.full_name AS "reviewedBy",
+      a.appointment_code AS "appointmentCode",a.id AS "appointmentId",a.patient_name AS "patientName",a.status AS "appointmentStatus"
+      FROM payments p JOIN appointments a ON a.id=p.appointment_id LEFT JOIN users u ON u.id=p.reviewed_by WHERE a.clinic_id=$1 AND p.channel IS NOT NULL
+        AND ($2='all' OR p.payment_status=$2 OR ($2='needs_review' AND p.verification_status='needs_review'))
+      ORDER BY p.created_at DESC,p.id DESC LIMIT 100`,[clinic.id,status]);
+    return {payments:result.rows};
+  });
+  endpoint("post", "/payments/:id/review",async(db,clinic,req)=>payments.review(db,clinic,req.params.id,req.user.id,req.body),200);
+  endpoint("get", "/payments/:id/receipt",async(db,clinic,req)=>paymentReceipt(db,req.params.id,{clinicId:clinic.id}));
   endpoint("get", "/appointments", async (db, clinic, req) => {
     const status = req.query.status || "pending_review";
     if (!["all","pending_review","accepted","declined","confirmed","completed","cancelled","rescheduled"].includes(status))

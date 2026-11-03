@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { clinicSection } from "./helpers/clinic";
 
 const publicURL = process.env.PLAYWRIGHT_BASE_URL;
 const adminURL = process.env.PLAYWRIGHT_ADMIN_URL;
@@ -53,6 +54,14 @@ test("LAN development owner can use every portal through the real APIs", async (
           if (records.length) {
             await page.getByLabel("Clinic", { exact: true }).selectOption(records[0].id);
             await expect(page.getByRole("heading", { name: records[0].name, exact: true })).toBeVisible();
+            if (records[0].status === "approved") {
+              await clinicSection(page,"Deposits & payments");
+              await expect(page.getByRole("heading",{name:"Payment options & deposit policy",exact:true})).toBeVisible();
+              await expect(page.getByLabel("Deposit percentage (%)",{exact:true})).toBeVisible();
+              const ledger=await context.request.get(publicURL+`/api/workspaces/clinic/manage/payments?clinicId=${records[0].id}`);
+              expect(ledger.status()).toBe(200);
+              expect(Array.isArray((await ledger.json()).payments)).toBe(true);
+            }
           } else {
             await expect(page.getByText("No clinics have been registered yet.")).toBeVisible();
           }

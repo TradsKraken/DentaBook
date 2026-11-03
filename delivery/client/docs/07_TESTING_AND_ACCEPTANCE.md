@@ -62,3 +62,7 @@ Use authorized test accounts in a test installation for workflows that create or
 Check a phone first. Review 320px, 390px, 768px, and 1440px widths. Pages must avoid horizontal overflow, text fields must be at least 16px, and buttons/navigation actions must have at least a 44 by 44px target. Review registration, sign-in, public navigation, empty/error states, and private workspace layouts.
 
 Record the release, environment, date, checks run, results, and unresolved issues with each handover. Automated checks reduce regressions; they are not an independent penetration test or a promise that every browser condition has been examined.
+
+## Payment acceptance checks
+
+Verify phone-first at 320, 390, 768, and 1440px: clinic payment policy/recipient setup, patient GCash agreement and instructions, reference submission, clinic exact-amount/reference review, private receipt display/printing, and Pay at clinic remaining unpaid after confirmation. Backend tests cover role/clinic/patient boundaries, origin/CSRF rejection, unconfigured channels, stale quotes, frozen recipient/terms, retry protection, reference uniqueness, expired visits, and receipt ownership. The optional isolated PostgreSQL run also checks concurrent choices. Run the real booking integration with the explicitly isolated test harness; do not seed production with test clinics or transfers.
