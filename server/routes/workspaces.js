@@ -6,7 +6,7 @@ const { createClinicToolsRouter } = require("./clinic-tools");
 const { ownedClinic, clinicColumns } = require("./accounts");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
-function createWorkspaceRouter(pool,{payments}={}) {
+function createWorkspaceRouter(pool,{payments,changes}={}) {
   const router = express.Router();
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
@@ -35,6 +35,18 @@ function createWorkspaceRouter(pool,{payments}={}) {
       }
     },
   );
+  const changeRouter = express.Router();
+  function changeEndpoint(method,path,action) {
+    changeRouter[method](path,async(req,res,next)=>{try { res.json(await action(req)); }
+      catch(error) { if (error.status) return res.status(error.status).json({error:error.message});
+        if (error.code==='23505') return res.status(409).json({error:'This change was already submitted. Refresh the appointment.'}); next(error); }});
+  }
+  changeEndpoint('get','/appointments/:id/changes',req=>changes.details(req.params.id,req.user.id));
+  changeEndpoint('get','/appointments/:id/reschedule-availability',req=>changes.availability(req.params.id,req.user.id,req.query.date));
+  changeEndpoint('post','/appointments/:id/cancel',req=>changes.change(req.params.id,req.user.id,'cancel',req.body || {}));
+  changeEndpoint('post','/appointments/:id/reschedule',req=>changes.change(req.params.id,req.user.id,'reschedule',req.body || {}));
+  changeEndpoint('post','/appointments/:id/changes/:changeId/withdraw',req=>changes.withdraw(req.params.id,req.user.id,req.params.changeId));
+  router.use('/patient',requireRole('patient'),changeRouter);
   router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool),createPatientPaymentRouter(pool,payments));
   router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool,{payments}));
   router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {

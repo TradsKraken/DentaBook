@@ -1,4 +1,5 @@
 const express = require("express");
+const {policyColumns,policyFrom,policyHash} = require("../appointment-changes");
 const crypto = require("node:crypto");
 const { email } = require("../validation");
 const { validId, timePattern, fail, bookingWindow, availability } = require("../booking");
@@ -16,7 +17,7 @@ function createPatientBookingRouter(pool) {
   router.get("/booking-options", async (req, res, next) => {
     try {
       if (!validId(req.query.clinicId)) throw fail("Choose a clinic.");
-      const clinic = (await pool.query("SELECT id,name,address,phone FROM clinics WHERE id=$1 AND status='approved'", [req.query.clinicId])).rows[0];
+      const clinic = (await pool.query(`SELECT c.id,c.name,c.address,c.phone,${policyColumns} FROM clinics c WHERE c.id=$1 AND c.status='approved'`, [req.query.clinicId])).rows[0];
       if (!clinic) throw fail("This clinic is no longer available for booking.", 404);
       const services = await pool.query(`SELECT id,name,estimated_price AS price,duration_minutes AS duration FROM services
         WHERE clinic_id=$1 AND is_active=TRUE ORDER BY name,id`, [clinic.id]);
@@ -26,7 +27,7 @@ function createPatientBookingRouter(pool) {
         FROM dentists d WHERE d.clinic_id=$1 AND d.is_active=TRUE ORDER BY d.full_name,d.id`, [clinic.id]);
       const patient = (await pool.query("SELECT full_name AS name,email,phone FROM users WHERE id=$1", [req.user.id])).rows[0];
       const { minDate, maxDate } = bookingWindow();
-      res.json({ clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
+      res.json({ changePolicy:policyFrom(clinic), changePolicyHash:policyHash(policyFrom(clinic)), clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
     } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); }
   });
   router.get("/availability", async (req, res, next) => {
@@ -67,8 +68,10 @@ function createPatientBookingRouter(pool) {
       const hash = requestHash(normalizedEmail);
       // Clinic setup writes and other bookings use this same row lock, so final
       // availability, prices, assignments, and the reservation are checked atomically.
-      const clinic = (await client.query("SELECT id FROM clinics WHERE id=$1 AND status='approved' FOR UPDATE", [b.clinicId])).rows[0];
+      const clinic = (await client.query(`SELECT c.id,${policyColumns} FROM clinics c WHERE c.id=$1 AND c.status='approved' FOR UPDATE`, [b.clinicId])).rows[0];
       if (!clinic) throw fail("This clinic is no longer available for booking.", 409);
+      const policy=policyFrom(clinic);
+      if (b.changePolicyHash !== undefined && b.changePolicyHash !== policyHash(policy)) throw fail("The clinic’s appointment policy changed. Reload booking options and review the terms.",409);
       const available = await availability(client, b);
       const slot = available.slots.find(item => item.time === b.time);
       if (!slot) throw fail("That time is no longer available. Refresh the available times and choose another slot.", 409);
@@ -76,9 +79,9 @@ function createPatientBookingRouter(pool) {
         throw fail("The service price or duration has changed. Refresh available times and review the new estimate.", 409);
       const code = `DB-${crypto.randomBytes(8).toString("hex").toUpperCase()}`;
       const result = await client.query(`INSERT INTO appointments
-        (appointment_code,clinic_id,dentist_id,patient_user_id,patient_name,patient_email,patient_phone,appointment_date,start_time,end_time,estimated_total_cost,status,medical_notes,booking_request_key,booking_request_hash)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending_review',$12,$13,$14) RETURNING id`,
-        [code,b.clinicId,b.dentistId,req.user.id,patient.name,normalizedEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash]);
+        (appointment_code,clinic_id,dentist_id,patient_user_id,patient_name,patient_email,patient_phone,appointment_date,start_time,end_time,estimated_total_cost,status,medical_notes,booking_request_key,booking_request_hash,change_policy_snapshot)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending_review',$12,$13,$14,$15::jsonb) RETURNING id`,
+        [code,b.clinicId,b.dentistId,req.user.id,patient.name,normalizedEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash,policy.cancelEnabled || policy.rescheduleEnabled ? JSON.stringify(policy) : null]);
       const id = result.rows[0].id;
       await client.query("INSERT INTO appointment_services (appointment_id,service_id,service_price,service_name) VALUES ($1,$2,$3,$4)", [id,b.serviceId,available.service.price,available.service.name]);
       const appointment = await receipt(client, id, req.user.id);

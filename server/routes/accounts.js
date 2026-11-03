@@ -16,7 +16,10 @@ const clinicColumns = `c.id, c.name, c.description, c.address, c.phone, c.email,
   c.status, c.registration_reference AS "registrationReference", c.review_notes AS "reviewNotes",
   c.reviewed_at AS "reviewedAt", c.created_at AS "createdAt",
   c.deposit_percentage AS "depositPercentage",c.deposit_policy_configured AS "depositPolicyConfigured",
-  c.deposit_refund_terms AS "depositRefundTerms", c.gcash_enabled AS "gcashEnabled", c.gcash_account_name AS "gcashAccountName", c.gcash_number AS "gcashNumber", c.walk_in_enabled AS "walkInEnabled"`;
+  c.deposit_refund_terms AS "depositRefundTerms", c.gcash_enabled AS "gcashEnabled", c.gcash_account_name AS "gcashAccountName", c.gcash_number AS "gcashNumber", c.walk_in_enabled AS "walkInEnabled",
+  c.patient_cancellation_enabled AS "cancelEnabled",c.cancellation_notice_hours AS "cancelNoticeHours",
+  c.patient_rescheduling_enabled AS "rescheduleEnabled",c.reschedule_notice_hours AS "rescheduleNoticeHours",
+  c.appointment_change_terms AS terms,c.change_policy_version AS version`;
 async function ownedClinic(pool, userId) {
   const result = await pool.query(
     `SELECT ${clinicColumns} FROM clinics c WHERE c.owner_user_id = $1 ORDER BY c.created_at, c.id LIMIT 1`,

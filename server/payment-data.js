@@ -19,7 +19,8 @@ async function latestPayment(db,id) {
 function paymentSummary(appointment,payment) {
  const quote=depositQuote(appointment,{depositPolicyConfigured:appointment.depositPolicyConfigured,depositPercentage:appointment.clinicDepositPercentage,depositRefundTerms:appointment.depositRefundTerms});
  let unavailableReason=null;
- if (payment?.status === 'pending') {
+ if (appointment.status === 'cancelled') unavailableReason="This appointment was cancelled. Contact the clinic for any payment or refund review; no refund is recorded by cancellation.";
+ else if (payment?.status === 'pending') {
   if (payment.channel === 'walk_in') unavailableReason=appointment.status === 'confirmed' && appointment.confirmationSource === 'walk_in'
    ? 'Your visit is confirmed as Pay at clinic. No payment has been recorded.'
    : payable(appointment) && appointment.clinicStatus === 'approved' ? 'Pay at clinic selected. The clinic will confirm your visit; no payment has been recorded.'

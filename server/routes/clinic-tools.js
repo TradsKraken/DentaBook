@@ -1,4 +1,5 @@
 const express = require("express");
+const changes = require("../appointment-changes");
 const { email, text } = require("../validation");
 const { paymentReceipt } = require("./payments");
 const { scaledInteger, decimal } = require("../payment-money");
@@ -70,6 +71,22 @@ function createClinicToolsRouter(pool,{payments}={}) {
       deposit_policy_updated_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=$8`,[rate ? decimal(rate) : null,configured ? terms : null,configured,body.gcashEnabled,body.gcashEnabled ? name : null,body.gcashEnabled ? number : null,body.walkInEnabled,clinic.id]);
     return { saved: true };
   });
+  endpoint("put", "/appointment-policy", async (db,clinic,{body:b={}})=>{
+    const validHours=value=>Number.isInteger(value) && value>=0 && value<=2160;
+    if (typeof b.cancelEnabled!=='boolean' || typeof b.rescheduleEnabled!=='boolean'
+      || (b.cancelEnabled && !validHours(b.cancelNoticeHours)) || (b.rescheduleEnabled && !validHours(b.rescheduleNoticeHours))
+      || typeof b.terms!=='string' || b.terms.trim().length>5000 || ((b.cancelEnabled || b.rescheduleEnabled) && !b.terms.trim()))
+      throw fail('Choose enabled actions, whole-hour deadlines from 0 to 2,160 hours, and terms of up to 5,000 characters.');
+    await db.query(`UPDATE clinics SET patient_cancellation_enabled=$1,cancellation_notice_hours=$2,patient_rescheduling_enabled=$3,
+      reschedule_notice_hours=$4,appointment_change_terms=$5,change_policy_version=change_policy_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=$6`,
+      [b.cancelEnabled,b.cancelEnabled ? b.cancelNoticeHours : null,b.rescheduleEnabled,b.rescheduleEnabled ? b.rescheduleNoticeHours : null,b.terms.trim() || null,clinic.id]);
+    return {saved:true};
+  });
+  endpoint("get","/appointments/:id/changes",(db,clinic,req)=>changes.details(db,req.params.id,{clinicId:clinic.id}));
+  endpoint("post","/appointments/:id/cancel",async(db,clinic,req)=>changes.mutate(db,
+    await changes.load(db,req.params.id,{clinicId:clinic.id},true),{id:req.user.id,role:'clinic_staff'},'cancel',req.body || {}),200);
+  endpoint("post","/appointments/:id/changes/:changeId/review",async(db,clinic,req)=>changes.review(db,
+    await changes.load(db,req.params.id,{clinicId:clinic.id},true),req.user.id,req.params.changeId,req.body || {}),200);
   function serviceValues(b) {
     if (!text(b.name, 200) || !categories.includes(b.category) || !optionalText(b.description, 3000) || typeof b.price !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(b.price) || !Number.isInteger(b.duration) || b.duration < 5 || b.duration > 480 || typeof b.isActive !== "boolean")
       throw fail("Enter a service name, category, price (0–99,999,999.99), and duration of 5–480 minutes.");
@@ -141,16 +158,17 @@ function createClinicToolsRouter(pool,{payments}={}) {
   endpoint("get", "/payments/:id/receipt",async(db,clinic,req)=>paymentReceipt(db,req.params.id,{clinicId:clinic.id}));
   endpoint("get", "/appointments", async (db, clinic, req) => {
     const status = req.query.status || "pending_review";
-    if (!["all","pending_review","accepted","declined","confirmed","completed","cancelled","rescheduled"].includes(status))
+    if (!["all","pending_review","accepted","declined","confirmed","completed","cancelled","rescheduled","reschedule_requests"].includes(status))
       throw fail("Choose a valid appointment status.");
     const result = await db.query(`SELECT a.id,a.appointment_code AS code,a.patient_name AS "patientName",a.patient_email AS email,
       a.patient_phone AS phone,a.appointment_date::text AS date,to_char(a.start_time,'HH24:MI') AS time,
       to_char(a.end_time,'HH24:MI') AS end,a.status,a.estimated_total_cost AS total,a.medical_notes AS notes,
-      a.review_notes AS "reviewNotes",d.full_name AS "dentistName",
+      a.review_notes AS "reviewNotes",d.full_name AS "dentistName",a.refund_review_required AS "refundReviewRequired",
+      EXISTS(SELECT 1 FROM appointment_changes ac WHERE ac.appointment_id=a.id AND ac.status='pending') AS "pendingChange",
       COALESCE((SELECT json_agg(COALESCE(aps.service_name,s.name) ORDER BY s.name)
         FROM appointment_services aps JOIN services s ON s.id=aps.service_id WHERE aps.appointment_id=a.id),'[]'::json) AS services
       FROM appointments a LEFT JOIN dentists d ON d.id=a.dentist_id
-      WHERE a.clinic_id=$1 AND ($2='all' OR a.status=$2) ORDER BY a.created_at DESC,a.id DESC LIMIT 100`, [clinic.id,status]);
+      WHERE a.clinic_id=$1 AND ($2='all' OR a.status=$2 OR ($2='reschedule_requests' AND EXISTS(SELECT 1 FROM appointment_changes ac WHERE ac.appointment_id=a.id AND ac.status='pending'))) ORDER BY a.created_at DESC,a.id DESC LIMIT 100`, [clinic.id,status]);
     const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review'", [clinic.id]);
     return { appointments: result.rows, pendingAppointments: pending.rows[0].count };
   });

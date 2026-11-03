@@ -35,6 +35,11 @@ function restrictPortal(req, res, next) {
     (read && /^\/workspaces\/patient\/payments\/[^/]+\/receipt$/.test(path)));
   const clinicPayment = clinic && ((read && (path === "/workspaces/clinic/manage/payments" || /^\/workspaces\/clinic\/manage\/payments\/[^/]+\/receipt$/.test(path))) ||
     (req.method === "POST" && /^\/workspaces\/clinic\/manage\/payments\/[^/]+\/review$/.test(path)));
+  const patientChanges = patient && ((read && /^\/workspaces\/patient\/appointments\/[^/]+\/(changes|reschedule-availability)$/.test(path)) ||
+    (req.method === "POST" && (/^\/workspaces\/patient\/appointments\/[^/]+\/(cancel|reschedule)$/.test(path) || /^\/workspaces\/patient\/appointments\/[^/]+\/changes\/[^/]+\/withdraw$/.test(path))));
+  const clinicChanges = clinic && ((read && /^\/workspaces\/clinic\/manage\/appointments\/[^/]+\/changes$/.test(path)) ||
+    (req.method === "PUT" && path === "/workspaces/clinic/manage/appointment-policy") ||
+    (req.method === "POST" && (/^\/workspaces\/clinic\/manage\/appointments\/[^/]+\/cancel$/.test(path) || /^\/workspaces\/clinic\/manage\/appointments\/[^/]+\/changes\/[^/]+\/review$/.test(path))));
   const workspace = (patient && ((read && ["/workspaces/patient/appointments", "/workspaces/patient/booking-options", "/workspaces/patient/availability"].includes(path)) ||
       (req.method === "POST" && path === "/workspaces/patient/appointments"))) ||
     (clinic && ((read && ["/workspaces/clinic", "/workspaces/clinic/options"].includes(path)) ||
@@ -46,7 +51,7 @@ function restrictPortal(req, res, next) {
       (req.method === "DELETE" && /^\/workspaces\/clinic\/manage\/schedules\/[^/]+$/.test(path)))) ||
     (portal === "admin" && ((read && path === "/workspaces/admin/clinics") ||
       (req.method === "POST" && /^\/workspaces\/admin\/clinics\/[^/]+\/review$/.test(path))));
-  if (common || login || registration || workspace || patientPayment || clinicPayment) return next();
+  if (common || login || registration || workspace || patientPayment || clinicPayment || patientChanges || clinicChanges) return next();
   return res.status(404).set("Cache-Control", "no-store").json({ error: "API route not found in this portal." });
 }
 module.exports = { configuredPortal, portalAllowsRole, restrictPortal };

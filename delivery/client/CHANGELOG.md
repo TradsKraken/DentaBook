@@ -1,5 +1,14 @@
 # Website updates
 
+## 3 November 2026 — Clinic setup, booking, and payments released (live)
+
+Patients can request available appointments with an editable contact email and use clinic-enabled GCash or Pay at clinic after acceptance. Clinics manage profiles, treatments, dentists, assignments, working hours, request decisions, and payment verification in the redesigned workspace. Staff verify actual GCash transfers before issuing private deposit receipts; Pay at clinic stays unpaid. These features are now released and verified on both HTTPS portals. Existing clinics are not enrolled in payment methods automatically.
+
+## 3 November 2026 — Cancellation and clinic-approved rescheduling (implemented; release pending)
+
+Clinics set their own enabled patient actions, deadlines, and terms. Patients can cancel eligible visits, request another available time, or withdraw a pending reschedule. The original reservation remains until owning clinic staff approve a replacement after an atomic availability check. Change history records reasons, policies, requester/reviewer, and original/requested times. Original quotes, treatment duration, appointment references, payment records, and issued receipts are preserved. Cancellation flags any financial follow-up without recording a refund. Production verification for this increment is pending.
+
+
 ## 3 November 2026 — GCash deposits and Pay at clinic (development preview)
 
 Each approved clinic can enable its own GCash account and Pay at clinic, set its deposit percentage, and write cancellation/refund terms. After acceptance, patients choose a method. GCash uses the server-calculated deposit, saves the agreed terms and recipient, and lets patients submit a transaction reference. Staff must check their actual GCash account and match the received amount and reference before recording payment. Verification confirms an eligible future accepted visit and creates an account-scoped deposit receipt. Pay at clinic requires staff confirmation and remains unpaid, with no receipt. Retried submissions are protected, verified GCash references cannot be reused, and payment reviews record the staff member, time, and note. Existing records are preserved; no clinic is automatically enrolled and no gateway or automatic refund is supplied. Available in the development preview and source; production is unchanged.

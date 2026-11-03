@@ -1,3 +1,4 @@
+import { ChangePolicySummary } from "../components/AppointmentChanges";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CalendarDays, CheckCircle2 } from "lucide-react";
@@ -81,7 +82,7 @@ export default function Booking() {
     setBusy(true); setError("");
     try {
       const data = await api("/workspaces/patient/appointments", { method: "POST", body: {
-        ...selection, ...contact, requestKey: key, expectedPrice: String(times.service.price), expectedDuration: times.service.duration,
+        ...selection, ...contact, requestKey: key, changePolicyHash: options.data?.changePolicyHash, expectedPrice: String(times.service.price), expectedDuration: times.service.duration,
       } });
       setReceipt(data.appointment);
     } catch (error) {
@@ -114,6 +115,7 @@ export default function Booking() {
             <label className="field">Clinic<select aria-label="Clinic" value={clinicId} onChange={event => select("clinicId", event.target.value)} required>
               <option value="">Choose a clinic</option>{directory.clinics.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
             </select></label>
+            <button type="button" className="button secondary" disabled={!clinicId || options.loading} onClick={() => { setOptionsAttempt(value => value + 1); setKey(requestKey()); setError(""); }}>Refresh clinic booking options</button>
             {clinicId && !directory.clinics.some(item => item.id === clinicId) && <p className="notice">The selected clinic is unavailable. Choose another clinic.</p>}
             {options.loading ? <p role="status">Loading booking options…</p> : options.error ? <div role="alert"><p>{options.error}</p><button type="button" className="button secondary" onClick={() => setOptionsAttempt(value => value + 1)}>Reload booking options</button></div> : data && <>
               <p className="muted">{data.clinic.address}</p>
@@ -148,6 +150,7 @@ export default function Booking() {
             <p className="summary-note">Your contact details and notes are shared with this clinic for your visit.</p>
             {service ? <p className="notice">Estimated treatment cost: {money(service.price)} · {service.duration} minutes</p> : <p className="muted">Choose a treatment to see its estimated cost.</p>}
             <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
+            <ChangePolicySummary policy={data?.changePolicy} />
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button full" disabled={busy || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
             <Link className="text-link" to="/patient/appointments">View my saved requests</Link>

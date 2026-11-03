@@ -13,6 +13,10 @@ async function fixture(page) {
     if (path === "/api/workspaces/clinic") return respond({ clinic: state.clinic, counts: { services: state.services.filter(item => item.isActive).length, dentists: state.dentists.filter(item => item.isActive).length, pendingAppointments: pending() } });
     if (path === "/api/workspaces/clinic/manage/appointments") return respond({ appointments: state.appointments.filter(item => url.searchParams.get("status") === "all" || item.status === url.searchParams.get("status")), pendingAppointments: pending() });
     if (path === "/api/workspaces/clinic/manage") return state.failRead ? respond({ error: "Clinic tools could not be loaded." }, 503) : respond({ ...state, pendingAppointments: pending() });
+    if (/\/appointments\/[^/]+\/changes$/.test(path) && request.method() === "GET") {
+      const appointment=state.appointments.find(item=>path.includes(item.id));
+      return respond({appointment,policy:{cancelEnabled:false,rescheduleEnabled:false,terms:null},policyHash:"fixture-policy",changes:[],canCancel:false,canReschedule:false,canStaffCancel:true,unavailableReason:"Patient appointment changes are not enabled."});
+    }
     if (path.startsWith("/api/workspaces/clinic/manage")) {
       if (state.failSave) return respond({ error: "Unable to save. Please try again." }, 503);
       const body = request.postDataJSON();
@@ -25,6 +29,7 @@ async function fixture(page) {
       }
       const [, resource, id] = path.match(/\/manage\/(services|dentists|schedules)(?:\/([^/]+))?$/) || [];
       if (request.method() === "DELETE") { state[resource] = state[resource].filter(item => item.id !== id); return respond({ removed: true }); }
+      if (!resource) return respond({error:"Unexpected fixture route"},404);
       const item = { ...body, id: id || `${resource}-${state[resource].length + 1}` };
       if (id) state[resource] = state[resource].map(previous => previous.id === id ? item : previous); else state[resource].push(item);
       if (resource === "dentists") state.assignments = [...state.assignments.filter(assignment => assignment.dentistId !== item.id), ...(body.serviceIds || []).map(serviceId => ({ dentistId: item.id, serviceId }))];

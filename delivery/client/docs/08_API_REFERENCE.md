@@ -100,3 +100,9 @@ All reads require the relevant server-validated role/session; mutations also req
 | GET | `/workspaces/clinic/manage/payments/:id/receipt` | Owning clinic’s verified receipt |
 
 Clinic owner selectors retain `clinicId` on all clinic payment requests. All payment choices/reviews lock the clinic and appointment in a transaction. Payment choice keys, active choices, receipt codes, and verified GCash references have database uniqueness protection. The server computes deposits with integer centavo rounding and snapshots terms/recipient before a transfer. Pay at clinic stores the estimated amount due with pending status; it never creates a received-payment receipt.
+
+## Appointment change endpoints (implemented; release pending)
+
+Patient session/ownership is required for `GET /api/workspaces/patient/appointments/:id/changes`, `GET .../:id/reschedule-availability?date=YYYY-MM-DD`, `POST .../:id/cancel`, `POST .../:id/reschedule`, and `POST .../:id/changes/:changeId/withdraw`. Mutations require the existing request header and origin checks. Cancellation/reschedule submissions include `reason`, `requestKey`, and the reviewed `policyHash`; rescheduling also includes `date` and `time`.
+
+Approved owning clinics use `PUT /api/workspaces/clinic/manage/appointment-policy`, `GET .../appointments/:id/changes`, `POST .../appointments/:id/cancel`, and `POST .../appointments/:id/changes/:changeId/review`. Policy fields are `cancelEnabled`, `cancelNoticeHours`, `rescheduleEnabled`, `rescheduleNoticeHours`, and `terms`. Review fields are `decision` (`approved`/`declined`) and required `notes`. Staff cancellation requires `reason` and `requestKey`. Owner access retains the explicit clinic selector. The inbox supports `status=reschedule_requests`. Administrator listeners do not expose these routes.

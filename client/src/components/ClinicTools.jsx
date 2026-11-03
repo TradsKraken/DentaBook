@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Building2, CalendarDays, CheckCircle2, ChevronDown, CreditCard, ClipboardList, Clock3, ExternalLink, LayoutDashboard, MapPin, Menu, Pencil, Plus, RefreshCw, Search, Stethoscope, Tags, UsersRound } from "lucide-react";
+import ClinicChangePolicy from "./ClinicChangePolicy";
 import ClinicInbox from "./ClinicInbox";
 import ClinicPayments from "./ClinicPayments";
 import { ClinicDrawer, ClinicEmpty, ClinicStatus } from "./ClinicUi";
@@ -14,6 +15,7 @@ const sections = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, description: "A clear view of your clinic and what needs attention." },
   { id: "appointments", label: "Appointment inbox", title: "Appointments", icon: CalendarDays, description: "Review patient requests and keep your clinic’s visits organized." },
   { id: "payments", label: "Deposits & payments", icon: CreditCard, description: "Set deposit terms and review verified payment records." },
+  { id: "policies", label: "Appointment policies", icon: ClipboardList, description: "Set patient cancellation and rescheduling rules." },
   { id: "services", label: "Services & prices", icon: Tags, description: "Manage your treatments, estimated prices, and appointment durations." },
   { id: "dentists", label: "Dentists", icon: Stethoscope, description: "Manage your team’s profiles and the treatments each dentist provides." },
   { id: "schedules", label: "Working hours", icon: Clock3, description: "Set the weekly hours patients can request with your dentists." },
@@ -238,6 +240,7 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
       {loading && !data ? <div className="clinic-surface clinic-loading" role="status">Loading your clinic workspace…</div> : error ? <div className="clinic-surface clinic-loading" role="alert"><h2>We couldn’t load this workspace.</h2><p>{error}</p><button className="button secondary" onClick={() => setAttempt(value => value + 1)}>Reload clinic tools</button></div> : data && <>
         {section.id === "overview" && <Overview data={data} counts={counts} navigate={navigate} />}
         {section.id === "payments" && data.clinic.id === clinicId && <ClinicPayments key={`${clinicId}:${version}`} data={data} request={request} saved={saved} receiptBase={id => `${base}/payments/${id}/receipt${query}`} />}
+        {section.id === "policies" && <ClinicChangePolicy key={`${clinicId}:${version}`} clinic={data.clinic} request={request} saved={saved} />}
         {section.id === "profile" && <Profile key={version} clinic={data.clinic} request={request} saved={saved} />}
         {(section.id === "services" || section.id === "dentists") && <Catalog key={section.id} type={section.id} data={data[section.id]} services={data.services} assignments={data.assignments || []} request={request} saved={saved} />}
         {section.id === "schedules" && <Schedules data={data} request={request} saved={saved} navigate={navigate} />}

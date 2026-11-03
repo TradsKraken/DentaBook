@@ -1,6 +1,6 @@
 # Status and development plan
 
-**Snapshot: 3 November 2026.** Clinic setup, booking/request review, direct GCash verification, and Pay at clinic confirmation are implemented in the supplied source and development preview. Production has not received these increments. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
+**Snapshot: 3 November 2026.** Clinic setup, booking/request review, editable appointment contact email, direct GCash verification, and Pay at clinic confirmation are now released on production. Cancellation/rescheduling is implemented and tested, with production release pending. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
 
 ## Development preview
 
@@ -27,12 +27,16 @@ All times use Asia/Manila. Patients can request today through 90 days ahead, wit
 
 Acceptance requires a future visit time, active service/dentist assignments, current working hours covering the saved visit, and no conflicting reservation. An accepted request remains distinct from final confirmation. After acceptance, patients can choose an enabled GCash or Pay at clinic method. GCash is a direct transfer in the patient’s own app, followed by a reference claim. Clinic staff must match the actual incoming transaction before recording payment. This confirms eligible future accepted visits and issues a private deposit receipt. Pay at clinic requires staff confirmation and remains unpaid. Existing clinics start with both payment methods disabled.
 
+## Appointment changes
+
+Each approved clinic sets its own enabled actions, whole-hour notice periods, and change terms. Patient actions stay unavailable until configured. Cancellation preserves payments and receipts and flags clinic refund review; it never records a refund. Patients can request or withdraw another time with the same dentist/treatment. The original visit stays reserved until clinic approval rechecks replacement availability atomically. Approval retains the original quote/duration and existing payment records. Conflicts and declines keep the original visit. New bookings preserve configured policy terms; older bookings without a snapshot use current terms until their first change. Visit history records the requester, reviewer, reason, policy, and old/requested time.
+
 ## Remaining development
 
 | Work | Needed before completion |
 | --- | --- |
 | Further payment automation | Optional gateway, automatic reconciliation, refund actions, and recording on-site cash collection |
-| Cancellation and rescheduling | Agreed policy, authorized transitions, atomic replacement-slot checks, and patient/staff actions |
+| Cancellation and rescheduling | Implemented: explicit clinic policy, patient/staff cancellation, pending requests, atomic clinic approval, retained quotes/payments, and auditable history; production release pending |
 | Reminders and notifications | Delivery channels, consent, retries, and delivery-state handling |
 | Visit completion and feedback | Authorized completion rules and eligible patient review/moderation |
 | Further scheduling controls | Date-specific closures, configurable lead time/horizon, and reservation-expiry policy |

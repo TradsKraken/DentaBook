@@ -25,9 +25,10 @@ async function offering(db, clinicId, serviceId, dentistId) {
     throw fail("This service and dentist are no longer available together. Choose another option.", 409);
   return service;
 }
-async function availability(db, { clinicId, serviceId, dentistId, date }, excludeId = null) {
+async function availability(db, { clinicId, serviceId, dentistId, date }, excludeId = null, savedDuration = null) {
   validateDate(date);
-  const service = await offering(db, clinicId, serviceId, dentistId);
+  const offeringDetails = await offering(db, clinicId, serviceId, dentistId);
+  const service = { ...offeringDetails, duration: savedDuration ?? offeringDetails.duration };
   const day = new Date(`${date}T00:00:00Z`).getUTCDay();
   const hours = await db.query(`SELECT to_char(start_time,'HH24:MI') AS start,to_char(end_time,'HH24:MI') AS end
     FROM dentist_schedules WHERE dentist_id=$1 AND day_of_week=$2 AND is_available=TRUE ORDER BY start_time`, [dentistId, day]);

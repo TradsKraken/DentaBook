@@ -2824,3 +2824,17 @@ td small {
 .payment-option { margin-top:24px; padding-top:20px; border-top:1px solid #dce5f0; }
 .payment-option form { display:grid; gap:16px; }
 .clinic-status-needs_review { color:#8b5c13; background:#fff6df; }
+
+.appointment-card-actions { display:flex; flex-direction:column; align-items:stretch; gap:12px; }
+.appointment-changes { min-width:0; padding-top:20px; border-top:1px solid #dde8f3; }
+.appointment-change-form { margin-top:20px; }
+.appointment-change-form fieldset { min-width:0; border:0; padding:0; margin:0; }
+.appointment-change-form .booking-time-grid { margin-bottom:14px; }
+.appointment-change-history { margin-top:24px; }
+.appointment-change-record { padding:16px 0; border-top:1px solid #dde8f3; overflow-wrap:anywhere; }
+.appointment-change-record p { margin:8px 0; }
+.appointment-policy-summary { margin:16px 0; overflow-wrap:anywhere; }
+.appointment-changes .form-actions { align-items:stretch; }
+.appointment-changes button { min-height:44px; min-width:44px; white-space:normal; }
+.appointment-changes input, .appointment-changes select, .appointment-changes textarea { font-size:16px; max-width:100%; }
+@media (min-width:768px) { .appointment-changes .form-actions { align-items:center; } }

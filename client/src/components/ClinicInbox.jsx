@@ -1,7 +1,8 @@
+import AppointmentChanges from "./AppointmentChanges";
 import { useEffect, useState } from "react";
 import { ArrowRight, CalendarDays, Check, Clock3, Mail, Phone, RefreshCw, Search, UserRound, X } from "lucide-react";
 import { ClinicDrawer, ClinicEmpty, ClinicStatus } from "./ClinicUi";
-const statuses = [["pending_review", "Awaiting review"], ["accepted", "Accepted"], ["declined", "Declined"], ["all", "All statuses"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"], ["rescheduled", "Rescheduled"]];
+const statuses = [["pending_review", "Awaiting review"], ["reschedule_requests", "Reschedule requests"], ["accepted", "Accepted"], ["declined", "Declined"], ["all", "All statuses"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"], ["rescheduled", "Rescheduled"]];
 const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(value);
 const displayDate = value => new Date(`${value}T12:00:00+08:00`).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" });
 const statusLabel = value => statuses.find(item => item[0] === value)?.[1] || value.replaceAll("_", " ");
@@ -41,7 +42,7 @@ export default function ClinicInbox({ request, onReviewed }) {
         <td className="clinic-table-name"><div className="clinic-record-identity"><span className="clinic-avatar" aria-hidden="true"><UserRound size={18} /></span><div><h3>{item.patientName}</h3><p className="clinic-reference">{item.code}</p></div></div></td>
         <td data-label="Visit"><strong>{displayDate(item.date)}</strong><small className="clinic-cell-secondary">{item.time}–{item.end}</small></td>
         <td data-label="Dentist / treatment"><span>{item.dentistName || "Dentist unavailable"}</span><small className="clinic-cell-secondary">{item.services.join(", ") || "Service details unavailable"}</small></td>
-        <td><ClinicStatus status={item.status}>{statusLabel(item.status)}</ClinicStatus></td>
+        <td><ClinicStatus status={item.status}>{statusLabel(item.status)}</ClinicStatus>{item.pendingChange && <small className="clinic-cell-secondary">Reschedule awaiting review</small>}{item.refundReviewRequired && <small className="clinic-cell-secondary">Payment / refund review</small>}</td>
         <td className="clinic-table-actions"><button className={`clinic-row-button ${item.status === "pending_review" ? "clinic-row-primary" : ""}`} aria-label={`View ${item.code}`} onClick={() => { setSelected(item); setDecision(null); setNotes(""); setError(""); }}>{item.status === "pending_review" ? "Review request" : "View details"}<ArrowRight size={15} /></button></td>
       </tr>)}</tbody></table>
     </div>}
@@ -61,6 +62,7 @@ export default function ClinicInbox({ request, onReviewed }) {
           <div className="clinic-editor-actions"><button type="button" className="button secondary" disabled={busy} onClick={() => { setDecision(null); setError(""); }}>Cancel review</button><button className="button" disabled={busy} aria-busy={busy}>{busy ? "Saving decision…" : decision === "accepted" ? "Confirm acceptance" : "Confirm decline"}</button></div>
         </form>}
       </section>}
+      <AppointmentChanges key={selected.id} id={selected.id} request={request} staff onBusyChange={setBusy} onChanged={() => { setNotice("Appointment change saved."); close(); setAttempt(value=>value+1); }} />
     </ClinicDrawer>}
   </section>;
 }

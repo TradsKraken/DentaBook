@@ -1,6 +1,15 @@
 # Delivery verification
 
-Latest application verification: **3 November 2026**. Clinic setup, booking/request review, GCash verification, and unpaid Pay at clinic confirmation are development-preview features; production was not updated. Earlier delivery checks below remain historical records.
+Latest application verification: **3 November 2026**. Clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic are released on production. Cancellation/rescheduling is implemented and tested, with production verification pending. Earlier checks below are historical records.
+
+## Cancellation, rescheduling, and baseline release — 3 November 2026
+
+- Full backend regression: 84 passed; one separate native-payment-choice case skipped. The suite used real PostgreSQL for booking and appointment changes, covering competing reservations/approvals, identical retries, cancellation/payment races, Philippine-time deadlines, policy snapshots, role/ownership boundaries, and preserved paid receipts. The focused PGlite appointment-change suite also passed all eight original applicable behavior groups; its two native-only concurrency groups were skipped.
+- Browser regression: all 34 applicable journeys passed across the full run and the corrected legacy inbox fixture rerun; four deployment-specific checks were skipped in the local harness. These include the real PostgreSQL/browser journey for clinic setup, editable contact email, GCash verification and private receipts, unpaid Pay at clinic, explicit clinic change policy, approved rescheduling, patient cancellation, and staff cancellation. Test data exists only in a disposable database.
+- Phone-first layout/control checks passed at 390px, 320px, 768px, and 1440px, including policy setup, patient replacement selection, clinic approval, cancellation confirmation, and history. Phone screenshots were reviewed. Issued patient/clinic receipts remain printable.
+- The existing preview was released with the required version-saving manager. Four real HTTPS portal/security checks passed at all required widths without creating production records. The previous running website was saved as verified restore point `20261103T125319228146Z-2a39d811`.
+- The final optimized frontend build and whitespace checks passed. Clinic defaults keep patient changes and payment methods disabled until explicitly configured. Cancellation never claims a refund; reschedule approval never claims an unpaid visit was paid.
+- The development rebuild passed four additional checks: three appointment-change UI journeys against the built preview with test-only APIs, and the real development owner sign-in/workspace/logout journey at all four widths. No clinic policies or customer records were changed. New production release verification is recorded after completion. Off-host recovery and recurring restore drills remain future work.
 
 ## GCash and Pay at clinic — 3 November 2026
 

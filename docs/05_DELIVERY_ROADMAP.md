@@ -12,38 +12,38 @@ Updated 3 November 2026. Work through the numbered items in order, completing an
 - [x] Development preview: direct GCash reference claims, manual clinic verification, private receipts, and unpaid Pay at clinic confirmation.
 - [x] Development preview: editable appointment contact email, prefilled when available, with manual entry for accounts without an email. The saved contact address does not change the account email or appointment ownership.
 
-Clinic setup, booking, payments, and the editable appointment email remain development-preview features pending a production release. Do not rebuild these features as missing work.
+Clinic setup, booking, payments, and the editable appointment email were released and verified on production on 3 November 2026. Cancellation and rescheduling are implemented and tested; production verification is pending.
 
 ## Ordered work
 
 ### 1. Review and release the existing preview
 
-- [ ] Review the complete patient and clinic journey in development, including an alternate appointment email and an account without an email.
-- [ ] Verify real clinic setup and explicit payment-method configuration. Unconfigured clinics must show an honest unavailable state.
-- [ ] Run relevant functional/security checks and phone-first layout checks at 390px, 320px, 768px, and 1440px.
-- [ ] Confirm backup/recovery ownership, production configuration, and the restore procedure before releasing.
-- [ ] Commit the intended source, then release using `python3 scripts/releases.py deploy --note "Website feature or fix"`, retaining the five newest verified restore points.
-- [ ] Verify the deployed patient, clinic, and administrator journeys and accurately label the release in website history.
+- [x] Review the complete patient and clinic journey in development, including an alternate appointment email and an account without an email.
+- [x] Verify real clinic setup and explicit payment-method configuration. Unconfigured clinics must show an honest unavailable state.
+- [x] Run relevant functional/security checks and phone-first layout checks at 390px, 320px, 768px, and 1440px.
+- [x] Confirm backup/recovery ownership, production configuration, and the restore procedure before releasing.
+- [x] Commit the intended source, then release using `python3 scripts/releases.py deploy --note "Website feature or fix"`, retaining the five newest verified restore points.
+- [x] Verify the deployed patient, clinic, and administrator journeys and accurately label the release in website history.
 
-Done when the current preview increment is verified on production. Planning this item does not itself deploy it.
+Completed: committed baseline released with the required release manager and verified through both HTTPS portals. Restore point `20261103T125319228146Z-2a39d811` protects the previous running website.
 
 ### 2. Appointment cancellation
 
-- [ ] Agree on patient/staff cancellation permissions, deadlines, reasons, and deposit consequences; do not invent a deadline or refund promise.
-- [ ] Add server-authorized cancellation actions and patient/clinic controls with confirmation and useful failure messages.
-- [ ] Record who cancelled, when, why, and the applicable policy; release the reserved time atomically.
-- [ ] Preserve payments and receipts, recording any refund review required rather than claiming money was returned.
-- [ ] Test cross-patient/cross-clinic access, duplicate actions, deadline boundaries, and payment-review races.
+- [x] Agree on patient/staff cancellation permissions, deadlines, reasons, and deposit consequences; do not invent a deadline or refund promise.
+- [x] Add server-authorized cancellation actions and patient/clinic controls with confirmation and useful failure messages.
+- [x] Record who cancelled, when, why, and the applicable policy; release the reserved time atomically.
+- [x] Preserve payments and receipts, recording any refund review required rather than claiming money was returned.
+- [x] Test cross-patient/cross-clinic access, duplicate actions, deadline boundaries, and payment-review races.
 
 Done when eligible visits can be cancelled safely and both portals show the same saved result.
 
 ### 3. Appointment rescheduling
 
-- [ ] Agree on request/approval rules, deadlines, pricing changes, and how existing deposits apply.
-- [ ] Let patients request a new available time and let the owning clinic review it.
-- [ ] Recheck and reserve the replacement time in a transaction. Preserve the original reservation if replacement fails.
-- [ ] Keep an auditable link between the original appointment and the reschedule decision.
-- [ ] Test competing bookings, repeated submissions, declined requests, and paid appointments.
+- [x] Agree on request/approval rules, deadlines, pricing changes, and how existing deposits apply.
+- [x] Let patients request a new available time and let the owning clinic review it.
+- [x] Recheck and reserve the replacement time in a transaction. Preserve the original reservation if replacement fails.
+- [x] Keep an auditable link between the original appointment and the reschedule decision.
+- [x] Test competing bookings, repeated submissions, declined requests, and paid appointments.
 
 Done when rescheduling cannot lose the original booking or double-book the replacement time.
 

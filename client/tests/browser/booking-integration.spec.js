@@ -18,7 +18,7 @@ async function mobileControls(page,label) {
     const box=await button.boundingBox(); expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   }
 }
-test("real clinic setup, patient booking, acceptance, decline, and patient status work across phone and desktop",async({browser},testInfo)=>{
+test("real booking, payment, cancellation, and clinic-approved rescheduling work across phone and desktop",async({browser},testInfo)=>{
   test.setTimeout(300000);
   test.skip(process.env.PLAYWRIGHT_BOOKING_INTEGRATION!=="1","Requires the isolated booking API and PostgreSQL test harness");
   const staffContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,reducedMotion:"reduce"});
@@ -179,6 +179,77 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
     await expect(staff.getByRole("status").filter({hasText:"Visit confirmed as Pay at clinic"})).toBeVisible();
     await patient.getByRole("button",{name:"Refresh payment status",exact:true}).click();
     await expect(patient.getByText("Appointment: confirmed",{exact:true})).toBeVisible();
+    await expect(patient.getByText("Pay at clinic · unpaid",{exact:true})).toBeVisible();
+    await expect(patient.getByRole("article",{name:"Deposit receipt",exact:true})).toHaveCount(0);
+    // Clinics explicitly configure patient actions. Existing unconfigured bookings
+    // adopt the policy on their first change; payment snapshots stay intact.
+    await clinicSection(staff,"Appointment policies");
+    await staff.getByLabel("Allow patient cancellation",{exact:true}).check();
+    await staff.getByLabel("Cancellation notice (hours)",{exact:true}).fill("0");
+    await staff.getByLabel("Allow patient reschedule requests",{exact:true}).check();
+    await staff.getByLabel("Reschedule notice (hours)",{exact:true}).fill("0");
+    await staff.getByLabel("Appointment change terms",{exact:true}).fill("Isolated test policy: changes before the visit; deposits require clinic review.");
+    for(const width of [390,320,768,1440]) {
+      await staff.setViewportSize({width,height:900});await mobileControls(staff,`Appointment policies at ${width}`);
+      await staff.screenshot({path:testInfo.outputPath(`appointment-policies-${width}.png`),fullPage:true});
+    }
+    await staff.getByRole("button",{name:"Save appointment policy",exact:true}).click();
+    await expect(staff.getByRole("status").filter({hasText:"Appointment policy saved"})).toBeVisible();
+    await patient.goto("/patient/appointments");
+    let paidCard=patient.locator(".appointment-list > article").filter({hasText:firstCode});
+    await paidCard.getByRole("button",{name:"Manage appointment",exact:true}).click();
+    await paidCard.getByRole("button",{name:"Request reschedule",exact:true}).click();
+    await paidCard.getByLabel("Replacement date",{exact:true}).fill(tomorrow());
+    await paidCard.getByRole("button",{name:"10:00–10:30",exact:true}).click();
+    await paidCard.getByLabel("Reason for change",{exact:true}).fill("Please move my visit to a later time.");
+    for(const width of [390,320,768,1440]) {
+      await patient.setViewportSize({width,height:900});await mobileControls(patient,`Reschedule request at ${width}`);
+      await patient.screenshot({path:testInfo.outputPath(`reschedule-request-${width}.png`),fullPage:true});
+    }
+    await paidCard.getByRole("button",{name:"Send reschedule request",exact:true}).click();
+    await expect(paidCard.getByText("Reschedule · pending",{exact:true})).toBeVisible();
+    await expect(paidCard.getByText(/Original:.*09:00/)).toBeVisible();
+    await clinicSection(staff,"Appointment inbox");
+    await staff.getByLabel("Appointment status",{exact:true}).selectOption("reschedule_requests");
+    await staff.getByRole("button",{name:`View ${firstCode}`,exact:true}).click();
+    await staff.getByRole("button",{name:"Review reschedule",exact:true}).click();
+    await staff.getByLabel("Reschedule decision",{exact:true}).selectOption("approved");
+    await staff.getByLabel("Decision note",{exact:true}).fill("Your later time is approved; deposit retained.");
+    for(const width of [390,320,768,1440]) {
+      await staff.setViewportSize({width,height:900});await mobileControls(staff,`Clinic reschedule review at ${width}`);
+      await staff.screenshot({path:testInfo.outputPath(`reschedule-review-${width}.png`),fullPage:true});
+    }
+    await staff.getByRole("button",{name:"Save reschedule decision",exact:true}).click();
+    await expect(staff.getByRole("dialog")).toHaveCount(0);
+    await patient.getByRole("button",{name:"Refresh appointments",exact:true}).click();
+    paidCard=patient.locator(".appointment-list > article").filter({hasText:firstCode});
+    await expect(paidCard.getByText("Status: confirmed",{exact:true})).toBeVisible();
+    await paidCard.getByRole("button",{name:"Manage appointment",exact:true}).click();
+    await expect(paidCard.getByText("Reschedule · approved",{exact:true})).toBeVisible();
+    await paidCard.getByRole("button",{name:"Cancel appointment",exact:true}).click();
+    await paidCard.getByLabel("Reason for change",{exact:true}).fill("Unable to attend the new time.");
+    for(const width of [390,320,768,1440]) {
+      await patient.setViewportSize({width,height:900});await mobileControls(patient,`Cancellation at ${width}`);
+      await patient.screenshot({path:testInfo.outputPath(`cancellation-${width}.png`),fullPage:true});
+    }
+    await paidCard.getByRole("button",{name:"Confirm cancellation",exact:true}).click();
+    await expect(paidCard.getByText("Status: cancelled",{exact:true})).toBeVisible();
+    await expect(paidCard.getByText("Cancellation · approved",{exact:true})).toBeVisible();
+    await paidCard.getByRole("link",{name:"Deposit & payment details",exact:true}).click();
+    await expect(patient.getByText("Appointment: cancelled",{exact:true})).toBeVisible();
+    await expect(patient.getByRole("article",{name:"Deposit receipt",exact:true})).toBeVisible();
+    await expect(patient.getByText("Payment received · clinic review required",{exact:true})).toBeVisible();
+    // Staff can also cancel an unpaid future visit with a recorded reason.
+    await staff.getByLabel("Appointment status",{exact:true}).selectOption("confirmed");
+    await staff.getByRole("button",{name:`View ${walkCode}`,exact:true}).click();
+    await staff.getByRole("button",{name:"Cancel appointment",exact:true}).click();
+    await staff.getByLabel("Reason for change",{exact:true}).fill("Dentist unavailable; patient contacted.");
+    await staff.getByRole("button",{name:"Confirm cancellation",exact:true}).click();
+    await expect(staff.getByRole("dialog")).toHaveCount(0);
+    await patient.goto("/patient/appointments");
+    const walkCard=patient.locator(".appointment-list > article").filter({hasText:walkCode});
+    await expect(walkCard.getByText("Status: cancelled",{exact:true})).toBeVisible();
+    await walkCard.getByRole("link",{name:"Deposit & payment details",exact:true}).click();
     await expect(patient.getByText("Pay at clinic · unpaid",{exact:true})).toBeVisible();
     await expect(patient.getByRole("article",{name:"Deposit receipt",exact:true})).toHaveCount(0);
     expect(errors).toEqual([]);

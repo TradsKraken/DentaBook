@@ -1,3 +1,4 @@
+import AppointmentChanges from "../components/AppointmentChanges";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react";
@@ -277,7 +278,8 @@ export function PatientAppointments() {
               {appointment.reviewNotes && <p className="clinic-visit-notes"><strong>Clinic’s note: </strong>{appointment.reviewNotes}</p>}
               {appointment.status === "pending_review" && <p className="muted">Your request is awaiting the clinic’s review.</p>}
               {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Choose GCash or Pay at clinic from the payment details, where enabled by the clinic.</p>}
-              <Link className="button secondary" to={`/patient/appointments/${appointment.id}/payment`}>Deposit &amp; payment details</Link>
+              <div className="appointment-card-actions"><Link className="button secondary" to={`/patient/appointments/${appointment.id}/payment`}>Deposit &amp; payment details</Link>
+              <AppointmentChanges id={appointment.id} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} onChanged={updated=>setState(previous=>({...previous,appointments:previous.appointments.map(item=>item.id===updated.id ? {...item,...updated} : item)}))} /></div>
               <p>
                 Estimated cost:{" "}
                 {new Intl.NumberFormat("en-PH", {
