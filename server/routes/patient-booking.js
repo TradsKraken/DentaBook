@@ -44,8 +44,9 @@ function createPatientBookingRouter(pool) {
     try {
       if (![b.clinicId, b.serviceId, b.dentistId, b.requestKey].every(validId) || !timePattern.test(b.time) || typeof b.phone !== "string" || !/^[+0-9() .-]{7,30}$/.test(b.phone.trim()) || b.phone.replace(/\D/g, "").length < 7 || typeof b.notes !== "string" || b.notes.trim().length > 2000 || typeof b.expectedPrice !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(b.expectedPrice) || !Number.isInteger(b.expectedDuration))
         throw fail("Choose an available time and enter valid contact details. Visit notes can contain up to 2,000 characters.");
-      const requestHash = accountEmail => crypto.createHash("sha256").update(JSON.stringify([
-        b.clinicId, b.serviceId, b.dentistId, b.date, b.time, accountEmail.trim().toLowerCase(),
+      if (b.email !== undefined && !email(b.email)) throw fail("Enter a valid contact email for this appointment.");
+      const requestHash = contactEmail => crypto.createHash("sha256").update(JSON.stringify([
+        b.clinicId, b.serviceId, b.dentistId, b.date, b.time, contactEmail.trim().toLowerCase(),
         b.phone.trim(), b.notes.trim(), b.expectedPrice, b.expectedDuration,
       ])).digest("hex");
       client = await pool.connect();
@@ -54,16 +55,16 @@ function createPatientBookingRouter(pool) {
       const patient = (await client.query("SELECT id,full_name AS name,email FROM users WHERE id=$1 FOR NO KEY UPDATE", [req.user.id])).rows[0];
       const existing = (await client.query("SELECT id,booking_request_hash AS hash,patient_email AS email FROM appointments WHERE patient_user_id=$1 AND booking_request_key=$2", [req.user.id, b.requestKey])).rows[0];
       if (existing) {
-        // Keep retries compatible with saved requests, including an older contact
-        // email or an account email changed after the original submission.
-        if (existing.hash !== requestHash(existing.email)) throw fail("This request was already submitted with different details. Check your appointments before sending another request.", 409);
+        // Older clients omit the email. Explicit contact changes must use a new key.
+        if (existing.hash !== requestHash(b.email === undefined ? existing.email : b.email)) throw fail("This request was already submitted with different details. Check your appointments before sending another request.", 409);
         const appointment = await receipt(client, existing.id, req.user.id);
         await client.query("COMMIT");
         return res.json({ appointment });
       }
-      if (!email(patient?.email)) throw fail("Your account needs a valid email address to book. Sign in with a patient account registered with an email address.");
-      const accountEmail = patient.email.trim().toLowerCase();
-      const hash = requestHash(accountEmail);
+      const contactEmail = b.email === undefined ? patient?.email : b.email;
+      if (!email(contactEmail)) throw fail("Enter a valid contact email for this appointment.");
+      const normalizedEmail = contactEmail.trim().toLowerCase();
+      const hash = requestHash(normalizedEmail);
       // Clinic setup writes and other bookings use this same row lock, so final
       // availability, prices, assignments, and the reservation are checked atomically.
       const clinic = (await client.query("SELECT id FROM clinics WHERE id=$1 AND status='approved' FOR UPDATE", [b.clinicId])).rows[0];
@@ -77,7 +78,7 @@ function createPatientBookingRouter(pool) {
       const result = await client.query(`INSERT INTO appointments
         (appointment_code,clinic_id,dentist_id,patient_user_id,patient_name,patient_email,patient_phone,appointment_date,start_time,end_time,estimated_total_cost,status,medical_notes,booking_request_key,booking_request_hash)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending_review',$12,$13,$14) RETURNING id`,
-        [code,b.clinicId,b.dentistId,req.user.id,patient.name,accountEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash]);
+        [code,b.clinicId,b.dentistId,req.user.id,patient.name,normalizedEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash]);
       const id = result.rows[0].id;
       await client.query("INSERT INTO appointment_services (appointment_id,service_id,service_price,service_name) VALUES ($1,$2,$3,$4)", [id,b.serviceId,available.service.price,available.service.name]);
       const appointment = await receipt(client, id, req.user.id);

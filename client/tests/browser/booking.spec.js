@@ -32,6 +32,7 @@ test("booking preserves contact input across load errors and requires a new slot
   await expect(page.getByRole("alert")).toContainText("Available times could not be loaded");
   state.failSlots=false;await page.getByRole("button",{name:"Refresh available times",exact:true}).tap();
   await page.getByRole("button",{name:"09:00–09:30",exact:true}).tap();
+  await page.getByLabel("Contact email",{exact:true}).fill("appointment@example.test");
   await page.getByLabel("Visit notes (optional)",{exact:true}).fill("Keep these visit notes");
   await page.getByRole("button",{name:"Send appointment request",exact:true}).tap();
   await expect(page.getByRole("alert")).toContainText("That time is no longer available");
@@ -41,7 +42,8 @@ test("booking preserves contact input across load errors and requires a new slot
   state.conflict=false;await page.getByRole("button",{name:"09:00–09:30",exact:true}).tap();
   await page.getByRole("button",{name:"Send appointment request",exact:true}).tap();
   await expect(page.getByRole("heading",{name:"Your appointment request is saved."})).toBeVisible();
-  expect(state.writes[0].email).toBeUndefined();
+  expect(state.writes[0].email).toBe("appointment@example.test");
+  expect(state.writes[1].email).toBe("appointment@example.test");
   expect(state.writes[0].expectedPrice).toBe("1500.00");expect(state.writes[0].expectedDuration).toBe(30);
   expect(state.writes[0].requestKey).not.toBe(state.writes[1].requestKey);
 });
@@ -85,24 +87,34 @@ test("owner inbox keeps the selected clinic in status-filtered requests and clea
 });
 
 
-test("booking fills the account email automatically at every required screen size",async({page})=>{
+test("booking prefills an editable contact email at every required screen size",async({page})=>{
   const state=await fixture(page);state.failOptions=false;state.failSlots=false;
   for(const width of [390,320,768,1440]) {
     await page.setViewportSize({width,height:900});await page.goto(`/patient/book?clinic=${clinic.id}`);
     const input=page.getByLabel("Contact email",{exact:true});
-    await expect(input).toHaveValue(state.accountEmail);await expect(input).toHaveAttribute("readonly","");
-    await expect(page.getByText("Your booking uses the email address from your signed-in patient account.",{exact:true})).toBeVisible();
+    await expect(input).toHaveValue(state.accountEmail);await expect(input).toBeEditable();
+    await input.fill("alternate@example.test");
+    await expect(input).toHaveValue("alternate@example.test");
+    await expect(page.getByText("Enter the email address the clinic should use for this appointment. Changing it here does not change your account email.",{exact:true})).toBeVisible();
     expect(await input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
 });
-test("an owner account without an email cannot substitute a booking contact email",async({page})=>{
+test("an account without an email can enter a valid appointment contact email",async({page})=>{
   const state=await fixture(page);state.failOptions=false;state.failSlots=false;state.accountEmail=null;
   await page.goto(`/patient/book?clinic=${clinic.id}`);
   await page.getByLabel("Treatment",{exact:true}).selectOption(service.id);
   await page.getByLabel("Dentist",{exact:true}).selectOption(dentist.id);
   await page.getByRole("button",{name:"09:00–09:30",exact:true}).tap();
   await expect(page.getByLabel("Contact email",{exact:true})).toHaveValue("");
-  await expect(page.getByText("This account has no email address. Sign out and use a patient account registered with an email address to book.",{exact:true})).toBeVisible();
-  await expect(page.getByRole("button",{name:"Send appointment request",exact:true})).toBeDisabled();
+  const submit=page.getByRole("button",{name:"Send appointment request",exact:true});
+  await expect(submit).toBeDisabled();
+  await page.getByLabel("Contact email",{exact:true}).fill("invalid-email");
+  await submit.tap();
+  expect(state.writes).toHaveLength(0);
+  await page.getByLabel("Contact email",{exact:true}).fill("contact@example.test");
+  state.conflict=false;
+  await submit.tap();
+  await expect(page.getByRole("heading",{name:"Your appointment request is saved."})).toBeVisible();
+  expect(state.writes[0].email).toBe("contact@example.test");
 });

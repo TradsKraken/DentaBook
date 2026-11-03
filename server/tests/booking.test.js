@@ -92,7 +92,8 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       assert.equal(created.data.appointment.status,"pending_review"); assert.equal(Number(created.data.appointment.total),1200.5);
       assert.deepEqual(created.data.appointment.services,["Original treatment"]);
       const record = (await db.query("SELECT patient_user_id,patient_email,start_time::text,end_time::text,estimated_total_cost,status FROM appointments WHERE id=$1",[appointmentId])).rows[0];
-      assert.equal(record.patient_user_id,patient.id); assert.equal(record.patient_email,patient.email); assert.notEqual(record.patient_email,body.email); assert.equal(record.end_time,"09:45:00"); assert.equal(record.status,"pending_review");
+      assert.equal(record.patient_user_id,patient.id); assert.equal(record.patient_email,body.email);
+      assert.equal((await db.query("SELECT email FROM users WHERE id=$1",[patient.id])).rows[0].email,patient.email); assert.equal(record.end_time,"09:45:00"); assert.equal(record.status,"pending_review");
       assert.equal(await totalRequests(),1);
       const slots = (await request(`${base}/availability?${query()}`)).data.slots;
       assert.ok(!slots.some(slot=>["09:00","09:15","09:30"].includes(slot.time)));
@@ -106,6 +107,7 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       assert.equal((await request(base+"/appointments",{method:"POST",body})).status,200);
       assert.equal(await totalRequests(),1);
       assert.equal((await request(base+"/appointments",{method:"POST",body:{...body,notes:"Changed after retry"}})).status,409);
+      assert.equal((await request(base+"/appointments",{method:"POST",body:{...body,email:"changed@example.test"}})).status,409);
       assert.equal((await request(base+"/appointments",{method:"POST",body:{...body,requestKey:crypto.randomUUID(),time:"09:15"},cookie:secondPatient.cookie})).status,409);
       assert.equal((await request(base+"/appointments",{method:"POST",body:{...body,requestKey:crypto.randomUUID(),time:"09:45",expectedPrice:"0"}})).status,409);
       assert.equal(await totalRequests(),1);
@@ -164,22 +166,31 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       assert.deepEqual(results.map(item=>item.status).sort(),[200,201]);
       assert.equal(results[0].data.appointment.id,results[1].data.appointment.id);
     });
-    await t.test("bookings use the database account email, ignore supplied emails, and preserve older retries",async()=>{
-      const ignoredEmail=await request(base+"/appointments",{method:"POST",body:{...body,email:"a-different-address@example.test"}});
-      assert.equal(ignoredEmail.status,200);assert.equal(ignoredEmail.data.appointment.id,appointmentId);
+    await t.test("contact emails are validated, optional account prefills remain compatible, and email-less accounts can book",async()=>{
+      const count=await totalRequests();
+      for(const invalid of ["", "invalid", null, 123, "a@b.test\nInjected", "x".repeat(255)+"@example.test"]) {
+        const rejected=await request(base+"/appointments",{method:"POST",body:{...body,email:invalid,requestKey:crypto.randomUUID(),time:"14:00"}});
+        assert.equal(rejected.status,400);assert.match(rejected.data.error,/valid contact email/);
+      }
+      assert.equal(await totalRequests(),count);
       const noEmailBody={...body,time:"14:00",requestKey:crypto.randomUUID()};delete noEmailBody.email;
       const saved=await request(base+"/appointments",{method:"POST",body:noEmailBody});assert.equal(saved.status,201);
-      const savedEmail=(await db.query("SELECT patient_email FROM appointments WHERE id=$1",[saved.data.appointment.id])).rows[0].patient_email;
-      assert.equal(savedEmail,patient.email);
+      assert.equal((await db.query("SELECT patient_email FROM appointments WHERE id=$1",[saved.data.appointment.id])).rows[0].patient_email,patient.email);
+      await db.query("UPDATE users SET email='updated-account@example.test' WHERE id=$1",[patient.id]);
+      assert.equal((await request(base+"/appointments",{method:"POST",body:noEmailBody})).status,200);
       const missingEmail=await account("system_admin",true,"patient");
       await db.query("UPDATE users SET email=NULL WHERE id=$1",[missingEmail.id]);
-      const unavailable=await request(base+"/appointments",{method:"POST",body:{...body,time:"14:45",requestKey:crypto.randomUUID()},cookie:missingEmail.cookie});
-      assert.equal(unavailable.status,400);assert.match(unavailable.data.error,/account needs a valid email/);
-      const legacyEmail="older-contact@example.test";
-      const legacyHash=crypto.createHash("sha256").update(JSON.stringify([body.clinicId,body.serviceId,body.dentistId,body.date,body.time,legacyEmail,body.phone.trim(),body.notes.trim(),body.expectedPrice,body.expectedDuration])).digest("hex");
-      await db.query("UPDATE appointments SET patient_email=$1,booking_request_hash=$2 WHERE id=$3",[legacyEmail,legacyHash,appointmentId]);
-      const legacy=await request(base+"/appointments",{method:"POST",body});assert.equal(legacy.status,200);
-      assert.equal((await db.query("SELECT patient_email FROM appointments WHERE id=$1",[appointmentId])).rows[0].patient_email,legacyEmail);
+      const contactBody={...body,time:"11:00",email:" Contact@Example.Test ",requestKey:crypto.randomUUID()};
+      const created=await request(base+"/appointments",{method:"POST",body:contactBody,cookie:missingEmail.cookie});
+      assert.equal(created.status,201);
+      const record=(await db.query("SELECT patient_email,patient_user_id FROM appointments WHERE id=$1",[created.data.appointment.id])).rows[0];
+      assert.equal(record.patient_email,"contact@example.test");assert.equal(record.patient_user_id,missingEmail.id);
+      assert.equal((await db.query("SELECT email FROM users WHERE id=$1",[missingEmail.id])).rows[0].email,null);
+      assert.equal((await request(base+"/appointments",{method:"POST",body:contactBody,cookie:missingEmail.cookie})).status,200);
+      const {email: omitted,...missingContact}=contactBody;
+      assert.equal((await request(base+"/appointments",{method:"POST",body:{...missingContact,requestKey:crypto.randomUUID()},cookie:missingEmail.cookie})).status,400);
+      const inbox=(await request(management+"/appointments?status=all",{cookie:staff.cookie})).data.appointments;
+      assert.equal(inbox.find(item=>item.id===created.data.appointment.id).email,"contact@example.test");
     });
     await t.test("administrator API cannot reach patient or clinic booking routes",async()=>{
       process.env.APP_PORTAL="admin";
