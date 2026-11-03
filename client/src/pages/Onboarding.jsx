@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Clock3,
   ShieldCheck,
-  Stethoscope,
 } from "lucide-react";
 import { ClinicTools } from "../components/ClinicTools";
 import { api } from "../api";
@@ -473,151 +472,42 @@ export function ClinicWorkspace() {
     setWorkspace(null);
     setError("");
     api(`/workspaces/clinic${owner ? `?clinicId=${encodeURIComponent(selectedClinic)}` : ""}`, { signal: controller.signal })
-      .then(setWorkspace)
+      .then(data => { if (!controller.signal.aborted) setWorkspace(data); })
       .catch((error) => {
         if (!controller.signal.aborted) setError(error.message);
       });
     return () => controller.abort();
   }, [owner, selectedClinic, session.clinic?.status, attempt]);
-  return (
-    <div className="wrap page">
-      <div className="section-heading">
-        <PageTitle
-          eyebrow={owner ? "OWNER CLINIC ACCESS" : "YOUR CLINIC ACCOUNT"}
-          title={clinic?.name || (owner ? "Clinic workspaces" : "Clinic registration")}
-          text={`Signed in as ${session.user.name}`}
-        />
-        <SignOut />
-      </div>
-      {owner && (
-        <section className="panel">
-          <h2>Choose a clinic</h2>
-          <p>View an existing clinic’s saved information. Selecting a clinic does not change its owner or approval status.</p>
-          {optionsLoading ? <p role="status">Loading clinics…</p> : optionsError ? (
-            <div role="alert">
-              <p>{optionsError}</p>
-              <button className="button secondary" onClick={() => setAttempt(n => n + 1)}>Try again</button>
-            </div>
-          ) : clinics.length === 0 ? <p>No clinics have been registered yet.</p> : (
-            <div className="field">
-              <label htmlFor="owner-clinic">Clinic</label>
-              <select id="owner-clinic" value={selectedClinic} onChange={event => {
-                setWorkspace(null);
-                setError("");
-                setSelectedClinic(event.target.value);
-              }}>
-                <option value="">Select a clinic</option>
-                {clinics.map(item => <option key={item.id} value={item.id}>{item.name} — {item.status.replaceAll("_", " ")}</option>)}
-              </select>
-            </div>
-          )}
-        </section>
-      )}
-      {owner && !selectedClinic ? (
-        <div className="panel empty"><p>Select a clinic above to open its workspace.</p></div>
-      ) : !owner && clinic?.status !== "approved" ? (
-        <section className="panel account-status">
-          <span className="icon-tile">
-            <Clock3 />
-          </span>
-          <h2>
-            {clinic?.status === "rejected"
-              ? "Your registration was not approved."
-              : clinic?.status === "suspended"
-                ? "Your clinic access is suspended."
-                : "Your clinic is awaiting review."}
-          </h2>
-          <p className="muted">
-            {clinic?.status === "pending_review"
-              ? "An administrator needs to approve your clinic before you can open the dashboard or appear in the public directory."
-              : "Dashboard access is unavailable. Review the information below."}
-          </p>
-          {clinic?.reviewNotes && (
-            <div className="notice">
-              <strong>Administrator’s note: </strong>
-              {clinic.reviewNotes}
-            </div>
-          )}
-          <button
-            className="button secondary"
-            onClick={() => refresh().catch(() => {})}
-          >
-            Refresh registration status
-          </button>
-        </section>
-      ) : error ? (
-        <div className="panel empty" role="alert">
-          <h2>We couldn’t open your dashboard.</h2>
-          <p>{error}</p>
-          <button
-            className="button secondary"
-            onClick={() => {
-              setError("");
-              setAttempt((n) => n + 1);
-            }}
-          >
-            Try again
-          </button>
-          <button
-            className="text-link"
-            onClick={() => refresh().catch(() => {})}
-          >
-            Refresh account status
-          </button>
-        </div>
-      ) : !workspace ? (
-        <p role="status">Loading your clinic dashboard…</p>
-      ) : (
-        <>
-          <div className="notice">
-            <CheckCircle2 size={20} />
-            {owner
-              ? `Owner access. Clinic status: ${workspace.clinic.status.replaceAll("_", " ")}.`
-              : "Your clinic is approved and listed in the public directory."}
-          </div>
-          <div className="stats-grid">
-            {[
-              ["Dentists", workspace.counts.dentists],
-              ["Published services", workspace.counts.services],
-              ["Pending appointments", workspace.counts.pendingAppointments],
-            ].map(([name, count]) => (
-              <div className="panel stat" key={name}>
-                <Stethoscope size={22} />
-                <strong>{count}</strong>
-                <span>{name}</span>
-              </div>
-            ))}
-          </div>
-          <section className="panel">
-            <h2>Clinic contact information</h2>
-            <dl className="review-details">
-              <dt>Address</dt>
-              <dd>{workspace.clinic.address}</dd>
-              <dt>Phone</dt>
-              <dd>{workspace.clinic.phone}</dd>
-              <dt>Email</dt>
-              <dd>{workspace.clinic.email}</dd>
-            </dl>
-            {clinic.status === "approved" && <Link className="button secondary" to={`/clinics/${clinic.id}`}>
-              View public clinic profile <ArrowRight size={16} />
-            </Link>}
-          </section>
-          {workspace.clinic.status === "approved" ? <ClinicTools key={workspace.clinic.id} clinicId={workspace.clinic.id} owner={owner} onUpdated={data => {
-            setWorkspace(previous => previous?.clinic.id === data.clinic.id ? {
-              ...previous, clinic: data.clinic, counts: { ...previous.counts,
-                dentists: data.dentists.filter(item => item.isActive).length,
-                services: data.services.filter(item => item.isActive).length,
-                pendingAppointments: data.pendingAppointments ?? previous.counts.pendingAppointments,
-              },
-            } : previous);
-            if (owner) setClinics(previous => previous.map(item => item.id === data.clinic.id ? { ...item, name: data.clinic.name } : item));
-            refreshDirectory();
-          }} /> : <p className="notice">Clinic setup tools become available when this clinic is approved.</p>}
-        </>
-      )}
-    </div>
-  );
+  const picker = owner && <section className="panel clinic-picker">
+    <h2>Choose a clinic</h2>
+    {optionsLoading ? <p role="status">Loading clinics…</p> : optionsError ? <div role="alert"><p>{optionsError}</p><button className="button secondary" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : clinics.length === 0 ? <p>No clinics have been registered yet.</p> : <div className="field"><label htmlFor="owner-clinic">Clinic</label><select id="owner-clinic" value={selectedClinic} onChange={event => { setWorkspace(null); setError(""); setSelectedClinic(event.target.value); }}><option value="">Select a clinic</option>{clinics.map(item => <option key={item.id} value={item.id}>{item.name} — {item.status.replaceAll("_", " ")}</option>)}</select></div>}
+  </section>;
+  function updated(data) {
+    setWorkspace(previous => previous?.clinic.id === data.clinic.id ? { ...previous, clinic: data.clinic, counts: {
+      ...previous.counts, dentists: data.dentists.filter(item => item.isActive).length,
+      services: data.services.filter(item => item.isActive).length,
+      pendingAppointments: data.pendingAppointments ?? previous.counts.pendingAppointments,
+    } } : previous);
+    if (owner) setClinics(previous => previous.map(item => item.id === data.clinic.id ? { ...item, name: data.clinic.name } : item));
+    refreshDirectory();
+  }
+  if (workspace?.clinic.status === "approved" && !error) return <ClinicTools key={workspace.clinic.id} clinicId={workspace.clinic.id} owner={owner} clinic={workspace.clinic} counts={workspace.counts} user={session.user} clinicPicker={picker} signOut={<SignOut />} onUpdated={updated} />;
+  return <div className="wrap page clinic-access-page">
+    <div className="section-heading"><PageTitle eyebrow={owner ? "OWNER CLINIC ACCESS" : "YOUR CLINIC ACCOUNT"} title={clinic?.name || (owner ? "Clinic workspaces" : "Clinic registration")} text={`Signed in as ${session.user.name}`} /><SignOut /></div>
+    {picker}
+    {owner && !selectedClinic ? <div className="panel empty"><p>Select a clinic above to open its workspace.</p></div> : !owner && clinic?.status !== "approved" ? <section className="panel account-status">
+      <span className="icon-tile"><Clock3 /></span><h2>{clinic?.status === "rejected" ? "Your registration was not approved." : clinic?.status === "suspended" ? "Your clinic access is suspended." : "Your clinic is awaiting review."}</h2>
+      <p className="muted">{clinic?.status === "pending_review" ? "An administrator needs to approve your clinic before you can open the dashboard or appear in the public directory." : "Dashboard access is unavailable. Review the information below."}</p>
+      {clinic?.reviewNotes && <div className="notice"><strong>Administrator’s note: </strong>{clinic.reviewNotes}</div>}
+      <button className="button secondary" onClick={() => refresh().catch(() => {})}>Refresh registration status</button>
+    </section> : error ? <div className="panel empty" role="alert"><h2>We couldn’t open your dashboard.</h2><p>{error}</p><button className="button secondary" onClick={() => { setError(""); setAttempt(n => n + 1); }}>Try again</button><button className="text-link" onClick={() => refresh().catch(() => {})}>Refresh account status</button></div> : !workspace ? <p role="status">Loading your clinic dashboard…</p> : <section className="panel">
+      <div className="notice">Owner access. Clinic status: {workspace.clinic.status.replaceAll("_", " ")}.</div>
+      <h2>Clinic contact information</h2><dl className="review-details"><dt>Address</dt><dd>{workspace.clinic.address}</dd><dt>Phone</dt><dd>{workspace.clinic.phone}</dd><dt>Email</dt><dd>{workspace.clinic.email}</dd></dl>
+      <p className="notice">Clinic setup tools become available when this clinic is approved.</p>
+    </section>}
+  </div>;
 }
+
 export function AdminWorkspace() {
   const { retry: refreshDirectory } = useClinics();
   const [status, setStatus] = useState("pending_review");

@@ -65,13 +65,17 @@ The account email is used for sign-in. The public clinic email is contact inform
 | Rejected | The clinic remains unpublished; read the review notes and contact the operator about correction |
 | Suspended | The clinic workspace is unavailable while the suspension remains in place |
 
-In the development preview, the approved-clinic workspace also provides these tools:
+In the development preview, the approved-clinic workspace opens on **Overview**, showing pending requests, published service/dentist counts, and a four-step booking setup checklist. Use the sidebar on a desktop or the **clinic navigation menu** on a phone. Each section has its own page and supports refresh/back navigation.
+
+The workspace provides these tools:
 
 1. **Clinic profile:** save the public name, description, address, phone, and contact email. Account sign-in email remains separate.
-2. **Services & prices:** add/edit treatment categories, descriptions, estimated PHP prices, and durations. Unpublish a service to hide it while retaining its details/history.
-3. **Dentists:** add/edit accurate profiles, publish/hide them, and check the treatments each dentist provides. A profile does not create a staff account.
-4. **Working hours:** select a published dentist, weekday, start time, and end time. Split shifts are supported; overlaps are rejected. Hours recur in Philippine time. Existing appointments retain their saved times after hours change.
-5. **Appointment inbox:** choose a status or refresh requests. Review a pending request, choose accept or decline, and confirm the decision. Declining requires a reason the patient can read. An accepted request still needs payment/final confirmation arranged separately.
+2. **Services & prices:** search or filter the saved service list. Choose **Add a service** or **Edit service** to open a focused form panel for categories, descriptions, estimated PHP prices, durations, and publication. Unpublish a service to hide it while retaining its details/history.
+3. **Dentists:** search/filter the team list, then choose **Add a dentist** or **Edit dentist**. In the panel, edit accurate details, publication, and assigned treatments. A profile does not create a staff account.
+4. **Working hours:** view shifts grouped by weekday or filter them by dentist. Choose **Add working hours**, select a published dentist, weekday, start/end time, then **Save working hours**. Split shifts are supported; overlaps are rejected. Hours recur in Philippine time. Existing appointments retain their saved times after hours change.
+5. **Appointments:** search loaded requests, choose a status, or refresh the inbox. Choose **Review request** to open the patient/visit details, then **Accept request** or **Decline request** and confirm your decision. Declining requires a reason the patient can read. Reviewed records have **View details**. An accepted request still needs payment/final confirmation arranged separately.
+
+Editor and review panels keep the current list in context. **Close panel**, **Cancel editing**, or Escape dismisses an idle panel. A failed save keeps the entered fields so you can correct or retry it.
 
 Keep the inbox current: pending requests reserve the dentist’s time until reviewed and do not expire automatically. Acceptance rechecks current assignments, working hours, publication, and conflicts. Existing decisions cannot be overwritten through the pending-request review action. The current administrator interface approves or rejects pending clinics; it does not provide a complete suspension-management workflow.
 

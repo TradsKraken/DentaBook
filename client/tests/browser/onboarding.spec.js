@@ -284,7 +284,7 @@ test("private clinic and administrator workspaces fit phones through desktop", a
         ),
         `${path} at ${width}`,
       ).toBe(true);
-      for (const button of await page.locator("main button").all()) {
+      for (const button of await page.locator("main button:visible").all()) {
         const box = await button.boundingBox();
         expect(box.height).toBeGreaterThanOrEqual(44);
         expect(box.width).toBeGreaterThanOrEqual(44);

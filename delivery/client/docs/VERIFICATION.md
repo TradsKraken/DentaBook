@@ -27,6 +27,16 @@ The focused booking API suite passed 11 checks; its two native concurrency check
 
 The real-API patient-to-clinic journey passed separately against disposable PostgreSQL, including the automatically filled email and the same registered email shown in the clinic inbox. The development preview is rebuilt for this change; production is unchanged.
 
+## Clinic workspace redesign — 3 November 2026
+
+The clinic interface now uses a desktop sidebar/phone menu, a task-focused overview, searchable and publication-filtered service/dentist lists, focused add/edit panels, weekday-grouped working hours, and an appointment-details/review panel. The overview’s booking checklist reads saved publication, assignment, and usable-hours information.
+
+Twenty-eight applicable browser journeys passed across the regression run and a focused public-layout rerun using the normal timeout. Five environment-specific checks were skipped in that regression run; the full real-API booking workflow and development-preview portal checks run separately. The real PostgreSQL browser journey passed with the redesigned staff controls, including assignments, working hours, acceptance/decline, and patient-visible outcomes. API authorization, persistence, patient email, and booking rules are unchanged.
+
+Screenshots were inspected at 390px first and at desktop width. Layout, readable form controls, and 44px action targets were checked at 390px, 320px, 768px, and 1440px. Checks also cover catalog search/status filters, booking setup guidance, section history/refresh, failed-save input retention, Escape cancellation, and request-details panels. Modal editors constrain wide content and keep the background page inert.
+
+Only isolated test databases contain the verification clinic/patient/request records. The development preview is rebuilt separately; production is unchanged. This snapshot adds two source/helper files to the prior delivery, for 91 exported source/configuration files.
+
 ## Earlier foundation verification — 31 October 2026
 
 | Check | Result |

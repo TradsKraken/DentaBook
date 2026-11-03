@@ -1,5 +1,10 @@
 # Website update history
 
+## 3 November 2026 — Clinic workspace redesign (development preview)
+
+Reorganized clinic management into an overview and dedicated appointment, service, dentist, working-hour, and profile sections. Desktop navigation uses a persistent sidebar; phones use a compact menu. Added searchable/status-filtered lists, focused add/edit panels, weekday-grouped schedules, and a patient-details panel for reviewing requests. The overview now shows real pending/published counts and a booking setup checklist, including missing treatment assignments. Existing account permissions, database-backed records, and booking rules remain in place. This redesign is available in the development preview and supplied source; production is unchanged.
+
+
 ## 3 November 2026 — Account email in booking (development preview)
 
 Booking now fills the signed-in patient’s registered email automatically and displays it read-only. The server saves the account email, so a submitted alternative cannot replace it. Accounts without an email show a clear message to use a registered patient account. Previously saved requests and their retry behavior are preserved. This improvement is available in the development preview and supplied source; production is unchanged.

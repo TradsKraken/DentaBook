@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { clinicSection } from "./helpers/clinic";
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 const clinic={id:"11111111-1111-4111-8111-111111111111",name:"Booking fixture clinic",address:"Test address",phone:"09123456789",email:"clinic@example.test",status:"approved",services:[],dentists:[]};
 const service={id:"22222222-2222-4222-8222-222222222222",name:"Test treatment",price:"1500.00",duration:30};
@@ -72,12 +73,12 @@ test("owner inbox keeps the selected clinic in status-filtered requests and clea
     return respond({error:"Not found"},404);
   });
   await page.goto("/clinic");await page.getByLabel("Clinic",{exact:true}).selectOption(clinic.id);
-  await page.getByRole("button",{name:"Appointment inbox",exact:true}).tap();
+  await clinicSection(page,"Appointment inbox");
   await expect(page.getByText("FIRST-REQUEST",{exact:true})).toBeVisible();
   await page.getByLabel("Appointment status",{exact:true}).selectOption("accepted");
   await expect.poll(()=>reads.at(-1)).toEqual({clinicId:clinic.id,status:"accepted"});
   await page.getByLabel("Clinic",{exact:true}).selectOption(second.id);
-  await page.getByRole("button",{name:"Appointment inbox",exact:true}).tap();
+  await clinicSection(page,"Appointment inbox");
   await expect(page.getByText("SECOND-REQUEST",{exact:true})).toBeVisible();
   await expect(page.getByText("FIRST-REQUEST",{exact:true})).toHaveCount(0);
   expect(reads.at(-1)).toEqual({clinicId:second.id,status:"pending_review"});

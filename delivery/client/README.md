@@ -23,12 +23,13 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 | Patient status tracking | Development preview | Refresh the latest 50 own appointments to read the clinic’s saved decision and note |
 | Payments, final confirmation, appointment changes, reminders, and reviews | Planned | These operations are not implemented in this increment |
 
-Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account.
+Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, services, dentists, working hours, and the public profile editor.
 
 ## Recent updates
 
 | Date | Website change | Status |
 | --- | --- | --- |
+| 3 November 2026 | Clinic workspace redesigned with task navigation, searchable lists, focused edit/review panels, grouped schedules, and booking setup guidance | Development preview; supplied source included |
 | 3 November 2026 | Booking automatically uses the signed-in patient’s registered email | Development preview; supplied source included |
 | 3 November 2026 | Patient requests with real available times, double-booking protection, retry safety, and a clinic accept/decline inbox | Development preview; supplied source included |
 | 3 November 2026 | Clinic profile, service/price, dentist, and weekly working-hour management | Development preview; supplied source included |

@@ -16,6 +16,10 @@
 
 No browser-only appointments, invented clinics, or simulated payments are supplied. Setup changes preserve existing appointments. New treatment lines preserve their name and quoted price.
 
+## Clinic workspace usability
+
+The development preview has dedicated navigation for overview, appointments, services/prices, dentists, working hours, and clinic profile. The desktop sidebar becomes a compact menu on phones. Lists offer search/status filters; add/edit and request review use focused panels. Working hours are grouped by day and filterable by dentist. The overview’s setup checklist uses saved services, published dentists, valid assignments, and working hours that fit an assigned treatment. No invented activity, revenue, trends, patients, or appointments appear.
+
 ## Booking rules
 
 All times use Asia/Manila. Patients can request today through 90 days ahead, with at least 15 minutes of lead time. Slot starts are spaced 15 minutes apart within each saved shift, and the complete treatment duration must fit. Pending, accepted, and confirmed visits block overlaps for the same dentist. Declines release the time. Pending requests have no automatic expiry yet.

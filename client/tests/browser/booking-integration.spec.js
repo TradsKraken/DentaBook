@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { clinicSection } from "./helpers/clinic";
 test.use({ actionTimeout: 15000 });
 const clinicId="11111111-1111-4111-8111-111111111111", serviceId="22222222-2222-4222-8222-222222222222", dentistId="33333333-3333-4333-8333-333333333333";
 const tomorrow = () => new Date(Date.now()+8*3600000+86400000).toISOString().slice(0,10);
@@ -26,17 +27,18 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
   const errors=[]; staff.on("pageerror",error=>errors.push(error.message));patient.on("pageerror",error=>errors.push(error.message));
   try {
     await login(staff,"clinic","staff@example.test");
-    await staff.getByRole("button",{name:"Dentists",exact:true}).tap();
+    await clinicSection(staff,"Dentists");
     await staff.getByRole("button",{name:"Edit Test Dentist",exact:true}).tap();
     await staff.getByLabel("Test treatment",{exact:true}).check();
     await staff.getByRole("button",{name:"Save dentist",exact:true}).tap();
     await expect(staff.getByRole("status").filter({hasText:"Dentist saved"})).toBeVisible();
-    await staff.getByRole("button",{name:"Working hours",exact:true}).tap();
+    await clinicSection(staff,"Working hours");
+    await staff.getByRole("button",{name:"Add working hours",exact:true}).click();
     await staff.getByLabel("Dentist",{exact:true}).selectOption(dentistId);
     await staff.getByLabel("Day of week",{exact:true}).selectOption(String(new Date(tomorrow()+"T00:00:00Z").getUTCDay()));
     await staff.getByLabel("Start time",{exact:true}).fill("09:00");
     await staff.getByLabel("End time",{exact:true}).fill("17:00");
-    await staff.getByRole("button",{name:"Add working hours",exact:true}).tap();
+    await staff.getByRole("button",{name:"Save working hours",exact:true}).click();
     await expect(staff.getByRole("status").filter({hasText:"Working hours saved"})).toBeVisible();
     await login(patient,"patient","patient@example.test");
     async function chooseVisit() {
@@ -62,8 +64,9 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
     const firstCode=await patient.locator("main .eyebrow").textContent();
     await patient.getByRole("link",{name:"View my appointments",exact:true}).tap();
     await expect(patient.getByText("Status: pending review",{exact:true})).toBeVisible();
-    await staff.getByRole("button",{name:"Appointment inbox",exact:true}).tap();
+    await clinicSection(staff,"Appointment inbox");
     await expect(staff.getByRole("heading",{name:"Test Patient",exact:true})).toBeVisible();
+    await staff.getByRole("button",{name:`View ${firstCode}`,exact:true}).click();
     await expect(staff.getByRole("link",{name:"patient@example.test",exact:true})).toBeVisible();
     await staff.getByRole("button",{name:`Accept ${firstCode}`,exact:true}).tap();
     await staff.getByLabel("Note to patient (optional)",{exact:true}).fill("Please contact the clinic for the next steps.");
@@ -84,13 +87,14 @@ test("real clinic setup, patient booking, acceptance, decline, and patient statu
     await expect(patient.getByRole("heading",{name:"Your appointment request is saved."})).toBeVisible();
     const secondCode=await patient.locator("main .eyebrow").textContent();
     await staff.getByRole("button",{name:"Refresh requests",exact:true}).tap();
+    await staff.getByRole("button",{name:`View ${secondCode}`,exact:true}).click();
     await staff.getByRole("button",{name:`Decline ${secondCode}`,exact:true}).tap();
     await staff.getByLabel("Reason for declining",{exact:true}).fill("Please choose a different day.");
     await staff.getByRole("button",{name:"Confirm decline",exact:true}).tap();
     await expect(staff.getByRole("status").filter({hasText:`Request ${secondCode} declined.`})).toBeVisible();
     await staff.getByLabel("Appointment status",{exact:true}).selectOption("all");
-    await expect(staff.getByText("Status: accepted",{exact:true})).toBeVisible();
-    await expect(staff.getByText("Status: declined",{exact:true})).toBeVisible();
+    await expect(staff.locator(".clinic-table .clinic-status").filter({hasText:/^Accepted$/})).toBeVisible();
+    await expect(staff.locator(".clinic-table .clinic-status").filter({hasText:/^Declined$/})).toBeVisible();
     await patient.goto("/patient/appointments");
     await expect(patient.getByText("Status: declined",{exact:true})).toBeVisible();
     await expect(patient.getByText("Please choose a different day.",{exact:false})).toBeVisible();

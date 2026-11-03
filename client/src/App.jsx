@@ -61,7 +61,7 @@ function Site() {
         Skip to content
       </a>
       {adminArea || clinicArea ? (
-        <header className="site-header">
+        <header className={`site-header ${pathname === "/clinic" ? "clinic-workspace-header" : ""}`}>
           <div className="wrap header-inner">
             <Brand />
             <span className="admin-area-label">
@@ -131,7 +131,7 @@ function Site() {
           </div>
         </header>
       )}
-      <main ref={motionRef} id="main" className={adminArea ? "admin-main" : undefined}>
+      <main ref={motionRef} id="main" className={adminArea ? "admin-main" : pathname === "/clinic" ? "clinic-main" : undefined}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/clinics" element={<Directory />} />
