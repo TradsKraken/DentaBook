@@ -33,7 +33,7 @@ function requireSession(pool) {
       if (!token)
         return res.status(401).json({ error: "Please sign in to continue." });
       const result = await pool.query(
-        `SELECT u.id, u.full_name AS name, u.email, u.username, s.role,
+        `SELECT u.id, u.full_name AS name, u.email, u.phone, u.username, s.role,
           u.owner_access AS "ownerAccess"
         FROM sessions s JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP

@@ -2838,3 +2838,34 @@ td small {
 .appointment-changes button { min-height:44px; min-width:44px; white-space:normal; }
 .appointment-changes input, .appointment-changes select, .appointment-changes textarea { font-size:16px; max-width:100%; }
 @media (min-width:768px) { .appointment-changes .form-actions { align-items:center; } }
+/* Private patient intake, clinic staff, and batch working hours: phone defaults. */
+.clinic-settings-form, .patient-profile-editor { max-width: 860px; }
+.clinic-settings-form { padding: 16px; }
+.account-panel form > fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.clinic-settings-form, .appointment-intake, .patient-profile-editor, .hours-choice-group { min-width: 0; }
+.clinic-settings-form fieldset, .patient-profile-editor fieldset, .appointment-intake fieldset, .clinic-editor > fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.clinic-settings-form form, .patient-profile-editor form, .intake-form, .followup-list { display: grid; gap: 16px; }
+.patient-profile-editor { display: grid; gap: 32px; margin: 24px 0; }
+.intake-record { border: 1px solid #dce6f1; border-radius: 12px; padding: 16px; margin: 16px 0; min-width: 0; overflow-wrap: anywhere; background: #f8fbff; }
+.intake-record summary { min-height: 44px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.intake-record dt { font-weight: 600; margin-top: 14px; }
+.intake-record dd { margin: 6px 0 0; white-space: pre-wrap; }
+.saved-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.appointment-intake { margin-top: 18px; }
+.appointment-intake h3, .appointment-intake h4 { margin: 20px 0 12px; }
+.appointment-intake .clinic-check { align-items: flex-start; }
+.appointment-intake .clinic-check input { flex: 0 0 auto; margin-top: 4px; }
+.hours-choice-group { margin: 20px 0 !important; border: 1px solid #dce6f1 !important; padding: 14px !important; border-radius: 12px; }
+.hours-choice-group legend { font-weight: 700; padding: 0 6px; }
+.hours-shortcuts, .hours-days { display: grid; gap: 8px; margin-bottom: 12px; }
+.hours-shortcuts .button { white-space: normal; }
+.hours-shift-editor + .hours-shift-editor { border-top: 1px solid #dce6f1; padding-top: 14px; margin-top: 14px; }
+.clinic-shift { flex-wrap: wrap; }
+.clinic-shift > div { min-width: 0; overflow-wrap: anywhere; }
+.clinic-settings-form input, .clinic-settings-form select, .clinic-settings-form textarea,
+.patient-profile-editor input, .appointment-intake textarea, .appointment-intake select { font-size: 16px; max-width: 100%; }
+.clinic-settings-form .button, .appointment-intake .button, .patient-profile-editor .button { min-height: 44px; min-width: 44px; white-space: normal; }
+@media (min-width: 600px) {
+  .hours-days { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .hours-shortcuts { display: flex; flex-wrap: wrap; }
+}

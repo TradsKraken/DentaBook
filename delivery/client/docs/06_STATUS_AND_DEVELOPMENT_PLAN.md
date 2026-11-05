@@ -34,13 +34,19 @@ Each approved clinic sets its own enabled actions, whole-hour notice periods, an
 
 ## Remaining development
 
+**Development preview, 5 November 2026 (not released to production):** Clinics can configure private intake questions for all treatments or a selected service, with required/optional answers, patient consent, and purpose/retention statements. Patients submit answers and respond to saved clinic information requests from their appointments. Authorized staff see answers and request follow-up in appointment details. Email/SMS delivery remains planned.
+
+Patients can edit name/phone and change passwords using the current password; existing appointment contact details remain as booked, and password changes sign out all devices. Account-email changes await verified email delivery. Clinic owners can share private, single-use staff invitations (48-hour expiry), choose manager or appointment-staff access, change roles, remove access, and view access history. Managers cannot manage staff; appointment staff handle appointments, intake/follow-up, and working hours. Dentist-specific sign-in and MFA remain separately planned.
+
+The preview also makes working hours easier: select multiple dentists/days, use weekday/all-day shortcuts, add split shifts, review the batch, and edit saved shifts. Saving rejects overlaps as a unit and preserves identical shifts on retry; existing appointment times stay unchanged.
+
 | Work | Needed before completion |
 | --- | --- |
 | Further payment automation | Optional gateway, automatic reconciliation, refund actions, and recording on-site cash collection |
 | Reminders and notifications | Delivery channels, consent, retries, and delivery-state handling |
 | Visit completion and feedback | Authorized completion rules and eligible patient review/moderation |
 | Further scheduling controls | Date-specific closures, configurable lead time/horizon, and reservation-expiry policy |
-| Staff access and account lifecycle | Additional staff permissions, password recovery, verification, and agreed MFA scope |
+| Staff access and account lifecycle | Release the preview’s profile/staff tools; password recovery, email verification/changes, dentist-specific access, and agreed MFA scope remain planned |
 | Operations | Agreed backup ownership, off-host recovery, monitoring, and recurring restore checks |
 
 ## Release workflow

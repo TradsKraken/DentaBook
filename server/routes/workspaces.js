@@ -47,6 +47,7 @@ function createWorkspaceRouter(pool,{payments,changes}={}) {
   changeEndpoint('post','/appointments/:id/reschedule',req=>changes.change(req.params.id,req.user.id,'reschedule',req.body || {}));
   changeEndpoint('post','/appointments/:id/changes/:changeId/withdraw',req=>changes.withdraw(req.params.id,req.user.id,req.params.changeId));
   router.use('/patient',requireRole('patient'),changeRouter);
+  router.use('/patient',requireRole('patient'),require('../intake').createPatientIntakeRouter(pool));
   router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool),createPatientPaymentRouter(pool,payments));
   router.use("/clinic/manage", requireRole("clinic_staff"), createClinicToolsRouter(pool,{payments}));
   router.get("/clinic/options", requireRole("clinic_staff"), async (req, res, next) => {

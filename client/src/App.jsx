@@ -15,6 +15,7 @@ import Home from "./pages/Home";
 import { Directory, Clinic, Services, Estimator } from "./pages/Catalog";
 import Booking from "./pages/Booking";
 import PatientPayment from "./pages/PatientPayment";
+import ClinicJoin from './pages/ClinicJoin';
 import About from "./pages/About";
 import { patientAuthSuffix } from "./patientNavigation";
 import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
@@ -165,6 +166,7 @@ function Site() {
           />
           <Route path="/patient/appointments/:id/payment" element={<WorkspaceGate role="patient"><PatientPayment /></WorkspaceGate>} />
           <Route path="/clinic/sign-in" element={<SignIn portal="clinic" />} />
+          <Route path="/clinic/join" element={<ClinicJoin />} />
           <Route path="/admin/sign-in" element={<SignIn portal="admin" />} />
           <Route
             path="/clinic"

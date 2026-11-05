@@ -35,12 +35,12 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     await expect(staff.getByRole("status").filter({hasText:"Dentist saved"})).toBeVisible();
     await clinicSection(staff,"Working hours");
     await staff.getByRole("button",{name:"Add working hours",exact:true}).click();
-    await staff.getByLabel("Dentist",{exact:true}).selectOption(dentistId);
-    await staff.getByLabel("Day of week",{exact:true}).selectOption(String(new Date(tomorrow()+"T00:00:00Z").getUTCDay()));
+    await staff.getByRole('dialog').getByLabel('Test Dentist',{exact:true}).check();
+    await staff.getByRole('dialog').getByLabel(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(tomorrow()+'T00:00:00Z').getUTCDay()],{exact:true}).check();
     await staff.getByLabel("Start time",{exact:true}).fill("09:00");
     await staff.getByLabel("End time",{exact:true}).fill("17:00");
     await staff.getByRole("button",{name:"Save working hours",exact:true}).click();
-    await expect(staff.getByRole("status").filter({hasText:"Working hours saved"})).toBeVisible();
+    await expect(staff.getByRole("status").filter({hasText:"1 working shift added"})).toBeVisible();
     await login(patient,"patient","patient@example.test");
     async function chooseVisit() {
       await patient.goto(`/patient/book?clinic=${clinicId}`);

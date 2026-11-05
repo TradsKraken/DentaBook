@@ -1,6 +1,6 @@
 # Incremental implementation status
 
-Updated 3 November 2026. The [ordered completion checklist](05_DELIVERY_ROADMAP.md) tracks the remaining work.
+Updated 5 November 2026. The [ordered completion checklist](05_DELIVERY_ROADMAP.md) tracks the remaining work.
 
 ## Live foundation
 
@@ -24,7 +24,19 @@ Rescheduling retains the original booking until clinic approval atomically reche
 
 ## Remaining work
 
-Notifications/reminders, password recovery and verification, date-specific closures and scheduling buffers, reservation expiry, visit completion, feedback, cash collection/refunds, structured intake/follow-up, profile editing/additional staff permissions, full history pagination, and expanded monitoring/off-host recovery remain future increments. A payment gateway is optional later work.
+Notifications/reminders, password recovery and verification (including verified account-email changes), date-specific closures and scheduling buffers, reservation expiry, visit completion, feedback, cash collection/refunds, dentist-specific sign-in/MFA, full history pagination, and expanded monitoring/off-host recovery remain future increments. A payment gateway is optional later work.
+
+## Intake, staff access, and easier working hours — development preview only
+
+Clinics configure their own required/optional questions, either for all visits or a selected treatment, and explain purpose/retention before enabling intake. Patients submit consented answers from their own appointment; saved submissions retain original question text and policy statements. Authorized clinic staff request information, and patients reply through a saved private thread. Appointment and payment states remain separate. Follow-up appears in the signed-in portals; email/SMS delivery is not implemented.
+
+Patients edit name/phone and change passwords with current-password verification. Existing booking contact details stay intact; password changes revoke all sessions. Account-email editing remains unavailable until verification/delivery exists.
+
+Clinic owners create private, 48-hour, single-use staff invitations, change manager/appointment-staff roles, and revoke access. Managers handle setup, appointments, intake, hours, and payments. Appointment staff handle appointments, intake/follow-up, and hours. Only owners administer staff. Membership, approval, and permissions are enforced by the API; audit records retain access changes. Patient/admin identities cannot be converted through an invitation.
+
+Working hours now support multiple dentists/days, weekday/all-day shortcuts, split shifts, a save preview, and individual shift editing. Overlaps reject the entire batch; identical saved shifts are retained on retry. Existing appointments keep their saved times. The HTTP preview also uses compatible payment request IDs.
+
+See [the feature guide and access rules](17_INTAKE_STAFF_AND_HOURS.md). These changes have not been released to production.
 
 ## Verification boundaries
 

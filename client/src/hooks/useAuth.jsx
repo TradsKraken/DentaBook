@@ -14,8 +14,8 @@ export function AuthProvider({ children }) {
     session: null,
     error: "",
   });
-  const refresh = useCallback(async () => {
-    setState((previous) => ({ ...previous, loading: true, error: "" }));
+  const refresh = useCallback(async ({quiet=false}={}) => {
+    if (!quiet) setState((previous) => ({ ...previous, loading: true, error: "" }));
     try {
       const session = await api("/auth/me");
       setState({ loading: false, session, error: "" });

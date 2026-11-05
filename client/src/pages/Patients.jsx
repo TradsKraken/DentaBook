@@ -1,4 +1,6 @@
 import AppointmentChanges from "../components/AppointmentChanges";
+import AppointmentIntake from '../components/AppointmentIntake';
+import PatientProfile from '../components/PatientProfile';
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react";
@@ -179,6 +181,7 @@ export function PatientAccount() {
           <dt>Email</dt>
           <dd>{session.user.email || "No email address set"}</dd>
         </dl>
+        <PatientProfile />
         <div className="form-actions">
           <Link className="button secondary" to="/patient/appointments">
             My appointments <CalendarDays size={17} />
@@ -280,6 +283,7 @@ export function PatientAppointments() {
               {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Choose GCash or Pay at clinic from the payment details, where enabled by the clinic.</p>}
               <div className="appointment-card-actions"><Link className="button secondary" to={`/patient/appointments/${appointment.id}/payment`}>Deposit &amp; payment details</Link>
               <AppointmentChanges id={appointment.id} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} onChanged={updated=>setState(previous=>({...previous,appointments:previous.appointments.map(item=>item.id===updated.id ? {...item,...updated} : item)}))} /></div>
+              <AppointmentIntake id={appointment.id} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} />
               <p>
                 Estimated cost:{" "}
                 {new Intl.NumberFormat("en-PH", {

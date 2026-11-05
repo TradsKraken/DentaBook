@@ -22,7 +22,9 @@ const clinicColumns = `c.id, c.name, c.description, c.address, c.phone, c.email,
   c.appointment_change_terms AS terms,c.change_policy_version AS version`;
 async function ownedClinic(pool, userId) {
   const result = await pool.query(
-    `SELECT ${clinicColumns} FROM clinics c WHERE c.owner_user_id = $1 ORDER BY c.created_at, c.id LIMIT 1`,
+    `SELECT ${clinicColumns}, CASE WHEN c.owner_user_id=$1 THEN 'owner' ELSE m.access_role END AS "staffRole"
+     FROM clinics c LEFT JOIN clinic_memberships m ON m.clinic_id=c.id AND m.user_id=$1 AND m.revoked_at IS NULL
+     WHERE c.owner_user_id=$1 OR m.user_id=$1 ORDER BY c.created_at, c.id LIMIT 1`,
     [userId],
   );
   return result.rows[0] || null;
@@ -32,6 +34,30 @@ function createAccountRouter(pool) {
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
     next();
+  });
+  require('../staff').registerInvitationRoutes(router,pool);
+  router.put('/patient/profile',requireSession(pool),async(req,res,next)=>{
+    if (req.user.role!=='patient') return res.status(403).json({error:'Use a patient account to edit your profile.'});
+    const {name,phone}=req.body || {};
+    if (typeof name!=='string' || !name.trim() || name.trim().length>150 || typeof phone!=='string' || !/^[+0-9() .-]{7,30}$/.test(phone.trim()) || phone.replace(/\D/g,'').length<7)
+      return res.status(400).json({error:'Enter your name and a valid phone number.'});
+    try {
+      await pool.query('UPDATE users SET full_name=$1,phone=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$3',[name.trim(),phone.trim(),req.user.id]);
+      res.json({saved:true});
+    } catch(error) { next(error); }
+  });
+  router.put('/patient/password',requireSession(pool),rateLimit({limit:10,windowMs:15*60*1000}),async(req,res,next)=>{
+    if (req.user.role!=='patient' || req.user.ownerAccess) return res.status(403).json({error:'Use your ordinary patient account to change its password.'});
+    const b=req.body || {};
+    if (typeof b.currentPassword!=='string' || Buffer.byteLength(b.currentPassword)>72 || typeof b.password!=='string' || b.password.length<12 || Buffer.byteLength(b.password)>72 || b.password===b.currentPassword)
+      return res.status(400).json({error:'Enter your current password and a different new password of at least 12 characters, up to 72 UTF-8 bytes.'});
+    try {
+      const user=(await pool.query('SELECT password_hash FROM users WHERE id=$1',[req.user.id])).rows[0];
+      if (!user || !await bcrypt.compare(b.currentPassword,user.password_hash)) return res.status(403).json({error:'The current password is incorrect.'});
+      const result=await pool.query('UPDATE users SET password_hash=$1,updated_at=CURRENT_TIMESTAMP WHERE id=$2 AND password_hash=$3 RETURNING id',[await bcrypt.hash(b.password,12),req.user.id,user.password_hash]);
+      if (!result.rows.length) return res.status(409).json({error:'Your password changed. Sign in again.'});
+      res.clearCookie(cookieName(),cookieOptions()); res.json({saved:true,signedOut:true});
+    } catch(error) { next(error); }
   });
   router.post(
     "/register-clinic",

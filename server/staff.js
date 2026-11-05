@@ -5,12 +5,18 @@ const {hashToken,rateLimit}=require('./auth');
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const validRole=role=>['manager','appointments'].includes(role);
 const validToken=value=>typeof value==='string' && /^[a-f0-9]{64}$/.test(value);
+async function audit(db,clinicId,actor,subject,invitation,action,role=null) {
+  await db.query('INSERT INTO clinic_staff_events (clinic_id,actor_id,subject_id,invitation_id,action,access_role) VALUES ($1,$2,$3,$4,$5,$6)',[clinicId,actor,subject,invitation,action,role]);
+}
 function registerStaffEndpoints(endpoint) {
   endpoint('get','/staff',async(db,clinic)=>({
     members:(await db.query(`SELECT m.user_id AS id,u.full_name AS name,u.email,m.access_role AS role,m.joined_at AS "joinedAt",m.revoked_at AS "revokedAt"
       FROM clinic_memberships m JOIN users u ON u.id=m.user_id WHERE m.clinic_id=$1 ORDER BY m.joined_at,m.user_id`,[clinic.id])).rows,
     invitations:(await db.query(`SELECT id,email,access_role AS role,expires_at AS "expiresAt",accepted_at AS "acceptedAt",revoked_at AS "revokedAt"
-      FROM clinic_staff_invitations WHERE clinic_id=$1 ORDER BY created_at DESC,id`,[clinic.id])).rows
+      FROM clinic_staff_invitations WHERE clinic_id=$1 ORDER BY created_at DESC,id`,[clinic.id])).rows,
+    history:(await db.query(`SELECT e.id,e.action,e.access_role AS role,e.created_at AS "createdAt",a.full_name AS actor,s.full_name AS subject,i.email
+      FROM clinic_staff_events e LEFT JOIN users a ON a.id=e.actor_id LEFT JOIN users s ON s.id=e.subject_id
+      LEFT JOIN clinic_staff_invitations i ON i.id=e.invitation_id WHERE e.clinic_id=$1 ORDER BY e.created_at DESC,e.id DESC`,[clinic.id])).rows
   }));
   endpoint('post','/staff/invitations',async(db,clinic,req)=>{
     const b=req.body || {};
@@ -26,22 +32,26 @@ function registerStaffEndpoints(endpoint) {
     const token=crypto.randomBytes(32).toString('hex');
     const invitation=(await db.query(`INSERT INTO clinic_staff_invitations (clinic_id,email,access_role,token_hash,invited_by,expires_at)
       VALUES ($1,$2,$3,$4,$5,CURRENT_TIMESTAMP + INTERVAL '48 hours') RETURNING id,expires_at AS "expiresAt"`,[clinic.id,address,b.role,hashToken(token),req.user.id])).rows[0];
+    await audit(db,clinic.id,req.user.id,null,invitation.id,'invited',b.role);
     return {invitation,token};
   });
   endpoint('delete','/staff/invitations/:id',async(db,clinic,req)=>{
     const result=await db.query('UPDATE clinic_staff_invitations SET revoked_at=CURRENT_TIMESTAMP WHERE id=$1 AND clinic_id=$2 AND accepted_at IS NULL AND revoked_at IS NULL RETURNING id',[req.params.id,clinic.id]);
     if (!result.rows.length) throw fail('This invitation is no longer active.',409);
+    await audit(db,clinic.id,req.user.id,null,req.params.id,'invitation_revoked');
     return {revoked:true};
   });
   endpoint('put','/staff/members/:id',async(db,clinic,req)=>{
     if (!validRole(req.body?.role)) throw fail('Choose manager or appointment staff.');
     const result=await db.query('UPDATE clinic_memberships SET access_role=$1 WHERE user_id=$2 AND clinic_id=$3 AND revoked_at IS NULL RETURNING user_id',[req.body.role,req.params.id,clinic.id]);
     if (!result.rows.length) throw fail('Active staff member not found.',404);
+    await audit(db,clinic.id,req.user.id,req.params.id,null,'role_changed',req.body.role);
     return {saved:true};
   });
   endpoint('delete','/staff/members/:id',async(db,clinic,req)=>{
     const result=await db.query('UPDATE clinic_memberships SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=$1 AND clinic_id=$2 AND revoked_at IS NULL RETURNING user_id',[req.params.id,clinic.id]);
     if (!result.rows.length) throw fail('Active staff member not found.',404);
+    await audit(db,clinic.id,req.user.id,req.params.id,null,'access_revoked');
     // Clear sessions too; membership checks independently protect every action.
     await db.query("DELETE FROM sessions WHERE user_id=$1 AND role='clinic_staff'",[req.params.id]);
     return {revoked:true};
@@ -83,6 +93,7 @@ function registerInvitationRoutes(router,pool) {
       await db.query(`INSERT INTO clinic_memberships (user_id,clinic_id,access_role,invited_by) VALUES ($1,$2,$3,$4)
         ON CONFLICT (user_id) DO UPDATE SET clinic_id=EXCLUDED.clinic_id,access_role=EXCLUDED.access_role,invited_by=EXCLUDED.invited_by,joined_at=CURRENT_TIMESTAMP,revoked_at=NULL`,[user.id,clinic.id,invitation.access_role,invitation.invited_by]);
       await db.query('UPDATE clinic_staff_invitations SET accepted_at=CURRENT_TIMESTAMP WHERE id=$1',[invitation.id]);
+      await audit(db,clinic.id,user.id,user.id,invitation.id,'joined',invitation.access_role);
       await db.query("DELETE FROM sessions WHERE user_id=$1 AND role='clinic_staff'",[user.id]);
       await db.query('COMMIT'); res.json({accepted:true});
     } catch(error) {

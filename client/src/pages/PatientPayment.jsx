@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
+import {requestId} from '../requestId';
 import PaymentReceipt, { paymentMoney } from "../components/PaymentReceipt";
 export default function PatientPayment() {
   const { id } = useParams(), base = `/workspaces/patient/appointments/${id}`;
@@ -20,7 +21,7 @@ export default function PatientPayment() {
     finally { setBusy(false); }
   }
   function choose(channel) {
-    requestKeys.current[channel] ||= crypto.randomUUID();
+    requestKeys.current[channel] ||= requestId();
     return act("payment-choice", { channel, requestKey: requestKeys.current[channel], quoteHash: state.quote?.hash, acceptTerms: agreed });
   }
   return <div className="wrap page patient-payment"><Link className="payment-back" to="/patient/appointments">← My appointments</Link><h1>Payment options</h1>

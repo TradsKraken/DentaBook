@@ -4,7 +4,7 @@ const { email, text } = require("../validation");
 const { paymentReceipt } = require("./payments");
 const { scaledInteger, decimal } = require("../payment-money");
 const { validId, offering } = require("../booking");
-const { clinicColumns } = require("./accounts");
+const {clinicAccess,permit}=require('../clinic-access');
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const categories = ["Preventive", "Restorative", "Cosmetic", "Surgical", "Orthodontic", "General"];
 const optionalText = (value, max) => typeof value === "string" && value.trim().length <= max;
@@ -23,11 +23,8 @@ function createClinicToolsRouter(pool,{payments}={}) {
       try {
         client = writing ? await pool.connect() : pool;
         if (writing) await client.query("BEGIN");
-        if (req.user.ownerAccess ? !uuid.test(req.query.clinicId || "") : req.query.clinicId !== undefined)
-          throw fail(req.user.ownerAccess ? "Select a clinic to manage." : "Clinic staff can only access their own clinic.", req.user.ownerAccess ? 400 : 403);
-        const result = await client.query(`SELECT ${clinicColumns} FROM clinics c WHERE ${req.user.ownerAccess ? "c.id" : "c.owner_user_id"} = $1 ORDER BY c.created_at, c.id LIMIT 1${writing ? " FOR UPDATE OF c" : ""}`, [req.user.ownerAccess ? req.query.clinicId : req.user.id]);
-        const clinic = result.rows[0];
-        if (!clinic || clinic.status !== "approved") throw fail("Clinic approval is required to use clinic tools.", 403);
+        const clinic=await clinicAccess(client,req,writing);
+        permit(clinic,path);
         if (req.params.id && !uuid.test(req.params.id)) throw fail("Record not found.", 404);
         const data = await action(client, clinic, req);
         if (writing) await client.query("COMMIT");
@@ -40,6 +37,8 @@ function createClinicToolsRouter(pool,{payments}={}) {
       } finally { if (writing) client?.release(); }
     });
   }
+  require('../staff').registerStaffEndpoints(endpoint);
+  require('../intake').registerIntakeEndpoints(endpoint);
   endpoint("get", "/", async (db, clinic) => {
     const services = await db.query(`SELECT ${serviceColumns} FROM services WHERE clinic_id=$1 ORDER BY name,id`, [clinic.id]);
     const dentists = await db.query(`SELECT ${dentistColumns} FROM dentists WHERE clinic_id=$1 ORDER BY full_name,id`, [clinic.id]);
@@ -136,6 +135,38 @@ function createClinicToolsRouter(pool,{payments}={}) {
     if (overlap.rows.length) throw fail("This time overlaps an existing schedule for this dentist.", 409);
     const result = await db.query("INSERT INTO dentist_schedules (dentist_id,day_of_week,start_time,end_time) VALUES ($1,$2,$3,$4) RETURNING id", [b.dentistId, b.day, b.start, b.end]);
     return { schedule: result.rows[0] };
+  });
+  endpoint('post','/schedules/bulk',async(db,clinic,{body:b={}})=>{
+    const time=/^(?:[01]\d|2[0-3]):[0-5]\d$/;
+    if (!Array.isArray(b.dentistIds) || !b.dentistIds.length || b.dentistIds.length>50 || !b.dentistIds.every(validId) || new Set(b.dentistIds).size!==b.dentistIds.length ||
+      !Array.isArray(b.days) || !b.days.length || b.days.length>7 || b.days.some(day=>!Number.isInteger(day) || day<0 || day>6) || new Set(b.days).size!==b.days.length ||
+      !Array.isArray(b.shifts) || !b.shifts.length || b.shifts.length>6 || b.shifts.some(shift=>!shift || !time.test(shift.start) || !time.test(shift.end) || shift.start>=shift.end))
+      throw fail('Choose dentists, days, and up to six shifts with an end after the start.');
+    const shifts=[...b.shifts].sort((a,b)=>a.start.localeCompare(b.start));
+    if (shifts.some((shift,i)=>i>0 && shift.start<shifts[i-1].end)) throw fail('The shifts you entered overlap.');
+    let added=0,skipped=0;
+    for (const dentistId of b.dentistIds) {
+      const dentist=(await db.query('SELECT id,full_name FROM dentists WHERE id=$1 AND clinic_id=$2 AND is_active=TRUE',[dentistId,clinic.id])).rows[0];
+      if (!dentist) throw fail('Choose active dentists from your clinic.');
+      for (const day of b.days) for (const shift of shifts) {
+        const existing=(await db.query(`SELECT to_char(start_time,'HH24:MI') AS start,to_char(end_time,'HH24:MI') AS end FROM dentist_schedules
+          WHERE dentist_id=$1 AND day_of_week=$2 AND is_available=TRUE AND start_time<$4::time AND end_time>$3::time`,[dentistId,day,shift.start,shift.end])).rows;
+        if (existing.some(row=>row.start===shift.start && row.end===shift.end) && existing.length===1) { skipped++; continue; }
+        if (existing.length) throw fail(`${dentist.full_name} already has overlapping hours on ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][day]}. No hours were added.`,409);
+        await db.query('INSERT INTO dentist_schedules (dentist_id,day_of_week,start_time,end_time) VALUES ($1,$2,$3,$4)',[dentistId,day,shift.start,shift.end]); added++;
+      }
+    }
+    return {added,skipped};
+  });
+  endpoint('put','/schedules/:id',async(db,clinic,req)=>{
+    const b=req.body || {},time=/^(?:[01]\d|2[0-3]):[0-5]\d$/;
+    if (!Number.isInteger(b.day) || b.day<0 || b.day>6 || !time.test(b.start) || !time.test(b.end) || b.start>=b.end) throw fail('Choose a day and an end time after the start.');
+    const schedule=(await db.query('SELECT ds.dentist_id FROM dentist_schedules ds JOIN dentists d ON d.id=ds.dentist_id WHERE ds.id=$1 AND d.clinic_id=$2 AND d.is_active=TRUE',[req.params.id,clinic.id])).rows[0];
+    if (!schedule) throw fail('Working hours for an active dentist were not found.',404);
+    const overlap=await db.query('SELECT id FROM dentist_schedules WHERE dentist_id=$1 AND id<>$2 AND day_of_week=$3 AND is_available=TRUE AND start_time<$5::time AND end_time>$4::time',[schedule.dentist_id,req.params.id,b.day,b.start,b.end]);
+    if (overlap.rows.length) throw fail('These hours overlap another shift. Your saved hours have not changed.',409);
+    await db.query('UPDATE dentist_schedules SET day_of_week=$1,start_time=$2,end_time=$3 WHERE id=$4',[b.day,b.start,b.end,req.params.id]);
+    return {saved:true};
   });
   endpoint("delete", "/schedules/:id", async (db, clinic, req) => {
     const result = await db.query("DELETE FROM dentist_schedules ds USING dentists d WHERE ds.id=$1 AND d.id=ds.dentist_id AND d.clinic_id=$2 RETURNING ds.id", [req.params.id, clinic.id]);

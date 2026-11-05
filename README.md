@@ -22,7 +22,9 @@ Clinic setup, dentist-service assignments, duration-based appointment requests, 
 
 Cancellation and clinic-approved rescheduling are now live, released and verified on 3 November 2026. Clinics explicitly set enabled patient actions, notice deadlines, and terms. Cancellation preserves payments and flags refund review. Reschedule requests retain the original reservation until the replacement time is approved atomically, preserving the dentist, treatment, original quote/duration, and payment records. See [appointment changes](docs/16_APPOINTMENT_CHANGES.md).
 
-Notifications, completion, feedback, password recovery, date-specific closures, automated refunds, cash-collection recording, and expanded staff/account tools remain future increments.
+The development preview adds clinic-configured private intake, saved clinic follow-up/patient replies, patient name/phone/password editing, owner-managed manager/appointment-staff invitations, and easier multi-dentist/multi-day working hours with split shifts and editing. See [intake, staff access, and working hours](docs/17_INTAKE_STAFF_AND_HOURS.md). These changes are not yet released to production. Account-email editing awaits verified delivery; follow-up currently appears in the signed-in portals.
+
+Notifications, completion, feedback, password recovery, verified email changes, date-specific closures, automated refunds, cash-collection recording, dentist-specific access/MFA, and complete history pagination remain future increments.
 
 ## Development on this server
 

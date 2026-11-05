@@ -20,6 +20,17 @@ CREATE TABLE clinic_staff_invitations (
   revoked_at TIMESTAMPTZ
 );
 CREATE INDEX clinic_staff_invitations_clinic ON clinic_staff_invitations(clinic_id);
+CREATE TABLE clinic_staff_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  clinic_id UUID NOT NULL REFERENCES clinics(id) ON DELETE CASCADE,
+  actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  subject_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  invitation_id UUID REFERENCES clinic_staff_invitations(id) ON DELETE SET NULL,
+  action VARCHAR(30) NOT NULL CHECK (action IN ('invited','invitation_revoked','joined','role_changed','access_revoked')),
+  access_role VARCHAR(20),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX clinic_staff_events_clinic ON clinic_staff_events(clinic_id,created_at);
 CREATE TABLE clinic_intake_settings (
   clinic_id UUID PRIMARY KEY REFERENCES clinics(id) ON DELETE CASCADE,
   enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -39,6 +50,7 @@ CREATE TABLE appointment_intake_submissions (
   purpose TEXT NOT NULL,
   retention TEXT NOT NULL,
   answers JSONB NOT NULL,
+  consent BOOLEAN NOT NULL DEFAULT TRUE CHECK (consent),
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(appointment_id,request_key)
 );

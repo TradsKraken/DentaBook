@@ -17,10 +17,16 @@ async function fixture(page) {
       const appointment=state.appointments.find(item=>path.includes(item.id));
       return respond({appointment,policy:{cancelEnabled:false,rescheduleEnabled:false,terms:null},policyHash:"fixture-policy",changes:[],canCancel:false,canReschedule:false,canStaffCancel:true,unavailableReason:"Patient appointment changes are not enabled."});
     }
+    if (/\/appointments\/[^/]+\/intake$/.test(path) && request.method()==='GET') return respond({template:null,submissions:[],followups:[],canRespond:true});
     if (path.startsWith("/api/workspaces/clinic/manage")) {
       if (state.failSave) return respond({ error: "Unable to save. Please try again." }, 503);
       const body = request.postDataJSON();
       state.writes.push({ method: request.method(), path, body, header: request.headers()["x-dentabook-request"] });
+      if (path.endsWith('/schedules/bulk')) {
+        let added=0;
+        for(const dentistId of body.dentistIds) for(const day of body.days) for(const shift of body.shifts) {state.schedules.push({id:`schedules-${state.schedules.length+1}`,dentistId,day,...shift});added++;}
+        return respond({added,skipped:0},201);
+      }
       if (path.endsWith("/profile")) { state.clinic = { ...state.clinic, ...body }; return respond({ saved: true }); }
       if (path.endsWith("/review")) {
         const record = state.appointments.find(item => path.includes(item.id));
@@ -81,8 +87,8 @@ test("staff maintain their profile, services, dentists, and hours through the cl
   await addDentist(page);
   await clinicSection(page, "Working hours");
   await page.getByRole("button", { name: "Add working hours", exact: true }).click();
-  await page.getByLabel("Dentist", { exact: true }).selectOption("dentists-1");
-  await page.getByLabel("Day of week", { exact: true }).selectOption("1");
+  await page.getByRole('dialog').getByLabel('Test Dentist',{exact:true}).check();
+  await page.getByRole('dialog').getByLabel('Monday',{exact:true}).check();
   await page.getByLabel("Start time", { exact: true }).fill("09:00");
   await page.getByLabel("End time", { exact: true }).fill("12:00");
   await page.getByRole("button", { name: "Save working hours", exact: true }).click();
@@ -101,6 +107,15 @@ test("staff maintain their profile, services, dentists, and hours through the cl
   await expect(page.locator(".clinic-table .clinic-status").filter({ hasText: /^Hidden$/ })).toBeVisible();
   await clinicSection(page, "Working hours");
   await expect(page.getByRole("heading", { name: "Add a published dentist first" })).toBeVisible();
+});
+test('adding hours from a hidden-dentist filter only selects published dentists',async({page})=>{
+  const state=await fixture(page);
+  state.dentists=[{id:'hidden-dentist',name:'Hidden Test Dentist',title:'Test title',isActive:false},{id:'active-dentist',name:'Active Test Dentist',title:'Test title',isActive:true}];
+  await open(page);await clinicSection(page,'Working hours');
+  await page.getByLabel('Filter schedules by dentist',{exact:true}).selectOption('hidden-dentist');
+  await page.getByRole('button',{name:'Add working hours',exact:true}).click();
+  await expect(page.getByRole('dialog').getByLabel('Active Test Dentist',{exact:true})).toBeChecked();
+  await expect(page.getByRole('dialog').getByLabel('Hidden Test Dentist',{exact:true})).toHaveCount(0);
 });
 test("clinic forms retain failed saves and panels support cancellation with Escape", async ({ page }) => {
   const state = await fixture(page); await open(page); await clinicSection(page, "Clinic profile");

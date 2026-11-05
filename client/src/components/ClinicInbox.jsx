@@ -1,5 +1,6 @@
 import AppointmentChanges from "./AppointmentChanges";
 import { useEffect, useState } from "react";
+import AppointmentIntake from './AppointmentIntake';
 import { ArrowRight, CalendarDays, Check, Clock3, Mail, Phone, RefreshCw, Search, UserRound, X } from "lucide-react";
 import { ClinicDrawer, ClinicEmpty, ClinicStatus } from "./ClinicUi";
 const statuses = [["pending_review", "Awaiting review"], ["reschedule_requests", "Reschedule requests"], ["accepted", "Accepted"], ["declined", "Declined"], ["all", "All statuses"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"], ["rescheduled", "Rescheduled"]];
@@ -62,6 +63,7 @@ export default function ClinicInbox({ request, onReviewed }) {
           <div className="clinic-editor-actions"><button type="button" className="button secondary" disabled={busy} onClick={() => { setDecision(null); setError(""); }}>Cancel review</button><button className="button" disabled={busy} aria-busy={busy}>{busy ? "Saving decision…" : decision === "accepted" ? "Confirm acceptance" : "Confirm decline"}</button></div>
         </form>}
       </section>}
+      <AppointmentIntake key={`intake:${selected.id}`} id={selected.id} request={request} staff onBusyChange={setBusy} />
       <AppointmentChanges key={selected.id} id={selected.id} request={request} staff onBusyChange={setBusy} onChanged={() => { setNotice("Appointment change saved."); close(); setAttempt(value=>value+1); }} />
     </ClinicDrawer>}
   </section>;
