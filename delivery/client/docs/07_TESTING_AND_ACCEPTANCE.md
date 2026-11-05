@@ -48,8 +48,8 @@ The deployed-listener checks read real APIs without creating live account record
 | Administrator review | Only an administrator can approve/reject; a rejection requires a reason |
 | Approved clinic access | The clinic owner sees its own saved information and counts |
 | Wrong role | Patient, clinic, and administrator permissions remain distinct |
-| Online booking (preview) | Only signed-in patients can request active assigned treatments; times and quotes are rechecked on the server; requests persist after reload |
-| Clinic inbox (preview) | Only the approved owning clinic can accept/decline pending requests; declines require a reason and patients can see the decision |
+| Online booking (live) | Only signed-in patients can request active assigned treatments; times and quotes are rechecked on the server; requests persist after reload |
+| Clinic inbox (live) | Only the approved owning clinic can accept/decline pending requests; declines require a reason and patients can see the decision |
 | Booking conflicts/retries | Concurrent overlapping requests cannot both reserve a dentist; identical retries return one durable record |
 | Logout | The server session is revoked; private requests fail afterward |
 | Main-host admin URL | Administration routes are blocked on the public hostname |
@@ -66,3 +66,11 @@ Record the release, environment, date, checks run, results, and unresolved issue
 ## Payment acceptance checks
 
 Verify phone-first at 320, 390, 768, and 1440px: clinic payment policy/recipient setup, patient GCash agreement and instructions, reference submission, clinic exact-amount/reference review, private receipt display/printing, and Pay at clinic remaining unpaid after confirmation. Backend tests cover role/clinic/patient boundaries, origin/CSRF rejection, unconfigured channels, stale quotes, frozen recipient/terms, retry protection, reference uniqueness, expired visits, and receipt ownership. The optional isolated PostgreSQL run also checks concurrent choices. Run the real booking integration with the explicitly isolated test harness; do not seed production with test clinics or transfers.
+
+## Intake, profiles, staff, and hours acceptance
+
+Verify required/optional and service-specific questions, purpose/retention statements, explicit consent, immutable saved question snapshots, stale-template rejection, private cross-patient/clinic boundaries, and saved requests/replies. Intake/follow-up must not change appointment/payment state or promise email delivery.
+
+Verify profile edits leave account identity and existing booking contacts intact. A password change requires the current password and revokes every session. Invitations must be private, expire, accept once, reject another identity/portal, and respect active clinic membership. Managers cannot grant staff access; appointment staff cannot administer setup/payments. Role changes/revocation must apply to existing sessions, with access events retained.
+
+Check bulk hours across multiple dentists/days and split shifts; conflicting batches must not partially save, identical hours must not duplicate on retry, hidden/foreign dentists must be rejected, and edited hours must preserve appointment times. Verify 390px first, then 320px, 768px, and 1440px. The isolated real PostgreSQL/browser tests require explicit harness flags and must never target customer data.

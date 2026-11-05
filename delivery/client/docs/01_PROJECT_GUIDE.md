@@ -2,41 +2,31 @@
 
 ## Purpose
 
-DentaBook brings clinic information, treatment information, and account access into one website. A visitor can compare available clinic information and understand published treatment prices before contacting a clinic.
-
-The supplied source includes clinic setup and patient requests with clinic review in the development preview. Direct GCash deposits, staff verification, authenticated receipts, and unpaid Pay at clinic confirmation are also available in the preview. Appointment changes, reminders, completion, and feedback remain future work. The development plan distinguishes the preview from the unchanged production release.
+DentaBook helps people browse approved clinics, explore treatments, estimate published costs, and request appointments. The source in this delivery matches the production features released through 5 November 2026. Clinic review, direct GCash verification, unpaid Pay at clinic confirmation, cancellation/rescheduling, private intake/follow-up, profile/password editing, and scoped staff access are live.
 
 ## Who uses the website
 
-| Person | What the current release allows |
+| Person | Available behavior |
 | --- | --- |
-| Visitor | Browse clinics and treatments, view public profiles, search, and estimate costs without an account |
-| Patient | Register/sign in, view account details, and use preview booking and own appointment status tracking |
-| Clinic representative | Register/check review status and, in the preview, manage approved clinic content, assignments/hours, and requests |
-| Platform administrator | Review clinic submissions and approve or reject pending registrations |
+| Visitor | Browse clinics, public profiles, treatments, and estimates without signing in |
+| Patient | Register/sign in, request and track own appointments, manage eligible changes/payments, submit intake/replies, and edit name/phone/password |
+| Clinic owner | Register/check approval; manage setup, appointments, intake, hours, payments, staff invitations, and access |
+| Clinic manager | Manage clinic setup, appointments, intake, hours, and payments; cannot manage staff access |
+| Appointment staff | Handle appointments, private intake/follow-up, and working hours; cannot administer payments or edit clinic/service/dentist setup |
+| Platform administrator | Review clinic submissions on the separate administration website |
 
-Each account is assigned a role. Registering as a patient cannot create a clinic or administrator account. Clinics appear publicly only after administrator approval. A clinic representative cannot enter the administrator workspace.
+The server validates roles, approval, membership, and record ownership. Public registration cannot grant administrator access. Dentist profiles do not create sign-in accounts. Clinics appear publicly only after approval, and listings use saved records with honest loading/empty/error states.
 
-## What a visitor sees
+## Delivery boundaries
 
-The homepage introduces the service and provides access to clinic discovery, treatment information, the calculator, and patient account pages. Clinic listings come from approved records saved in the database. The site shows a clear empty message when no clinics have been published, and a separate error message if information cannot be loaded.
+The calculator estimates published costs without creating a booking or collecting money. New requests reserve available times and retain quoted treatments/prices. Clinics accept/decline requests before patients choose explicitly enabled payment methods. GCash references require actual clinic verification; Pay at clinic remains unpaid. Cancellation/rescheduling follow clinic-configured rules and preserve payments/receipts.
 
-The calculator uses a selected clinic's saved service prices. It does not make a reservation, accept money, or guarantee a final treatment bill. The clinic confirms the treatment and final cost directly with the patient.
+Clinics supply their own intake questions and purpose/retention statements. Answers remain private to the patient and authorized clinic staff; follow-up appears in the signed-in portals. Retention statements do not trigger automatic record deletion. Owners share staff invitations directly, without automated email delivery.
 
-## Current delivery boundaries
+Notifications/reminders, password recovery, verified email changes, closures/buffers, reservation expiry, completion/feedback, cash collection/refund recording, dentist-specific sign-in/MFA, complete history pagination, and expanded off-host recovery remain planned. See the [status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md).
 
-The development preview and supplied source include editable approved-clinic profiles, service prices/durations, dentist profiles, treatment assignments, and weekly working hours. Only the owning approved clinic can use those tools; published records update discovery and cost estimates. Production remains on its existing release until separately deployed.
+## Interface and handoff
 
-The development preview and supplied source now include real available times, signed-in patient appointment requests, and clinic acceptance/decline. Patients can refresh their account-scoped appointments to see the saved decision. Clinic setup and these booking tools have not been deployed to production. The preview also includes direct-to-clinic GCash deposits and staff verification, plus unpaid Pay at clinic confirmation. Gateways, automatic refunds, appointment changes, reminders, and reviews remain planned.
+The supplied DentaBook branding and blue-and-white theme are retained. Layouts begin on phones, with stacked forms, readable controls, touch targets, and contained scrolling regions. No clinics, ratings, credentials, prices, or appointment records are invented.
 
-## Design approach
-
-The interface uses DentaBook's supplied logo and a blue-and-white theme. Layouts begin with narrow phone screens, with additional arrangements for tablets and desktop computers. Forms stack vertically on phones. Form text is at least 16px, and buttons and navigation actions are designed for touch.
-
-Operational information is presented as loading, empty, error, or unavailable states as appropriate. The application does not invent clinics, ratings, prices, or successful appointment confirmations.
-
-## What this handoff contains
-
-The source code, database initialization and migrations, configuration templates, automated tests, asset notices, and documentation are included. Live data, passwords, account recovery secrets, certificates, and private hosting credentials are transferred separately through the operator's agreed access process.
-
-Use the [user guide](02_USER_GUIDE.md) for step-by-step tasks and the [development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md) to review the remaining scope.
+This handoff contains source, migrations, configuration templates, automated tests, asset notices, and client documentation. Live data, private credentials, backups, and hosting access are excluded. See the [user guide](02_USER_GUIDE.md) for available tasks.

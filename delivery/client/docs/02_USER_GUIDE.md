@@ -1,6 +1,6 @@
 # User guide
 
-**The clinic setup and booking instructions below apply to the development preview and supplied source. Production has not been updated with these increments.**
+**Current through the live release of 5 November 2026.**
 
 For a visual walkthrough, see the [patient, clinic, and administrator workflows](11_DIAGRAMS_AND_WORKFLOWS.md).
 
@@ -31,19 +31,19 @@ Patient registration does not grant clinic or administrator access. Password rec
 
 **My account** shows the signed-in patient's saved information. **My appointments** shows appointments already associated with that account, or an empty message when none exist. Other patients' information is not available through these pages.
 
-Opening a personal page while signed out leads to patient sign-in. After a successful sign-in, the website returns to the requested patient page. To request a visit in the preview:
+Opening a personal page while signed out leads to patient sign-in. After a successful sign-in, the website returns to the requested patient page. To request a visit:
 
 1. Open **Book an appointment** or a clinic’s **Request an appointment** link.
 2. Select a clinic, treatment, assigned dentist, and date.
-3. Choose an available time and check the estimated cost. Your registered email is filled automatically and cannot be changed in booking. Check your phone number and add optional visit notes.
+3. Choose an available time and check the estimated cost. Your account email is filled when available; you may enter a different appointment contact email without changing your account email or appointment ownership. Check your phone number and add optional visit notes.
 4. Submit once and read the saved request code. The initial status is **pending review**.
 5. Open **My appointments** and use **Refresh appointments** to see the clinic’s decision and note.
 
-An account without an email cannot create a new request. Sign out and use a patient account registered with an email address; the development owner login has no email by default.
+Accounts without an email can enter a valid appointment contact email. An appointment contact email never grants access to the account.
 
 All times use Philippine time. Requests cover one treatment, today through 90 days ahead, with 15 minutes of lead time. If a time or quote changes, refresh and choose from the current options. A saved pending request reserves the time while the clinic reviews it. Identical submission retries return the same saved request.
 
-**Accepted** means the clinic accepted the request. Open **Deposit & payment details** to see the clinic’s enabled GCash and Pay at clinic options. GCash requires agreeing to the saved deposit/refund terms, transferring in your own GCash app to the displayed clinic account, then submitting the transaction reference. Never provide your PIN or OTP. Staff check their actual account before verifying payment; an eligible accepted visit is then confirmed and a deposit receipt is available to you. Pay at clinic requires staff confirmation and remains unpaid without a receipt. If no method is enabled, contact the clinic. A declined request shows the clinic’s reason. Patient cancellation and rescheduling controls remain planned.
+**Accepted** means the clinic accepted the request. Open **Deposit & payment details** to see the clinic’s enabled GCash and Pay at clinic options. GCash requires agreeing to the saved deposit/refund terms, transferring in your own GCash app to the displayed clinic account, then submitting the transaction reference. Never provide your PIN or OTP. Staff check their actual account before verifying payment; an eligible accepted visit is then confirmed and a deposit receipt is available to you. Pay at clinic requires staff confirmation and remains unpaid without a receipt. If no method is enabled, contact the clinic. A declined request shows the clinic’s reason. Use **Manage appointment** for cancellation or reschedule requests when enabled by the clinic. The clinic sets notice deadlines and terms; the original reservation remains until a requested replacement is approved. Cancellation preserves payments/receipts and may require refund review; it does not return money automatically.
 
 ## Registering a clinic
 
@@ -65,14 +65,14 @@ The account email is used for sign-in. The public clinic email is contact inform
 | Rejected | The clinic remains unpublished; read the review notes and contact the operator about correction |
 | Suspended | The clinic workspace is unavailable while the suspension remains in place |
 
-In the development preview, the approved-clinic workspace opens on **Overview**, showing pending requests, published service/dentist counts, and a four-step booking setup checklist. Use the sidebar on a desktop or the **clinic navigation menu** on a phone. Each section has its own page and supports refresh/back navigation.
+For owners and managers, the approved-clinic workspace opens on **Overview**, showing pending requests, published service/dentist counts, and a four-step booking setup checklist. Use the sidebar on a desktop or the **clinic navigation menu** on a phone. Each section has its own page and supports refresh/back navigation.
 
 The workspace provides these tools:
 
 1. **Clinic profile:** save the public name, description, address, phone, and contact email. Account sign-in email remains separate.
 2. **Services & prices:** search or filter the saved service list. Choose **Add a service** or **Edit service** to open a focused form panel for categories, descriptions, estimated PHP prices, durations, and publication. Unpublish a service to hide it while retaining its details/history.
 3. **Dentists:** search/filter the team list, then choose **Add a dentist** or **Edit dentist**. In the panel, edit accurate details, publication, and assigned treatments. A profile does not create a staff account.
-4. **Working hours:** view shifts grouped by weekday or filter them by dentist. Choose **Add working hours**, select a published dentist, weekday, start/end time, then **Save working hours**. Split shifts are supported; overlaps are rejected. Hours recur in Philippine time. Existing appointments retain their saved times after hours change.
+4. **Working hours:** view shifts grouped by weekday or filter them by dentist. Choose **Add working hours**, choose one or more published dentists and days (or use **Monday–Friday**/**Every day**), enter shifts, check the preview, then **Save working hours**. Choose **Add split shift** for a lunch break or other gap. Use **Edit hours** on a saved shift to change its day/times. The whole batch is rejected if any shift overlaps; identical saved shifts are kept on retry. Hours recur in Philippine time. Existing appointments retain their saved times after hours change.
 5. **Appointments:** search loaded requests, choose a status, or refresh the inbox. Choose **Review request** to open the patient/visit details, then **Accept request** or **Decline request** and confirm your decision. Declining requires a reason the patient can read. Reviewed records have **View details**. An accepted request proceeds to the clinic’s enabled payment choices. Use **Deposits & payments** to review submitted references or Pay at clinic requests.
 
 Editor and review panels keep the current list in context. **Close panel**, **Cancel editing**, or Escape dismisses an idle panel. A failed save keeps the entered fields so you can correct or retry it.
@@ -86,6 +86,20 @@ Enable only the methods your clinic accepts. For GCash, save your actual account
 In payment records, choose **Review payment choice**. For GCash, open your clinic’s actual GCash transaction history, match the incoming reference and exact amount, then enter both and acknowledge the account check. A patient-submitted reference is only a claim. Verification records the reviewer/time and creates a deposit receipt; future accepted visits are confirmed. Payments verified after a visit becomes unavailable are recorded for follow-up without confirming the visit. Rejecting a choice requires a patient-visible reason. Verified references cannot be reused.
 
 For Pay at clinic, confirm the visit while leaving payment unpaid. No cash payment or receipt is invented. Cash collection recording and automatic refunds are future work. Receipts are payment acknowledgements, not tax invoices.
+
+## Patient profile and private intake
+
+On **My account**, edit your full name/phone and choose **Save profile**. Saved appointments keep their original contact details. To change your password, supply the current password, enter/confirm the new password, and save; all devices are signed out. Account-email changes remain unavailable until verified email delivery is implemented.
+
+On **My appointments**, open **Intake & clinic follow-up**. If the clinic enabled questions for this treatment, read its purpose/retention statements, answer required/optional questions, agree to share, and choose **Save intake answers**. Saved versions retain the original questions. If the clinic requests information, enter **Your response** and choose **Send response**. Check the portal for updates; email/SMS messages are not yet sent. Closed visits retain their saved information but do not accept new answers or requests.
+
+## Clinic intake and staff access
+
+Owners/managers open **Patient intake** to add questions, choose written or yes/no/unsure answers, make an answer required, and apply a question to all treatments or one saved clinic service. Enter the collection purpose and your actual record-retention policy before enabling intake. Saving a policy does not schedule record deletion. In **Appointment inbox → View details**, authorized staff read submissions and use **Request information from patient**; the request and patient's reply retain their authors/times without changing visit or payment status.
+
+Only owners use **Staff access**. Enter a staff email, choose **Manager** or **Appointment staff**, and create an invitation. Copy the private link and share it directly with that person; it is shown once and expires after 48 hours. Replacing an invitation invalidates the earlier link. A new staff member enters their name and chooses a password; an existing clinic-staff account uses its invited email and existing password. Patient/admin identities cannot be converted into staff accounts.
+
+Owners can change roles, revoke unused invitations, remove active access, and review access history. Revocation invalidates clinic sessions immediately. Managers manage setup, intake, appointments, hours, and payments but cannot grant staff access. Appointment staff handle appointments/intake/follow-up and working hours; other setup/payment tools remain restricted. Dentist profiles alone never grant sign-in access. Dentist-specific sign-in and MFA remain planned.
 
 ## Reviewing clinics as an administrator
 

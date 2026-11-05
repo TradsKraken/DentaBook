@@ -26,7 +26,7 @@ Rescheduling retains the original booking until clinic approval atomically reche
 
 Notifications/reminders, password recovery and verification (including verified account-email changes), date-specific closures and scheduling buffers, reservation expiry, visit completion, feedback, cash collection/refunds, dentist-specific sign-in/MFA, full history pagination, and expanded monitoring/off-host recovery remain future increments. A payment gateway is optional later work.
 
-## Intake, staff access, and easier working hours — development preview only
+## Intake, staff access, and easier working hours — released 5 November 2026
 
 Clinics configure their own required/optional questions, either for all visits or a selected treatment, and explain purpose/retention before enabling intake. Patients submit consented answers from their own appointment; saved submissions retain original question text and policy statements. Authorized clinic staff request information, and patients reply through a saved private thread. Appointment and payment states remain separate. Follow-up appears in the signed-in portals; email/SMS delivery is not implemented.
 
@@ -36,7 +36,7 @@ Clinic owners create private, 48-hour, single-use staff invitations, change mana
 
 Working hours now support multiple dentists/days, weekday/all-day shortcuts, split shifts, a save preview, and individual shift editing. Overlaps reject the entire batch; identical saved shifts are retained on retry. Existing appointments keep their saved times. The HTTP preview also uses compatible payment request IDs.
 
-See [the feature guide and access rules](17_INTAKE_STAFF_AND_HOURS.md). These changes have not been released to production.
+See [the feature guide and access rules](17_INTAKE_STAFF_AND_HOURS.md). These changes are live. The release manager saved verified restore point `20261105T003533848314Z-103fc223`, retained the production database, and applied migration 007.
 
 ## Verification boundaries
 

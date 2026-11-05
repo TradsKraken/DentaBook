@@ -23,7 +23,7 @@ State-changing requests use JSON, `Content-Type: application/json`, and `X-Denta
 | GET | `/auth/me` | Valid session; current account and owned clinic information when applicable |
 | POST | `/auth/logout` | Revokes the presented session and clears its cookie |
 | GET | `/workspaces/patient/appointments` | Patient session; latest 50 linked appointments |
-| GET | `/workspaces/clinic` | Approved clinic owner’s saved clinic details and counts |
+| GET | `/workspaces/clinic` | Approved clinic owner/member’s saved clinic details and counts |
 | GET | `/workspaces/clinic/manage` | Clinic session: private setup data, assignments, and pending count |
 | PUT | `/workspaces/clinic/manage/profile` | Edit the approved owning clinic’s public details |
 | POST | `/workspaces/clinic/manage/services` | Add a service with price, duration, and publication flag |
@@ -68,11 +68,11 @@ Successful endpoints return JSON, except logout returns HTTP 204. Sign-in sets a
 | 429 | Temporary request-rate limit; follow `Retry-After` |
 | 503 | Service or database temporarily unavailable |
 
-Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are development-preview features. GCash and Pay at clinic endpoints are described below. Gateway callbacks, cash collection, refund actions, appointment-change, completion, and password-reset APIs are not delivered.
+Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are live. GCash and Pay at clinic endpoints are described below. Gateway callbacks, cash collection, refund actions, completion, and password-reset APIs are not delivered.
 
-## Booking request contract (development preview)
+## Booking request contract (live)
 
-`POST /workspaces/patient/appointments` accepts `clinicId`, `serviceId`, `dentistId`, `date` (YYYY-MM-DD), `time` (HH:MM), `phone`, `notes` (up to 2,000 characters), `requestKey` (UUID), `expectedPrice` (decimal string), and `expectedDuration` (integer minutes). Each request contains one treatment. The patient identity, registered account email, stored price, duration, and initial `pending_review` status are assigned by the server. The request body does not need `email`; a supplied email is ignored. Creating a new request requires a valid email on the account (otherwise 400), including owner accounts. Existing identical retries retain the originally saved email. A changed quote or unavailable time returns 409.
+`POST /workspaces/patient/appointments` accepts `clinicId`, `serviceId`, `dentistId`, `date` (YYYY-MM-DD), `time` (HH:MM), `phone`, `notes` (up to 2,000 characters), `requestKey` (UUID), `expectedPrice` (decimal string), and `expectedDuration` (integer minutes). Each request contains one treatment. The patient identity, stored price/duration, and initial `pending_review` status are assigned by the server. The request accepts a valid appointment contact `email`, prefilled from the account when available. Accounts without email enter the appointment address manually. This never changes the account email or grants account access. Existing identical retries retain the originally saved email. A changed quote or unavailable time returns 409.
 
 Generate a new request key for a new request and reuse it for an identical retry. A saved identical retry returns HTTP 200 with the same appointment; initial creation returns 201. Reusing a key with changed details returns 409. The response includes `appointment` with its code, status, visit date/time, quoted total, clinic/dentist names, and service names.
 
@@ -84,7 +84,7 @@ The clinic review body uses `decision: "accepted"` or `decision: "declined"` and
 
 Owner clinic sessions must supply `clinicId` on every clinic-tool read/write. Ordinary staff cannot use a clinic selector. Administrator portal routes and patient/clinic roles remain separate.
 
-## GCash and Pay at clinic (development preview)
+## GCash and Pay at clinic (live)
 
 All reads require the relevant server-validated role/session; mutations also require the existing origin/CSRF checks. No public callback or browser success flag can mark payments paid.
 
@@ -106,3 +106,27 @@ Clinic owner selectors retain `clinicId` on all clinic payment requests. All pay
 Patient session/ownership is required for `GET /api/workspaces/patient/appointments/:id/changes`, `GET .../:id/reschedule-availability?date=YYYY-MM-DD`, `POST .../:id/cancel`, `POST .../:id/reschedule`, and `POST .../:id/changes/:changeId/withdraw`. Mutations require the existing request header and origin checks. Cancellation/reschedule submissions include `reason`, `requestKey`, and the reviewed `policyHash`; rescheduling also includes `date` and `time`.
 
 Approved owning clinics use `PUT /api/workspaces/clinic/manage/appointment-policy`, `GET .../appointments/:id/changes`, `POST .../appointments/:id/cancel`, and `POST .../appointments/:id/changes/:changeId/review`. Policy fields are `cancelEnabled`, `cancelNoticeHours`, `rescheduleEnabled`, `rescheduleNoticeHours`, and `terms`. Review fields are `decision` (`approved`/`declined`) and required `notes`. Staff cancellation requires `reason` and `requestKey`. Owner access retains the explicit clinic selector. The inbox supports `status=reschedule_requests`. Administrator listeners do not expose these routes.
+
+## Intake, profiles, staff, and easier hours (live 5 November 2026)
+
+| Method | Path under `/api` | Access and behavior |
+| --- | --- | --- |
+| PUT | `/auth/patient/profile` | Patient session; edit `name` and `phone`, preserving account identity and existing booking contacts |
+| PUT | `/auth/patient/password` | Ordinary patient session; verify `currentPassword`, set `password`, revoke all sessions |
+| POST | `/auth/staff-invitation/details` | Private invitation `token`; read valid invitation details without consuming it |
+| POST | `/auth/staff-invitation/accept` | Single-use token, invited `email`, `password`, and new-account `name`; creates/reactivates authorized clinic membership |
+| GET/PUT | `/workspaces/clinic/manage/intake-settings` | Owner/manager; versioned `enabled`, `purpose`, `retention`, and clinic-configured `questions` |
+| GET/PUT | `/workspaces/patient/appointments/:id/intake` | Owning patient; read settings/history or save `version`, UUID `requestKey`, `consent: true`, and `answers` |
+| GET | `/workspaces/clinic/manage/appointments/:id/intake` | Authorized clinic staff; private submissions and follow-up |
+| POST | `/workspaces/clinic/manage/appointments/:id/followups` | Authorized clinic staff; save `question` and UUID `requestKey` |
+| POST | `/workspaces/patient/appointments/:id/followups/:followupId/reply` | Owning patient; save one `response` on an active visit |
+| GET | `/workspaces/clinic/manage/staff` | Owner only; memberships, invitations (without tokens), and access events |
+| POST | `/workspaces/clinic/manage/staff/invitations` | Owner only; invited `email` and `role` (`manager` or `appointments`); returns token once |
+| DELETE | `/workspaces/clinic/manage/staff/invitations/:id` | Owner only; revoke an unused invitation |
+| PUT/DELETE | `/workspaces/clinic/manage/staff/members/:id` | Owner only; change `role` or revoke membership and clinic sessions |
+| POST | `/workspaces/clinic/manage/schedules/bulk` | Authorized staff; `dentistIds`, `days` (0–6), `shifts` (`start`/`end`); atomically add hours, reject overlaps, return `added`/`skipped` |
+| PUT | `/workspaces/clinic/manage/schedules/:id` | Authorized staff; edit `day`, `start`, `end` for an active own-clinic dentist without moving appointments |
+
+Question objects contain UUID `id`, `label`, `type` (`text`/`yes_no`), boolean `required`, and `serviceId` (own-clinic service UUID or null). Up to 30 questions are supported; answers contain `questionId` and `value`. Submission records preserve question/policy snapshots and consent. Clinic settings use optimistic version checks; retries with changed content return conflict.
+
+Membership/approval is rechecked on clinic requests. Managers can use setup/payment tools but cannot administer staff; appointment staff can use appointments/intake/follow-up and working hours only. Platform-owner selectors retain `clinicId`; ordinary members cannot select another clinic. The earlier client-only `/schedules/weekly` endpoint is superseded by bulk assignment and individual editing in the current live release.

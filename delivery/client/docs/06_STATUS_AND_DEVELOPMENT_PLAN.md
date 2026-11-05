@@ -1,6 +1,6 @@
 # Status and development plan
 
-**Snapshot: 3 November 2026.** Clinic setup, booking/request review, editable appointment contact email, direct GCash verification, and Pay at clinic confirmation are now released on production. Cancellation/rescheduling is also released and verified on production. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
+**Snapshot: 5 November 2026.** Clinic setup, booking/request review, editable appointment contact email, direct GCash verification, and Pay at clinic confirmation are now released on production. Cancellation/rescheduling is also released and verified on production. Public discovery, accounts, and administrator clinic review remain the previously delivered foundation.
 
 ## Available website features
 
@@ -20,7 +20,7 @@ No browser-only appointments, invented clinics, or simulated payments are suppli
 
 ## Clinic workspace usability
 
-The development preview has dedicated navigation for overview, appointments, services/prices, dentists, working hours, and clinic profile. The desktop sidebar becomes a compact menu on phones. Lists offer search/status filters; add/edit and request review use focused panels. Working hours are grouped by day and filterable by dentist. The overview’s setup checklist uses saved services, published dentists, valid assignments, and working hours that fit an assigned treatment. No invented activity, revenue, trends, patients, or appointments appear.
+The live clinic workspace has dedicated navigation for overview, appointments, services/prices, dentists, working hours, and clinic profile. The desktop sidebar becomes a compact menu on phones. Lists offer search/status filters; add/edit and request review use focused panels. Working hours are grouped by day and filterable by dentist. The overview’s setup checklist uses saved services, published dentists, valid assignments, and working hours that fit an assigned treatment. No invented activity, revenue, trends, patients, or appointments appear.
 
 ## Booking rules
 
@@ -32,13 +32,15 @@ Acceptance requires a future visit time, active service/dentist assignments, cur
 
 Each approved clinic sets its own enabled actions, whole-hour notice periods, and change terms. Patient actions stay unavailable until configured. Cancellation preserves payments and receipts and flags clinic refund review; it never records a refund. Patients can request or withdraw another time with the same dentist/treatment. The original visit stays reserved until clinic approval rechecks replacement availability atomically. Approval retains the original quote/duration and existing payment records. Conflicts and declines keep the original visit. New bookings preserve configured policy terms; older bookings without a snapshot use current terms until their first change. Visit history records the requester, reviewer, reason, policy, and old/requested time.
 
-## Remaining development
+## Intake, staff accounts, and easier hours — live 5 November 2026
 
-**Development preview, 5 November 2026 (not released to production):** Clinics can configure private intake questions for all treatments or a selected service, with required/optional answers, patient consent, and purpose/retention statements. Patients submit answers and respond to saved clinic information requests from their appointments. Authorized staff see answers and request follow-up in appointment details. Email/SMS delivery remains planned.
+Clinics can configure private intake questions for all treatments or a selected service, with required/optional answers, patient consent, and purpose/retention statements. Patients submit answers and respond to saved clinic information requests from their appointments. Authorized staff see answers and request follow-up in appointment details. Email/SMS delivery remains planned.
 
 Patients can edit name/phone and change passwords using the current password; existing appointment contact details remain as booked, and password changes sign out all devices. Account-email changes await verified email delivery. Clinic owners can share private, single-use staff invitations (48-hour expiry), choose manager or appointment-staff access, change roles, remove access, and view access history. Managers cannot manage staff; appointment staff handle appointments, intake/follow-up, and working hours. Dentist-specific sign-in and MFA remain separately planned.
 
-The preview also makes working hours easier: select multiple dentists/days, use weekday/all-day shortcuts, add split shifts, review the batch, and edit saved shifts. Saving rejects overlaps as a unit and preserves identical shifts on retry; existing appointment times stay unchanged.
+Working hours support multiple dentists/days, weekday/all-day shortcuts, split shifts, batch previews, and editing saved shifts. Saving rejects overlaps as a unit and preserves identical shifts on retry; existing appointment times stay unchanged.
+
+## Remaining development
 
 | Work | Needed before completion |
 | --- | --- |
@@ -46,11 +48,11 @@ The preview also makes working hours easier: select multiple dentists/days, use 
 | Reminders and notifications | Delivery channels, consent, retries, and delivery-state handling |
 | Visit completion and feedback | Authorized completion rules and eligible patient review/moderation |
 | Further scheduling controls | Date-specific closures, configurable lead time/horizon, and reservation-expiry policy |
-| Staff access and account lifecycle | Release the preview’s profile/staff tools; password recovery, email verification/changes, dentist-specific access, and agreed MFA scope remain planned |
+| Staff access and account lifecycle | Password recovery, email verification/changes, dentist-specific access, and agreed MFA scope remain planned |
 | Operations | Agreed backup ownership, off-host recovery, monitoring, and recurring restore checks |
 
 ## Release workflow
 
 Implement and test in development, update the client documentation, and publish a reviewed client snapshot preserving its existing Git history. Client delivery and production deployment are separate. Production updates must use `python3 scripts/releases.py deploy --note "Website feature or fix"` after source testing and commit, retaining the five newest verified restore points. Rollback preserves current customer data.
 
-The [workflow diagrams](11_DIAGRAMS_AND_WORKFLOWS.md) include earlier planning snapshots. The status and rules above are authoritative for this preview increment.
+The [workflow diagrams](11_DIAGRAMS_AND_WORKFLOWS.md) include earlier planning snapshots. The status and rules above are authoritative for this released increment.

@@ -1,6 +1,16 @@
 # Delivery verification
 
-Latest application verification: **3 November 2026**. Clinic setup, booking, editable contact email, GCash verification, and unpaid Pay at clinic are released on production. Cancellation/rescheduling is also released and verified on production. Earlier checks below are historical records.
+Latest application verification: **5 November 2026**. Private intake/follow-up, patient name/phone/password editing, scoped clinic staff access, and easier multi-dentist working hours are now live alongside booking, payments, cancellation, and rescheduling. Earlier checks below describe their historical increment.
+
+## Intake, staff, profiles, and easier hours — 5 November 2026 (live)
+
+- Final backend regression: 88 passed; six native-only checks skipped in the PGlite run. The isolated real-PostgreSQL feature suite passed all nine checks, including competing schedule batches, consent/question snapshots, private patient/clinic boundaries, invitation expiry/reuse, scoped permissions, role changes/revocation, and password-session invalidation.
+- The real PostgreSQL/browser journey passed clinic questions, patient consent/submission, clinic information requests, saved patient replies, profile/password editing, staff invitation acceptance, manager/appointment-staff access, role changes, revocation, and batch/edited working hours. The final focused browser run passed seven checks, including the hidden-dentist filter case and failed-save input retention. All test records were confined to disposable databases.
+- The existing real booking, GCash/private-receipt, unpaid Pay at clinic, cancellation, and reviewed rescheduling regression passed. The HTTP development payment request-key compatibility issue was corrected. Broader browser regression passed 34 applicable checks; four environment-specific checks were skipped. The Nginx-only header/CSP case was run separately against the real preview and passed with the development portal checks.
+- Forms/actions were checked at 390px first, then 320px, 768px, and 1440px for page/dialog containment, 16px control text, and 44px touch targets. Screenshots were inspected; final settings spacing and invitation fieldsets were reviewed.
+- The tested application commit `d87cb9a` was released using the required release manager. The previous live images/configuration and database backup were saved as verified restore point `20261105T003533848314Z-103fc223`. The existing production database container/data were retained, and migration `007_intake_and_staff.sql` was applied. Four restore points are currently retained under the five-version policy.
+- Ten checks passed through the deployed HTTPS origins: four real public/admin portal/security journeys and six clinic interface journeys using test-only intercepted APIs. Both live APIs report connected databases; protected redirects, portal isolation, CSP/security headers, readable controls, touch targets, and phone/tablet/desktop layouts passed. No production clinic, account, appointment, intake, or staff records were created by verification.
+- Email/SMS delivery, verified account-email changes, self-service recovery, dentist-specific sign-in/MFA, off-host disaster recovery, and recurring restore drills remain outside this release. Client guides/HTML/PDF describe the current live behavior and preserve the earlier client source-release history.
 
 ## Cancellation, rescheduling, and baseline release — 3 November 2026
 
@@ -11,6 +21,16 @@ Latest application verification: **3 November 2026**. Clinic setup, booking, edi
 - Release safeguard suite: 20 passed, including exact manifest recovery, refusal to substitute newer images, temporary image pin cleanup, failed builds/backups, retention, and data-preserving rollback.
 - The final optimized frontend build and whitespace checks passed. Clinic defaults keep patient changes and payment methods disabled until explicitly configured. Cancellation never claims a refund; reschedule approval never claims an unpaid visit was paid.
 - The development rebuild passed four additional checks: three appointment-change UI journeys against the built preview with test-only APIs, and the real development owner sign-in/workspace/logout journey at all four widths. No clinic policies or customer records were changed. The new release passed seven checks against the deployed HTTPS website: four real portal/security journeys and three appointment-change interface journeys using test-only APIs. Production migration `006_appointment_changes.sql`, disabled default actions, and absence of test change records were verified. Restore point `20261103T132446813168Z-5ce6c7a9` preserves the previous running booking/payment website, and all three retained restore points passed integrity checks. Off-host recovery and recurring restore drills remain future work.
+
+## Simplified weekly hours — 4 November 2026
+
+- Full backend suite: 70 passed; three existing native-only concurrency checks skipped in the PGlite run.
+- Five clinic interface journeys passed, including the revised editor at 320, 390, 768 and 1440px, readable controls, touch targets and page containment.
+- Weekly saves validate all time periods before replacing schedules in one transaction. Backend checks cover invalid days, overlapping periods, patient/foreign-clinic denial and unchanged saved hours after a rejected request.
+- The production client build passed. Existing booking, task navigation, treatment assignments and payment source were retained from the prior client release.
+- The real PostgreSQL browser journey passed with weekly setup and lunch breaks, patient booking, clinic acceptance/decline and saved patient outcomes. No production records were created.
+- The updated HTML handbook passed layout checks at 320/390/768/1440px and its PDF was refreshed.
+- Production deployment is a separate step and is not claimed by these source verification results.
 
 ## GCash and Pay at clinic — 3 November 2026
 

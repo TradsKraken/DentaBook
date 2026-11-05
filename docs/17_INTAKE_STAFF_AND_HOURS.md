@@ -1,6 +1,6 @@
 # Intake, staff access, and working hours
 
-Development preview, 5 November 2026. These changes are not released to production.
+Released to production on 5 November 2026 using the required version-saving release manager. Restore point `20261105T003533848314Z-103fc223` preserves the previous website and a verified database backup. Existing customer data is retained.
 
 Clinics configure their own intake questions, including any medical/allergy questions. Each question is optional or required and may apply to every visit or one clinic service. Answers retain the question text and are visible only to the owning patient and the approved clinic's authorized staff. Patients explicitly agree to share answers for the appointment. No answers are added to public clinic information, receipts, or emails. Records remain with the appointment for clinic follow-up; there is no automatic deletion or invented retention promise. Clinics must describe their purpose and retention policy before enabling intake. Changing questions does not rewrite submitted answers.
 
@@ -19,3 +19,5 @@ API access remains behind the existing session, portal, origin, and mutation-hea
 Intake answers, consent/version/policy snapshots, follow-up authors/timestamps, memberships, hashed invitations, and access audit events are stored in PostgreSQL migration 007. Invitation tokens are shown once to the owner and kept out of URL query strings and database plaintext. There is no medical data in public listings or appointment-list summaries.
 
 Validation covers the full backend regression suite, isolated real-PostgreSQL feature tests (including competing schedule batches), the real booking/payment/change regression, and a real browser journey through intake, follow-up, profile/password edits, invitation acceptance, role changes, and revocation. Changed forms and actions are checked at 390px first, then 320px, 768px, and 1440px for overflow, 16px controls, and 44px targets. The rebuilt LAN preview also passes real portal/account and Nginx header/CSP checks. Vite serves the isolated functional tests; Nginx-specific checks run against the deployed development listeners.
+
+Production verification passed ten browser checks through both HTTPS origins: four real portal/security journeys and six clinic interface journeys with test-only intercepted data. Both APIs and migration 007 were verified without creating customer records. All four retained restore points passed checksum verification under the five-version policy.

@@ -1,5 +1,15 @@
 # Website update history
 
+## 5 November 2026 — Private intake, staff access, profiles, and easier working hours (live)
+
+Clinics configure required/optional intake questions for all treatments or one service, with a stated purpose/retention policy and explicit patient consent. Authorized staff read private answers, request information, and see the patient's saved response without changing appointment/payment state. Patients edit name/phone and change passwords using the current password; password changes sign out all devices. Owners share private 48-hour single-use invitations for managers and appointment staff, change roles, revoke access immediately, and view access history. Working hours now select multiple dentists/days, support split shifts and batch previews, reject overlaps atomically, retain identical shifts on retry, and allow individual shift edits. This replaces the earlier single-dentist weekly editor in the current release while retaining its historical record below. Existing appointments, quotes, payments, and receipts are preserved.
+
+Released and verified on the live HTTPS portals. Follow-up is available inside signed-in portals; email/SMS delivery, verified account-email changes, dentist-specific sign-in, and MFA remain planned.
+
+## 4 November 2026 — Easier weekly working hours
+
+Staff can apply opening and closing times across selected days, include a lunch break, mark days off, and customize each day. The weekly editor saves atomically and preserves the existing clinic navigation, treatment assignments, booking and payment behavior. Supplied source updated; production deployment remains a separate operator step.
+
 ## 3 November 2026 — Clinic setup, booking, and payments released (live)
 
 Patients can request available appointments with an editable contact email and use clinic-enabled GCash or Pay at clinic after acceptance. Clinics manage profiles, treatments, dentists, assignments, working hours, request decisions, and payment verification in the redesigned workspace. Staff verify actual GCash transfers before issuing private deposit receipts; Pay at clinic stays unpaid. These features are now released and verified on both HTTPS portals. Existing clinics are not enrolled in payment methods automatically.

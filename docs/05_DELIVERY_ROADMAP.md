@@ -110,7 +110,7 @@ Done when staff can reconcile actual money received and returned. A payment gate
 - [x] Add saved clinic information requests and patient replies with authors/timestamps, without changing appointment or payment state.
 - [x] Test required/optional answers, treatment ownership, consent, access boundaries, retry handling, and phone layouts. Follow-up is delivered in the signed-in portals; email/SMS remains dependent on item 4.
 
-Development preview only: patients use **My appointments → Intake & clinic follow-up**; managers configure **Patient intake**, and authorized clinic staff view answers/request information in appointment details. See [intake, staff, and hours](17_INTAKE_STAFF_AND_HOURS.md).
+Released 5 November 2026: patients use **My appointments → Intake & clinic follow-up**; managers configure **Patient intake**, and authorized clinic staff view answers/request information in appointment details. See [intake, staff, and hours](17_INTAKE_STAFF_AND_HOURS.md).
 
 Done when clinics can gather necessary information and follow up through a saved patient workflow.
 
@@ -121,7 +121,7 @@ Done when clinics can gather necessary information and follow up through a saved
 - [x] Keep dentist logins and MFA explicitly outside these roles until their separate access/MFA requirements are agreed. Dentist profiles do not grant sign-in access.
 - [x] Test invitation expiry/reuse/replacement, revoked sessions, role escalation, cross-clinic/portal boundaries, and mobile journeys.
 
-Development preview only: patients use **My account**; clinic owners use **Staff access**. Invitations expire after 48 hours and are shared directly by the owner, with no claim of email delivery. Managers cannot manage staff; appointment staff access appointments/intake/follow-up and working hours.
+Released 5 November 2026: patients use **My account**; clinic owners use **Staff access**. Invitations expire after 48 hours and are shared directly by the owner, with no claim of email delivery. Managers cannot manage staff; appointment staff access appointments/intake/follow-up and working hours.
 
 Done when profile changes and additional staff access work without weakening portal separation or patient ownership.
 

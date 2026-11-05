@@ -10,7 +10,7 @@ Use this list when reviewing a client release. Record the named owners and accep
 - [ ] Confirm that the separate administrator host is accessible over HTTPS.
 - [ ] Review the website on phone, tablet, and desktop.
 - [ ] Complete the agreed account and clinic-review acceptance checks.
-- [ ] Review known limitations, especially preview-versus-production booking status, payments/final confirmation, appointment changes, password recovery, and operational automation.
+- [ ] Review known limitations: email/SMS delivery and recovery, verified account-email changes, cash collection/refunds, completion/feedback, dentist-specific sign-in/MFA, history pagination, and operational recovery. Booking, payment review, appointment changes, private intake/follow-up, profile/password editing, staff access, and batch hours are live.
 
 ## Access and responsibility
 

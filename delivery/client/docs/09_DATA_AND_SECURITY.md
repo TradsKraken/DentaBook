@@ -11,9 +11,12 @@ The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) includes the current session-c
 | Dentists and services | Active public profile information and clinic service prices when records are provisioned |
 | Sessions | Token hash, user, sign-in role, creation time, and expiry |
 | Schema migrations | Database updates already applied |
-| Appointments and appointment services | Development preview: persistent patient requests, reserved times, quoted price/name snapshots, retry keys, and audited clinic decisions; patient reads remain account-scoped |
-| Schedules and assignments | Development preview: own-clinic recurring hours and dentist-service assignments used for real availability |
+| Appointments and appointment services | Live: persistent patient requests, reserved times, quoted price/name snapshots, retry keys, and audited clinic decisions; patient reads remain account-scoped |
+| Schedules and assignments | Live: own-clinic recurring hours and dentist-service assignments used for real availability |
 | Payments | Direct GCash claims and clinic-verified amounts, immutable receipt details, reviewer/time/notes, and unpaid Pay at clinic choices; no PINs, OTPs, card data, or gateway credentials |
+| Private intake | Patient-authorized submissions with consent, question/version/purpose/retention snapshots, authors, and timestamps |
+| Follow-up | Saved clinic information requests and owning-patient replies; appointment/payment status stays separate |
+| Staff access | Clinic memberships, manager/appointment-staff roles, hashed expiring invitation tokens, and access audit events |
 | Reviews | Completed-visit review workflows remain planned |
 
 Database relationships link clinics to their owners, dentists/services to clinics, and appointments to patients and clinics. The API uses the session's account identity for private data rather than trusting a patient or clinic identifier supplied by the browser.
@@ -44,10 +47,18 @@ Operators with host or database access can access stored records. Control access
 
 Actual database passwords belong in a private `.env`, not in source control. Keep backup files private and outside release archives. Preserve included dependency and asset notices. Transfer access through the agreed private process and rotate credentials when access responsibility changes.
 
-## Booking privacy and reservation safety (development preview)
+## Booking privacy and reservation safety (live)
 
-New requests use the signed-in patient identity and registered email rather than a submitted account ID or email. Booking displays the account email read-only. Missing account emails prevent new requests; existing saved requests keep their original email. Contact details and visit notes are visible only to the authorized owning clinic; public clinic responses and other patients’ lists do not include them. Clinic review notes are visible to the owning patient.
+New requests use the signed-in patient identity. The account email prefills the editable appointment contact address when available; accounts without email can enter one. This does not change account identity/email, ownership, or account access. Existing saved requests keep their original contact details. Contact details and visit notes are visible only to the authorized owning clinic; public clinic responses and other patients’ lists do not include them. Clinic review notes are visible to the owning patient.
 
 Booking, setup, and review writes lock the clinic record and use a database transaction. Reservations are checked for the full service duration before inserts. Patient-scoped UUID request keys and a unique index prevent duplicate submissions on retry. New service lines retain their name and quoted price. Review actions record the reviewer and time and reject stale decisions.
 
 The additive appointment migration preserves existing records. No production test accounts, appointments, or clinic records were created during verification. Pending requests do not expire automatically; the inbox must be reviewed until an expiry policy is implemented.
+
+## Intake and staff boundaries
+
+Patients explicitly consent before submitting clinic questions. Only the owning patient and authorized approved-clinic staff can read answers/replies; they are absent from public listings, appointment-list summaries, and payment receipts. Saved submissions retain their original questions/policies when settings change. Clinics state their collection purpose and retention policy; the application does not automatically erase records based on that statement.
+
+Owners manage 48-hour single-use invitations and staff access. Tokens are random, stored only as hashes, shown once, and carried in the invitation URL fragment rather than a query string. Acceptance cannot convert patient/admin accounts or join an already-active account to another clinic. Revocation removes clinic sessions and is independently enforced by membership checks; role changes apply to existing sessions. Access events retain actor/time and relevant role/invitation information. These events are not a claim of a complete platform security audit trail.
+
+Patient name/phone edits do not rewrite booked contacts. Password changes require the current password and revoke all sessions. Verified account-email changes, self-service recovery, email delivery, dentist-specific access, and MFA remain future work.

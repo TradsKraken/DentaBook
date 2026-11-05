@@ -4,7 +4,7 @@
 
 DentaBook helps people find approved dental clinics, explore treatments, and estimate costs using a clinic's published prices. Patients can create accounts, clinic representatives can submit their clinics for review, and platform administrators can approve or reject those submissions.
 
-**Updated 3 November 2026.** Clinic setup, booking requests, editable appointment email, manually verified GCash deposits, and unpaid Pay at clinic confirmation are released on production. Cancellation and clinic-approved rescheduling are also released and verified on production.
+**Updated 5 November 2026.** Clinic setup, booking requests, editable appointment email, manually verified GCash deposits, and unpaid Pay at clinic confirmation are released on production. Cancellation and clinic-approved rescheduling are also live. Private intake/follow-up, patient profile/password editing, manager/appointment-staff access, and easier working-hours assignment were released on 5 November 2026.
 
 [Development status](#development-status) · [Recent updates](#recent-updates) · [Website history](#website-update-history) · [Next planned release](#next-planned-release) · [Website addresses](#website-addresses) · [Documentation](#documentation)
 
@@ -23,16 +23,21 @@ DentaBook helps people find approved dental clinics, explore treatments, and est
 | Patient status tracking | Live | Refresh the latest 50 own appointments to read the clinic’s saved decision and note |
 | GCash and Pay at clinic | Live | Clinic-specific policy/recipient, patient reference claims, audited staff verification, private deposit receipts, and unpaid Pay at clinic confirmation |
 | Cancellation and rescheduling | Live | Clinics configure policy/deadlines; patients cancel or request another time; staff atomically approve replacements while preserving payments |
+| Patient intake and follow-up | Live | Clinics configure questions/purpose/retention; patients consent, submit private answers, and reply to saved clinic information requests |
+| Patient profile editing | Live | Edit name/phone and change passwords with current-password verification; password changes revoke all sessions |
+| Additional clinic staff | Live | Owners share 48-hour single-use invitations, set manager/appointment-staff roles, revoke access, and view access history |
+| Easier working hours | Live | Select multiple dentists/days, add split shifts, preview a batch, and edit existing shifts without moving booked visits |
 | Reminders and reviews | Planned | Notifications, completion, and feedback remain future increments |
 
-Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, deposits/payments, appointment policies, services, dentists, working hours, and the public profile editor.
+Listings, prices, credentials, schedules, and requests use backend records. Empty installations show honest empty states. Publishing a dentist profile does not create a staff sign-in account. The clinic workspace opens on an overview with real pending counts and booking setup guidance. Use the desktop sidebar or phone menu to reach appointments, deposits/payments, appointment policies, services, dentists, working hours, the public profile editor, patient intake, and owner-only staff access. Appointment staff see only appointments and working hours; their appointment details include private intake/follow-up.
 
 ## Recent updates
 
-The live website now supports each clinic’s own direct GCash account, deposit percentage/refund terms, staff transaction verification, private receipts, and unpaid Pay at clinic confirmation. Open **Deposits & payments** in the clinic workspace to enable the desired methods. Existing clinics start with both methods disabled.
+The latest release adds private clinic-configured intake, saved follow-up requests/replies, patient profile/password editing, owner-managed staff access, and batch working-hours assignment. Open **Patient intake**, **Staff access**, or **Working hours** in the clinic workspace. Patients use **My account** and **My appointments → Intake & clinic follow-up**. Clinics must configure questions and their purpose/retention statements before enabling intake.
 
 | Date | Website change | Status |
 | --- | --- | --- |
+| 5 November 2026 | Private intake/follow-up, profile/password editing, manager/appointment-staff access, and easier working-hours assignment | Live; released 5 November 2026 |
 | 3 November 2026 | Direct GCash deposits, staff verification, private receipts, and unpaid Pay at clinic confirmation with each clinic’s own policy | Live; released 3 November 2026 |
 | 3 November 2026 | Clinic workspace redesigned with task navigation, searchable lists, focused edit/review panels, grouped schedules, and booking setup guidance | Live; released 3 November 2026 |
 | 3 November 2026 | Booking prefills an editable contact email; entering another address leaves account email unchanged | Live; released 3 November 2026 |
@@ -50,7 +55,7 @@ Read [website updates](CHANGELOG.md) and the [full website history](docs/12_DEVE
 
 ## Next planned release
 
-The development preview supports clinic-configured direct GCash deposits and Pay at clinic. GCash references require actual account verification by clinic staff; verified deposits confirm eligible accepted visits and issue deposit receipts. Pay at clinic requires staff confirmation and remains unpaid. No gateway, automatic refund, or cash-collection recording is included. Cancellation and rescheduling are live: clinics explicitly enable patient actions and set deadlines/terms; paid receipts and original quotes are preserved. Next, the roadmap covers reminders, visit completion, completed-visit feedback, account recovery, and operational improvements.
+Next increments cover email notifications/reminders, password recovery and verification, verified account-email changes, date-specific closures, completion/feedback, actual cash collection/refund recording, complete history pagination, and operational recovery. Follow-up currently appears in the signed-in portals; owners share staff invitation links directly. Dentist-specific sign-in and MFA remain separately planned.
 
 ## Booking rules and current limitations
 
