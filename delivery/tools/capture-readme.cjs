@@ -1,7 +1,7 @@
 // Documentation-only browser fixtures. Every API request is intercepted; nothing is written to the website.
 const fs=require('node:fs');const path=require('node:path');const {chromium}=require('playwright');
 const output=path.resolve(process.argv[2]);fs.mkdirSync(output,{recursive:true});
-const publicURL='https://dentabook.forgroup.space',adminURL='https://dentabook-admin.forgroup.space';
+const publicURL=process.env.DOCS_PUBLIC_URL || 'https://dentabook.forgroup.space',adminURL=process.env.DOCS_ADMIN_URL || 'https://dentabook-admin.forgroup.space';
 const cid='11111111-1111-4111-8111-111111111111',sid='22222222-2222-4222-8222-222222222222',did='33333333-3333-4333-8333-333333333333',aid='55555555-5555-4555-8555-555555555555',uid='44444444-4444-4444-8444-444444444444';
 const date=new Date(Date.now()+8*3600000+3*86400000).toISOString().slice(0,10);
 const service={id:sid,name:'Example check-up',category:'General',description:'Documentation example only.',price:'1000.00',duration:30,isActive:true};
