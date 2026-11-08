@@ -16,6 +16,7 @@ Patients can send symptoms or questions to their chosen clinic. The first linked
 | --- | --- | --- |
 | Public discovery and estimates | Existing foundation | Browse approved clinics, published services/dentists, and cost estimates without signing in |
 | Patient and clinic accounts | Existing foundation | Register, sign in/out, and use server-protected personal or clinic pages |
+| Password visibility | Live | Show or hide each password field while typing, using keyboard-accessible controls that do not submit the form |
 | Administrator review | Existing foundation | Review pending clinic registrations through the separate administration website |
 | Clinic setup | Live | Edit the clinic profile, services, estimated prices/durations, dentist profiles, and weekly working hours |
 | Dentist-service assignments | Live | Choose which treatments each dentist provides within the clinic |
@@ -44,6 +45,7 @@ The 8 November release adds clinic concerns, notification tabs, dentist access, 
 
 | Date | Website change | Status |
 | --- | --- | --- |
+| 8 November 2026 | Individual Show/Hide password controls for sign-in, registration, invitations and password changes | Live; released 8 November 2026 |
 | 8 November 2026 | Chosen-clinic concerns, notifications, restricted dentist access, booking intake, visit completion and private feedback | Live; released 8 November 2026 |
 | 5 November 2026 | Private intake/follow-up, profile/password editing, manager/appointment-staff access, and easier working-hours assignment | Live; released 5 November 2026 |
 | 3 November 2026 | Direct GCash deposits, staff verification, private receipts, and unpaid Pay at clinic confirmation with each clinic’s own policy | Live; released 3 November 2026 |

@@ -60,6 +60,6 @@ Persistent in-app notifications now cover new clinic concerns, patient/clinic re
 
 Production release on 8 November 2026 used committed application source `618b34d`. Migrations 008–010 are applied; current customer data was retained. Verified pre-release restore point: `20261108T073434221646Z-58962be0`. Five restore points are retained.
 
-## Password visibility controls — development preview
+## Password visibility controls — live 8 November 2026
 
-A shared Show/Hide control now covers patient/clinic/administrator sign-in, patient and clinic registration, clinic invitation acceptance, and each patient password-change field. Inputs start hidden; visibility is local to each mounted field and is not saved. The button is keyboard accessible, has a 44px touch target and announced state, never submits the form, preserves the entered value, and respects disabled fieldsets. Existing validation/autocomplete remain in place. Production release verification is pending.
+A shared Show/Hide control now covers patient/clinic/administrator sign-in, patient and clinic registration, clinic invitation acceptance, and each patient password-change field. Inputs start hidden; visibility is local to each mounted field and is not saved. The button is keyboard accessible, has a 44px touch target and announced state, never submits the form, preserves the entered value, and respects disabled fieldsets. Existing validation/autocomplete remain in place. Released to production through the restore-point manager from committed application source `c11df39`; pre-release restore point `20261108T083952075482Z-07e4eec4`. Current customer data was retained and five restore points remain.

@@ -1,5 +1,10 @@
 # Website updates
 
+## 8 November 2026 — Show or hide passwords while entering them (live)
+
+Password fields now have individual **Show**/**Hide** buttons for patient, clinic and administrator sign-in, patient/clinic registration, clinic staff invitations, and patient password changes. Fields start hidden; toggling keeps the entered value, supports keyboard use and phone touch targets, and does not submit the form. Password visibility is not stored between visits. Existing account passwords, validation and access rules are unchanged.
+
+
 ## 8 November 2026 — Clinic concerns, notifications, dentist access, intake at booking, and completed-visit feedback (live)
 
 Patients can send symptoms or questions to their chosen clinic. The first linked dentist to accommodate an unassigned concern becomes assigned; patients and authorized clinic staff exchange private replies. Patient and clinic Notifications show unread counts, individual read state, and links back to conversations. Clinics can collect required consented intake during booking, complete eligible confirmed visits, and receive private patient feedback afterward. Payment status stays separate from completion.
