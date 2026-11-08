@@ -127,3 +127,9 @@ Website update entries now describe user-visible features, access changes, usabi
 ## Release version tooling checks — 31 October 2026
 
 Fifteen isolated release-management tests passed, including five-version retention, sixth-save oldest deletion, backup/build/deployment failures, integrity checks, locking, unrelated-image protection, and database-preserving rollback behavior. The first production restore point was saved and checked: PostgreSQL archive inspection passed, the Docker image archive loaded successfully, and the restore Compose configuration validated. Production container IDs, image IDs, and start times remained unchanged. A live production deployment or rollback was not performed for this tooling update. The client application source remains unchanged.
+
+## Illustrated README review — 8 November 2026
+
+The repository introduction now leads into patient, clinic and administrator walkthroughs. Seventeen screenshots show the actual deployed interface using clearly labelled documentation-only records. Every API request during capture was intercepted; no customer records were read and no website mutations were submitted. Credential fields remain blank. Example names, prices, addresses and messages are not live listings or quotations.
+
+All 18 README images (17 screenshots plus the supplied logo), local links and role-section anchors were checked. The rendered README preview loaded every image without page overflow at 390px, 320px, 768px and 1440px. Screenshot framing and the phone introduction were visually inspected. Detailed feature/release information remains available in `FEATURE_STATUS.md`. This documentation update does not change the live application or add a website release-history entry.

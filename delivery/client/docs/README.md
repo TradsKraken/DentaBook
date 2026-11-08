@@ -31,3 +31,5 @@ The [website update history](12_DEVELOPMENT_HISTORY.md) explains changes to webs
 Documents describe the delivered snapshot. Update the status, release notes, and affected instructions whenever a later release changes the behavior.
 
 The [production release and rollback guide](13_RELEASE_VERSIONS.md) describes the five-version retention process and recovery limits. These operator procedures are kept separate from the website-feature history.
+
+For a quick illustrated walkthrough for patients, clinics and administrators, open the [repository README](../README.md). Detailed availability and remaining work are in [feature and release status](FEATURE_STATUS.md).
