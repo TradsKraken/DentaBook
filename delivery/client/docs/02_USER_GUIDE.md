@@ -139,4 +139,4 @@ After a confirmed visit’s scheduled end, authorized staff or the assigned dent
 
 ## Showing or hiding a password
 
-Passwords start hidden on sign-in, registration, clinic invitations and patient password changes. Choose **Show** next to a field to reveal the characters, then **Hide** to conceal them. Each password/confirmation field is independent. The toggle can be used with keyboard Tab and Space/Enter and does not submit the form. It does not change the value, validation or account password, and visibility is not stored between visits.
+Passwords start hidden on sign-in, registration, clinic invitations and patient password changes. Tap the eye icon inside the field to reveal the characters, then tap the crossed-eye icon to conceal them. There is no separate text button. Each password/confirmation field is independent. The toggle can be used with keyboard Tab and Space/Enter and does not submit the form. It does not change the value, validation or account password, and visibility is not stored between visits.

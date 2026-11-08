@@ -2890,8 +2890,8 @@ td small {
 @media(min-width:768px) { .notification-link { font-size:14px; } }
 @media(min-width:1151px) { .notification-link { width:auto; } .notification-count { position:static; } .notification-text { display:inline; } }
 
-.password-control { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; min-width:0; }
-.password-control > input { min-width:0; width:100%; min-height:44px; font-size:16px; }
-.password-toggle { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:80px; min-height:44px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#126f9c; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+.password-control { position:relative; min-width:0; }
+.password-control > input { min-width:0; width:100%; min-height:44px; padding-inline-end:56px; font-size:16px; }
+.password-toggle { position:absolute; inset-inline-end:4px; top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; min-width:44px; min-height:44px; padding:0; border:0; border-radius:6px; background:transparent; color:#126f9c; cursor:pointer; }
 .password-toggle:disabled { opacity:.6; cursor:default; }
-.password-toggle:focus-visible { outline:3px solid #126f9c; outline-offset:2px; }
+.password-toggle:focus-visible { outline:2px solid #126f9c; outline-offset:-3px; }

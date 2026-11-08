@@ -37,7 +37,7 @@ You can browse clinics, services, and the cost calculator without an account. Bo
 
 1. Open [Patient registration](https://dentabook.forgroup.space/patient/register).
 2. Enter your name, email, phone number, password, and matching password confirmation. Follow the password requirements shown on the form.
-3. Password fields start hidden. Use **Show** to see a field and **Hide** to mask it again; each field toggles independently. Submit the form, continue to [Patient sign-in](https://dentabook.forgroup.space/patient/sign-in), and sign in with your own account.
+3. Password fields start hidden. Tap the eye icon inside a password field to reveal or hide the entry; each field toggles independently. Submit the form, continue to [Patient sign-in](https://dentabook.forgroup.space/patient/sign-in), and sign in with your own account.
 4. When sign-in was requested while opening a private page, DentaBook returns you to that page.
 
 <img src="docs/screenshots/patient-02-register.png" alt="Step 2: patient registration form; no account credentials are filled in" width="800" />
@@ -100,7 +100,7 @@ You can also open **My account** to edit your name/phone or change your password
 ### 8. Update your profile and password
 
 1. Open **My account** and edit **Full name** or **Phone number**. Choose **Save profile** and check the saved message.
-2. To change your password, enter **Current password**, **New password**, and **Confirm new password**. Each has its own **Show**/**Hide** button. Choose **Save new password and sign out**.
+2. To change your password, enter **Current password**, **New password**, and **Confirm new password**. Each has its own tappable eye icon inside the input. Choose **Save new password and sign out**.
 3. Sign in again with the new password. All existing sessions are revoked; previously booked contact details remain unchanged.
 4. Use **Sign out** when finished, especially on a shared device. Account-email editing, email verification, and self-service password recovery are not enabled; contact the operator for account-access assistance.
 
@@ -152,7 +152,7 @@ For notifications, **Previous notifications** and **Next notifications** reach o
 ### 1. Register the clinic and wait for approval
 
 1. An authorized clinic representative opens [Clinic registration](https://dentabook.forgroup.space/clinic/register).
-2. Enter the account holder's details and the clinic's real name, address, public contacts, and registration/license reference. **Show**/**Hide** works independently beside password and confirmation fields.
+2. Enter the account holder's details and the clinic's real name, address, public contacts, and registration/license reference. The eye icon inside each password or confirmation field works independently.
 3. Submit the application. Sign in at [Clinic sign-in](https://dentabook.forgroup.space/clinic/sign-in) to check its status and review notes.
 4. Wait for administrator approval before accessing clinic management. A submitted application is not automatically approved or published.
 
@@ -333,7 +333,7 @@ The username/email identifies the intended administrator account; it does not gr
 ### 1. Use the separate administrator website
 
 1. Open [Administrator sign-in](https://dentabook-admin.forgroup.space/admin/sign-in).
-2. Use the administrator username/email and password supplied privately by the website operator. Use **Show**/**Hide** beside the password field to check or conceal the entry. There is no public administrator registration or default password in this guide.
+2. Use the administrator username/email and password supplied privately by the website operator. Tap the eye icon inside the password input to check or conceal the entry. There is no public administrator registration or default password in this guide.
 3. Patient and clinic accounts cannot enter the administrator portal.
 
 <img src="docs/screenshots/admin-01-sign-in.png" alt="Administrator step 1: separate administrator sign-in page with blank credential fields" width="800" />

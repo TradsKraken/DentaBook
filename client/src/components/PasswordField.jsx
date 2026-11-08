@@ -16,7 +16,6 @@ export default function PasswordField({label, error, id: suppliedId, ...props}) 
         aria-label={`${visible ? 'Hide' : 'Show'} ${label.toLowerCase()}`}
         aria-controls={id} aria-pressed={visible} onClick={() => setVisible(value => !value)}>
         {visible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
-        <span>{visible ? 'Hide' : 'Show'}</span>
       </button>
     </div>
     {error && <span className="field-error" id={`${id}-error`}>{error}</span>}

@@ -63,3 +63,7 @@ Production release on 8 November 2026 used committed application source `618b34d
 ## Password visibility controls — live 8 November 2026
 
 A shared Show/Hide control now covers patient/clinic/administrator sign-in, patient and clinic registration, clinic invitation acceptance, and each patient password-change field. Inputs start hidden; visibility is local to each mounted field and is not saved. The button is keyboard accessible, has a 44px touch target and announced state, never submits the form, preserves the entered value, and respects disabled fieldsets. Existing validation/autocomplete remain in place. Released to production through the restore-point manager from committed application source `c11df39`; pre-release restore point `20261108T083952075482Z-07e4eec4`. Current customer data was retained and five restore points remain.
+
+## Inset password visibility icon — development preview
+
+The password visibility control is now a borderless eye icon inside the input, with no visible Show/Hide words or separate button box. Input padding keeps entered text clear of the icon. The 44px tap target, accessible action/state labels, keyboard use and independent visibility behavior are retained. Seven focused browser journeys and the production build passed; live release is pending.
