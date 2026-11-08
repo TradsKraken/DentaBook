@@ -13,7 +13,8 @@ const { chromium } = require('playwright');
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('file://' + root + '/CLIENT_GUIDE.html');
     const diagrams = page.locator('.diagram img');
-    assert.equal(await diagrams.count(), 14);
+    assert.equal(await diagrams.count(), 13);
+    assert.equal(new Set(await diagrams.evaluateAll(images => images.map(image => image.getAttribute('src')))).size, 12);
     assert.equal(await diagrams.evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true);
     for (const width of [390, 320, 768, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
@@ -56,7 +57,7 @@ const { chromium } = require('playwright');
       await page.locator('svg').screenshot({ path: path.join(output, name + '.png') });
     }
     assert.deepEqual(errors, []);
-    const report = { diagramSources: 12, embeddedDiagrams: 14, handbookWidths: [390, 320, 768, 1440], phoneScrolling: 'contained', printSizing: 'passed', renderedImageErrors: 0, printScales: scales };
+    const report = { diagramSources: 12, embeddedDiagrams: 13, handbookWidths: [390, 320, 768, 1440], phoneScrolling: 'contained', printSizing: 'passed', renderedImageErrors: 0, printScales: scales };
     fs.writeFileSync(path.join(output, 'diagram-verification.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify({ diagramSources: report.diagramSources, embeddedDiagrams: report.embeddedDiagrams, widths: report.handbookWidths, phoneScrolling: report.phoneScrolling, printSizing: report.printSizing, errors: errors.length, pdf: 'regenerated' }));
   } finally { await browser.close(); }
