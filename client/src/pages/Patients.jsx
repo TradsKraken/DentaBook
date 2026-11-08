@@ -232,7 +232,7 @@ export function PatientAppointments() {
         />
         <div className="clinic-actions">
           <button className="button secondary" disabled={state.loading} onClick={() => setAttempt(value => value + 1)}>Refresh appointments</button>
-          <Link className="button secondary" to="/patient/account">My account</Link>
+          <Link className="button secondary" to="/patient/account">My account</Link><Link className="button secondary" to="/patient/concerns">My clinic concerns</Link><Link className="button secondary" to="/patient/notifications">Notifications</Link>
         </div>
       </div>
       {state.loading ? (

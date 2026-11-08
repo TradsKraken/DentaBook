@@ -2869,3 +2869,22 @@ td small {
   .hours-days { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .hours-shortcuts { display: flex; flex-wrap: wrap; }
 }
+
+.concern-message { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.concern-workspace { min-width: 0; overflow-wrap: anywhere; }
+.concern-workspace > .panel, .concern-workspace > form { margin-top: 1rem; }
+.concern-workspace .form-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+.concern-workspace .booking-fieldset { min-width: 0; }
+
+.notification-link { display:inline-flex; align-items:center; justify-content:center; gap:.3rem; min-width:44px; min-height:44px; width:44px; flex-shrink:0; position:relative; font-size:12px; }
+.notification-count { background:#087fa5; color:white; border-radius:1rem; padding:.1rem .35rem; position:absolute; top:0; right:0; font-size:10px; }
+.notification-text { display:none; }
+.notifications-panel { min-width:0; overflow-wrap:anywhere; }
+.notifications-panel .form-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-block:1rem; }
+.notification-item { margin-block:1rem; }
+.notification-unread { border-left:4px solid #087fa5; }
+.patient-header-actions > .button { display:none; }
+@media(min-width:641px) { .patient-header-actions > .button { display:inline-flex; } }
+@media(min-width:768px) { .notification-link { font-size:14px; } }
+@media(min-width:1151px) { .notification-link { width:auto; } .notification-count { position:static; } .notification-text { display:inline; } }

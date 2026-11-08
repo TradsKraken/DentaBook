@@ -240,6 +240,7 @@ export function Clinic() {
           <p className="muted">
             Use this clinic’s published prices to calculate an estimate.
           </p>
+          <Link className="button secondary" to={`/patient/concerns?clinic=${clinic.id}`}>Ask about a concern</Link>
           <Link
             className="button secondary"
             to={`/calculator?clinic=${clinic.id}`}

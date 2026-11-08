@@ -35,6 +35,10 @@ function createWorkspaceRouter(pool,{payments,changes}={}) {
       }
     },
   );
+  router.use('/patient/notifications',require('../notifications').createNotificationRouter(pool));
+  router.use('/clinic/notifications',require('../notifications').createNotificationRouter(pool,true));
+  router.use('/patient/concerns',require('../concerns').createConcernRouter(pool));
+  router.use('/clinic/concerns',require('../concerns').createConcernRouter(pool,true));
   const changeRouter = express.Router();
   function changeEndpoint(method,path,action) {
     changeRouter[method](path,async(req,res,next)=>{try { res.json(await action(req)); }

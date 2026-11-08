@@ -139,3 +139,9 @@ Include frontend, backend, required configuration, and client documentation. Exc
 ## Current development increment
 
 Visit completion with an audit trail, private patient feedback, intake during booking submission, and owner-invited dentist access restricted to assigned appointments are implemented in development. They have not been released to production. See [behavior and access rules](docs/18_VISIT_INTAKE_DENTIST_ACCESS.md).
+
+## Clinic concerns — development preview
+
+Patients can use **Ask about a concern** on a clinic profile or **My clinic concerns** to send symptoms and questions to their chosen clinic. Linked dentists use **Patient concerns → Accommodate patient**; the first claim assigns the dentist. Private replies, clinic spam controls, reversible restrictions, and server-enforced submission/message limits are available in development. Concerns do not confirm appointments. See [workflow and controls](docs/19_PATIENT_CONCERNS.md). This increment is not released to production.
+
+Concern updates also have patient and clinic **Notifications** tabs, unread indicators, persistent per-user read status, and links back to conversations. This is in-app delivery in the development preview; see [notification scope](docs/20_CONCERN_NOTIFICATIONS.md).

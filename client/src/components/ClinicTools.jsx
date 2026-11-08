@@ -1,3 +1,5 @@
+import Notifications, {useNotificationCount} from './Notifications';
+import Concerns from './Concerns';
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Building2, CalendarDays, CheckCircle2, ChevronDown, CreditCard, ClipboardList, Clock3, ExternalLink, LayoutDashboard, MapPin, Menu, Pencil, Plus, RefreshCw, Search, Stethoscope, Tags, UsersRound } from "lucide-react";
@@ -17,6 +19,8 @@ const initials = name => name.trim().split(/\s+/).slice(0, 2).map(part => part[0
 const sections = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, description: "A clear view of your clinic and what needs attention." },
   { id: "appointments", label: "Appointment inbox", title: "Appointments", icon: CalendarDays, description: "Review patient requests and keep your clinic’s visits organized." },
+  {id:"notifications",label:"Notifications",icon:ClipboardList,description:"New concerns, patient replies, and concern updates."},
+  {id:"concerns",label:"Patient concerns",icon:ClipboardList,description:"Accommodate patients and reply to their check-up concerns."},
   { id: "payments", label: "Deposits & payments", icon: CreditCard, description: "Set deposit terms and review verified payment records." },
   { id: "policies", label: "Appointment policies", icon: ClipboardList, description: "Set patient cancellation and rescheduling rules." },
   { id: "services", label: "Services & prices", icon: Tags, description: "Manage your treatments, estimated prices, and appointment durations." },
@@ -204,8 +208,9 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const [attempt, setAttempt] = useState(0), [version, setVersion] = useState(0);
+  const notificationCount=useNotificationCount({staff:true,clinicId,owner});
   const staffRole=data?.clinic.staffRole || clinic.staffRole || 'owner';
-  const allowedSections=sections.filter(item=>staffRole==='dentist' ? item.id==='appointments' : staffRole==='appointments' ? ['appointments','schedules'].includes(item.id) : item.id!=='staff' || staffRole==='owner');
+  const allowedSections=sections.filter(item=>staffRole==='dentist' ? ['appointments','concerns','notifications'].includes(item.id) : staffRole==='appointments' ? ['appointments','schedules','concerns','notifications'].includes(item.id) : item.id!=='staff' || staffRole==='owner');
   const section=allowedSections.find(item=>item.id===params.get('section')) || allowedSections[0];
   const heading = useRef(null);
   const base = "/workspaces/clinic/manage", query = owner ? `?clinicId=${encodeURIComponent(clinicId)}` : "";
@@ -228,7 +233,7 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
       <div className="clinic-sidebar-identity"><span className="clinic-avatar clinic-avatar-clinic" aria-hidden="true"><Building2 size={23} /></span><div><h2>{current.name}</h2><span className="clinic-sidebar-status"><i />Approved clinic</span></div></div>
       {clinicPicker}
       <button className="clinic-mobile-menu" aria-label={navigationOpen ? "Close clinic navigation" : "Open clinic navigation"} aria-expanded={navigationOpen} aria-controls="clinic-navigation" onClick={() => setNavigationOpen(value => !value)}><Menu size={19} /><span>{section.label}</span><ChevronDown size={17} /></button>
-      <nav id="clinic-navigation" className="clinic-navigation" aria-label="Clinic workspace"><p className="clinic-nav-caption">WORKSPACE</p>{allowedSections.map(({ id, label, icon: Icon }, index) => <div key={id}>{index === 3 && <p className="clinic-nav-caption">CLINIC SETUP</p>}<button className={`clinic-nav-link ${section.id === id ? "is-active" : ""}`} aria-current={section.id === id ? "page" : undefined} aria-label={label} onClick={() => navigate(id)}><Icon size={19} /><span>{id === "appointments" ? "Appointments" : label}</span>{id === "appointments" && pending > 0 && <b aria-hidden="true">{pending}</b>}</button></div>)}</nav>
+      <nav id="clinic-navigation" className="clinic-navigation" aria-label="Clinic workspace"><p className="clinic-nav-caption">WORKSPACE</p>{allowedSections.map(({ id, label, icon: Icon }, index) => <div key={id}>{index === 3 && <p className="clinic-nav-caption">CLINIC SETUP</p>}<button className={`clinic-nav-link ${section.id === id ? "is-active" : ""}`} aria-current={section.id === id ? "page" : undefined} aria-label={label} onClick={() => navigate(id)}><Icon size={19} /><span>{id === "appointments" ? "Appointments" : label}</span>{id === "notifications" && notificationCount>0 && <b aria-label={`${notificationCount} unread`}>{notificationCount>99?'99+':notificationCount}</b>}{id === "appointments" && pending > 0 && <b aria-hidden="true">{pending}</b>}</button></div>)}</nav>
       <div className="clinic-sidebar-footer"><div className="clinic-account"><span className="clinic-avatar" aria-hidden="true">{initials(user.name)}</span><div><strong>{user.name}</strong><small>{owner ? "Owner access" : staffRole==='dentist' ? "Dentist · assigned visits" : "Clinic staff"}</small></div></div>{signOut}</div>
     </aside>
     <div className="clinic-content"><header className="clinic-page-header"><div><p className="clinic-breadcrumb">Clinic workspace <span>/</span> {section.title || section.label}</p><h1 ref={heading} tabIndex={-1}>{section.title || section.label}</h1><p>{section.description}</p></div><div className="clinic-header-actions">
@@ -237,6 +242,8 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
     </div></header>
       {notice && <div className="clinic-feedback" role="status"><CheckCircle2 size={18} />{notice}</div>}
       {loading && !data ? <div className="clinic-surface clinic-loading" role="status">Loading your clinic workspace…</div> : error ? <div className="clinic-surface clinic-loading" role="alert"><h2>We couldn’t load this workspace.</h2><p>{error}</p><button className="button secondary" onClick={() => setAttempt(value => value + 1)}>Reload clinic tools</button></div> : data && <>
+        {section.id === "notifications" && <Notifications key={clinicId} staff clinicId={clinicId} owner={owner} />}
+        {section.id === "concerns" && <Concerns key={clinicId} staff clinicId={clinicId} owner={owner} />}
         {section.id === "overview" && <Overview data={data} counts={counts} navigate={navigate} />}
         {section.id === "payments" && data.clinic.id === clinicId && <ClinicPayments key={`${clinicId}:${version}`} data={data} request={request} saved={saved} receiptBase={id => `${base}/payments/${id}/receipt${query}`} />}
         {section.id === "policies" && <ClinicChangePolicy key={`${clinicId}:${version}`} clinic={data.clinic} request={request} saved={saved} />}

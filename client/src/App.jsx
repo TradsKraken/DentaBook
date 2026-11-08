@@ -1,3 +1,5 @@
+import Notifications, {PatientNotificationLink} from './components/Notifications';
+import Concerns from './components/Concerns';
 import { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -109,7 +111,8 @@ function Site() {
                 My appointments
               </NavLink>
             </nav>
-            <div className="header-actions">
+            <div className={`header-actions ${patient ? "patient-header-actions" : ""}`}>
+              <PatientNotificationLink enabled={patient} />
               <NavLink
                 className="appointments-link"
                 to={patient ? "/patient/account" : patientSignIn}
@@ -155,6 +158,8 @@ function Site() {
             path="/patient/sign-in"
             element={<SignIn portal="patient" />}
           />
+          <Route path="/patient/notifications" element={<WorkspaceGate role="patient"><Notifications /></WorkspaceGate>} />
+          <Route path="/patient/concerns" element={<WorkspaceGate role="patient"><Concerns /></WorkspaceGate>} />
           <Route path="/patient/register" element={<PatientRegistration />} />
           <Route
             path="/patient/account"
@@ -241,7 +246,7 @@ function Footer() {
         <div>
           <h3>Your next visit</h3>
           <Link to="/patient/book">Book an appointment</Link>
-          <Link to="/patient/appointments">My appointments</Link>
+          <Link to="/patient/appointments">My appointments</Link><Link to="/patient/concerns">My clinic concerns</Link><Link to="/patient/notifications">Notifications</Link>
           <Link to="/about">About DentaBook</Link>
           <Link to={"/patient/sign-in" + suffix}>Patient sign in</Link>
           <Link to={"/patient/register" + suffix}>Patient registration</Link>

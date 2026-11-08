@@ -49,3 +49,11 @@ The appointment-change release passed seven additional checks against the deploy
 ## Visit completion, feedback, booking intake, and dentist access — development
 
 Available in the rebuilt development preview and verified with isolated API/browser journeys; not released to production. Confirmed past visits can be completed with staff identity/time while payment status remains unchanged. Owning patients can submit private feedback once. Clinic-configured intake is required during booking submission and saves atomically with the appointment. Owners can invite a dentist linked to an active profile; server checks restrict the account to assigned appointment review, intake/follow-up, completion, and feedback. See [behavior and access rules](18_VISIT_INTAKE_DENTIST_ACCESS.md). Public ratings, MFA, and email notifications remain outside this increment.
+
+## Patient clinic concerns — development preview
+
+Clinic-specific concern conversations, first-dentist accommodation, patient/clinic replies, reasoned reassignment, reversible spam classification, clinic-specific 24-hour restrictions, and server-enforced daily/message limits are implemented. One open conversation is allowed per patient per clinic. Guests must sign in, with the chosen clinic preserved. Duplicate submissions reuse saved records and additional drafts are retained for replying. Appointment booking remains separate. See [clinic concern rules](19_PATIENT_CONCERNS.md). Not released to production.
+
+## Concern notification tabs — development preview
+
+Persistent in-app notifications now cover new clinic concerns, patient/clinic replies, assignment and concern-management updates. Patients have a Notifications page and header bell; clinic staff/dentists have a Notifications tab with unread counts. Read state is individual and durable, with mark-all/read actions, paginated history, authorized concern links, and periodic refresh. No email/SMS/push or appointment-reminder delivery is claimed. See [notification scope and access](20_CONCERN_NOTIFICATIONS.md). Not released to production.
