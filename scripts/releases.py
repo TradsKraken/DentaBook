@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVICES = ('client', 'api', 'admin_api', 'db')
@@ -305,12 +305,15 @@ class Releases:
 
     def check_website(self, config):
         origins = [config['services'][name]['environment']['CLIENT_URL'] for name in ('api', 'admin_api')]
+        # Identify the authorized health checker; Cloudflare blocks the default Python user agent.
+        def get(url):
+            return urlopen(Request(url, headers={'User-Agent': 'Mozilla/5.0 (compatible; DentaBookReleaseCheck/1.0)'}), timeout=20)
         for origin in origins:
-            with urlopen(origin.rstrip('/') + '/api/health', timeout=20) as response:
+            with get(origin.rstrip('/') + '/api/health') as response:
                 if response.status != 200 or not json.load(response)['database']['connected']:
                     raise ValueError('Website API health check failed.')
         for url in (origins[0], origins[0] + '/clinic/sign-in', origins[1] + '/admin/sign-in'):
-            with urlopen(url, timeout=20) as response:
+            with get(url) as response:
                 if response.status != 200:
                     raise ValueError('Website page check failed.')
 

@@ -1,10 +1,12 @@
+import io
+from urllib.error import HTTPError
 import importlib.util
 import json
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from contextlib import nullcontext
 
 spec = importlib.util.spec_from_file_location('releases', Path(__file__).resolve().parents[1] / 'releases.py')
@@ -233,6 +235,26 @@ class ReleaseTests(unittest.TestCase):
         self.manager.prune = Mock()
         self.manager.deploy('Patients can reschedule eligible visits.')
         self.assertEqual(events, ['pinned','built','saved','unpinned'])
+
+    def test_website_checks_identify_the_release_client_and_verify_all_endpoints(self):
+        config={'services':{name:{'environment':{'CLIENT_URL':origin}} for name,origin in [('api','https://public.example.test'),('admin_api','https://admin.example.test')]}}
+        def response(request,timeout):
+            self.assertEqual(timeout,20)
+            self.assertIn('DentaBookReleaseCheck/1.0',request.get_header('User-agent'))
+            result=io.BytesIO(b'{"database":{"connected":true}}')
+            result.status=200
+            return result
+        with patch.object(release,'urlopen',side_effect=response) as get:
+            self.manager.check_website(config)
+        self.assertEqual([call.args[0].full_url for call in get.call_args_list],[
+            'https://public.example.test/api/health','https://admin.example.test/api/health',
+            'https://public.example.test','https://public.example.test/clinic/sign-in','https://admin.example.test/admin/sign-in'])
+
+    def test_website_checks_still_reject_forbidden_responses(self):
+        config={'services':{name:{'environment':{'CLIENT_URL':'https://example.test'}} for name in ['api','admin_api']}}
+        with patch.object(release,'urlopen',side_effect=HTTPError('https://example.test',403,'Forbidden',{},None)):
+            with self.assertRaises(HTTPError):
+                self.manager.check_website(config)
 
     def test_lock_prevents_two_release_operations(self):
         with self.manager.locked():
