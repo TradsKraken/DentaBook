@@ -136,3 +136,7 @@ Patients use the header bell or **Notifications** link. Clinics and dentists use
 Owners choose **Staff access**, invite a **Dentist**, and link an active dentist profile from their clinic. The dentist accepts the private single-use invitation and signs in at `/clinic/sign-in`. A public profile alone grants no account access. Dentists review only assigned appointments and see their private intake/follow-up. They cannot manage staff, payments, clinic setup, or appointment changes. Removing access, hiding the profile or suspending the clinic removes access on subsequent requests.
 
 After a confirmed visit’s scheduled end, authorized staff or the assigned dentist can confirm attendance and select **Mark visit completed**. Resolve pending appointment changes first. Completion records the staff member/time; it does not collect payment or change unpaid status. The patient then opens **My appointments**, chooses a rating (1–5), and submits optional feedback once. Feedback is private to the patient and authorized clinic staff; no public rating is published.
+
+## Showing or hiding a password
+
+Passwords start hidden on sign-in, registration, clinic invitations and patient password changes. Choose **Show** next to a field to reveal the characters, then **Hide** to conceal them. Each password/confirmation field is independent. The toggle can be used with keyboard Tab and Space/Enter and does not submit the form. It does not change the value, validation or account password, and visibility is not stored between visits.

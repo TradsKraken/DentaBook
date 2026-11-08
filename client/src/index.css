@@ -1077,7 +1077,8 @@ small {
 }
 .field > input,
 .field > select,
-.field > textarea {
+.field > textarea,
+.password-control > input {
   font-weight: 400;
 }
 .service-picker {
@@ -2888,3 +2889,9 @@ td small {
 @media(min-width:641px) { .patient-header-actions > .button { display:inline-flex; } }
 @media(min-width:768px) { .notification-link { font-size:14px; } }
 @media(min-width:1151px) { .notification-link { width:auto; } .notification-count { position:static; } .notification-text { display:inline; } }
+
+.password-control { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; min-width:0; }
+.password-control > input { min-width:0; width:100%; min-height:44px; font-size:16px; }
+.password-toggle { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:80px; min-height:44px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#126f9c; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+.password-toggle:disabled { opacity:.6; cursor:default; }
+.password-toggle:focus-visible { outline:3px solid #126f9c; outline-offset:2px; }

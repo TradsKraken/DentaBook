@@ -1,3 +1,4 @@
+import PasswordField from '../components/PasswordField';
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -14,6 +15,7 @@ import { useClinics } from "../hooks/useClinics";
 import { patientDestination } from "../patientNavigation";
 
 export function Field({ label, name, value, onChange, error, ...props }) {
+  if (props.type === "password") return <PasswordField label={label} name={name} value={value} onChange={onChange} error={error} required {...props} />;
   return (
     <label className="field">
       {label}

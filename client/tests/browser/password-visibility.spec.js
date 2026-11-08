@@ -1,0 +1,31 @@
+import {test,expect} from '@playwright/test';
+const secret='Visibility test password!';
+async function fixture(page,patient=false){
+  const writes=[];
+  await page.route('**/api/**',async route=>{
+    const request=route.request(),p=new URL(request.url()).pathname;
+    const respond=(json,status=200)=>route.fulfill({json,status});
+    if(p==='/api/auth/me')return patient?respond({user:{id:'44444444-4444-4444-8444-444444444444',name:'Test patient',email:'patient@example.test',phone:'09000000000',role:'patient'},clinic:null}):respond({error:'Please sign in.'},401);
+    if(p==='/api/clinics')return respond({clinics:[]});
+    if(p.endsWith('/notifications'))return respond({unread:0,items:[],hasMore:false});
+    if(p==='/api/auth/staff-invitation/details')return respond({invitation:{clinicName:'Invitation test clinic',email:'staff@example.test',role:'dentist',expiresAt:'2099-01-01T00:00:00Z'}});
+    if(request.method()!=='GET'){writes.push({path:p,body:request.postDataJSON()});return respond({error:'Test save failed. Your entered details are retained.'},p.endsWith('/login')?401:400);}
+    return respond({error:'Not available in this test.'},404);
+  });return writes;
+}
+async function checkSizes(page){for(const width of [390,320,768,1440]){await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`No overflow at ${width}`).toBe(true);for(const button of await page.locator('.password-toggle').all()){const box=await button.boundingBox();expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}for(const input of await page.locator('.password-control input').all())expect(await input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);}}
+for(const portal of ['patient','clinic','admin'])test(`${portal} sign-in supports independent keyboard password visibility without submitting`,async({page})=>{
+ const writes=await fixture(page);await page.goto(portal==='admin' && process.env.PLAYWRIGHT_ADMIN_URL ? `${process.env.PLAYWRIGHT_ADMIN_URL}/admin/sign-in` : `/${portal}/sign-in`);const input=page.getByLabel('Password',{exact:true});await input.fill(secret);await expect(input).toHaveAttribute('type','password');
+ const show=page.getByRole('button',{name:'Show password',exact:true});await show.focus();await page.keyboard.press('Space');await expect(input).toHaveAttribute('type','text');await expect(input).toHaveValue(secret);await expect(page.getByRole('button',{name:'Hide password',exact:true})).toHaveAttribute('aria-pressed','true');await page.keyboard.press('Enter');await expect(input).toHaveAttribute('type','password');expect(writes).toHaveLength(0);await checkSizes(page);
+ await page.getByLabel('Email address or username',{exact:true}).fill('test@example.test');await page.getByRole('button',{name:'Show password',exact:true}).click();await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page.getByRole('alert')).toContainText('Test save failed');expect(writes).toHaveLength(1);expect(writes[0].body.password).toBe(secret);await expect(input).toHaveValue(secret);await page.getByRole('button',{name:'Hide password',exact:true}).click();await expect(input).toHaveValue(secret);
+});
+for(const portal of ['patient','clinic'])test(`${portal} registration password and confirmation toggle separately`,async({page})=>{
+ const writes=await fixture(page);await page.goto(`/${portal}/register`);const inputs=page.locator('.password-control input');await expect(inputs).toHaveCount(2);await inputs.nth(0).fill(secret);await inputs.nth(1).fill(secret);const toggles=page.locator('.password-toggle');await toggles.nth(0).click();await expect(inputs.nth(0)).toHaveAttribute('type','text');await expect(inputs.nth(1)).toHaveAttribute('type','password');await toggles.nth(1).click();await expect(inputs.nth(1)).toHaveAttribute('type','text');await toggles.nth(0).click();await expect(inputs.nth(0)).toHaveAttribute('type','password');await expect(inputs.nth(1)).toHaveValue(secret);expect(writes).toHaveLength(0);await checkSizes(page);await page.reload();await expect(page.locator('.password-control input[type="password"]')).toHaveCount(2);
+});
+test('invited clinic staff can show and hide their password without accepting the invitation',async({page})=>{
+ const writes=await fixture(page);await page.goto('/clinic/join#documentation-token');const input=page.getByLabel('Password',{exact:true});await input.fill(secret);await page.getByRole('button',{name:'Show password',exact:true}).click();await expect(input).toHaveAttribute('type','text');await page.getByRole('button',{name:'Hide password',exact:true}).click();await expect(input).toHaveValue(secret);expect(writes).toHaveLength(0);await checkSizes(page);
+});
+test('current, new, and confirmation password controls remain independent and respect disabled forms',async({page})=>{
+ const writes=await fixture(page,true);await page.goto('/patient/account');const labels=['Current password','New password','Confirm new password'];for(const label of labels)await page.getByLabel(label,{exact:true}).fill(secret);for(const label of labels){const toggle=page.getByRole('button',{name:`Show ${label.toLowerCase()}`,exact:true});await toggle.click();await expect(page.getByLabel(label,{exact:true})).toHaveAttribute('type','text');}await page.getByRole('button',{name:'Hide new password',exact:true}).click();await expect(page.getByLabel('New password',{exact:true})).toHaveAttribute('type','password');await expect(page.getByLabel('Current password',{exact:true})).toHaveAttribute('type','text');expect(writes).toHaveLength(0);await checkSizes(page);
+ await page.getByLabel('New password',{exact:true}).evaluate(el=>{el.closest('fieldset').disabled=true;});await expect(page.getByRole('button',{name:'Show new password',exact:true})).toBeDisabled();
+});

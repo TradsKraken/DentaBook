@@ -59,3 +59,7 @@ Clinic-specific concern conversations, first-dentist accommodation, patient/clin
 Persistent in-app notifications now cover new clinic concerns, patient/clinic replies, assignment and concern-management updates. Patients have a Notifications page and header bell; clinic staff/dentists have a Notifications tab with unread counts. Read state is individual and durable, with mark-all/read actions, paginated history, authorized concern links, and periodic refresh. No email/SMS/push or appointment-reminder delivery is claimed. See [notification scope and access](20_CONCERN_NOTIFICATIONS.md). Released to production on 8 November 2026.
 
 Production release on 8 November 2026 used committed application source `618b34d`. Migrations 008–010 are applied; current customer data was retained. Verified pre-release restore point: `20261108T073434221646Z-58962be0`. Five restore points are retained.
+
+## Password visibility controls — development preview
+
+A shared Show/Hide control now covers patient/clinic/administrator sign-in, patient and clinic registration, clinic invitation acceptance, and each patient password-change field. Inputs start hidden; visibility is local to each mounted field and is not saved. The button is keyboard accessible, has a 44px touch target and announced state, never submits the form, preserves the entered value, and respects disabled fieldsets. Existing validation/autocomplete remain in place. Production release verification is pending.
