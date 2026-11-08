@@ -1,5 +1,10 @@
 # Website updates
 
+## 8 November 2026 — Password visibility icon inside the input (live)
+
+The password visibility control is now a tappable eye icon inside the password input. There is no separate button box or visible Show/Hide text. Each field still starts hidden and has an independent, keyboard-accessible 44px control with an announced action/state. Input padding keeps the password text clear of the icon.
+
+
 ## 8 November 2026 — Show or hide passwords while entering them (live)
 
 Password fields now have individual **Show**/**Hide** buttons for patient, clinic and administrator sign-in, patient/clinic registration, clinic staff invitations, and patient password changes. Fields start hidden; toggling keeps the entered value, supports keyboard use and phone touch targets, and does not submit the form. Password visibility is not stored between visits. Existing account passwords, validation and access rules are unchanged.
