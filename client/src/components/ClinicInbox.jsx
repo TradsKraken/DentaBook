@@ -1,3 +1,4 @@
+import VisitFeedback from './VisitFeedback';
 import AppointmentChanges from "./AppointmentChanges";
 import { useEffect, useState } from "react";
 import AppointmentIntake from './AppointmentIntake';
@@ -7,7 +8,7 @@ const statuses = [["pending_review", "Awaiting review"], ["reschedule_requests",
 const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(value);
 const displayDate = value => new Date(`${value}T12:00:00+08:00`).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" });
 const statusLabel = value => statuses.find(item => item[0] === value)?.[1] || value.replaceAll("_", " ");
-export default function ClinicInbox({ request, onReviewed }) {
+export default function ClinicInbox({ request, onReviewed, dentist=false }) {
   const [status, setStatus] = useState("pending_review"), [query, setQuery] = useState(""), [attempt, setAttempt] = useState(0);
   const [state, setState] = useState({ loading: true, error: "", appointments: [] });
   const [selected, setSelected] = useState(null), [decision, setDecision] = useState(null), [notes, setNotes] = useState("");
@@ -57,14 +58,15 @@ export default function ClinicInbox({ request, onReviewed }) {
       </section>
       {selected.status === "pending_review" && <section className="clinic-detail-section"><h3>Review this request</h3><p className="clinic-field-help">Check the patient’s details before choosing a decision. Pending requests reserve the dentist’s time.</p>
         {!decision ? <div className="clinic-decision-actions"><button className="button" aria-label={`Accept ${selected.code}`} onClick={() => setDecision("accepted")}><Check size={17} />Accept request</button><button className="button secondary clinic-decline-button" aria-label={`Decline ${selected.code}`} onClick={() => setDecision("declined")}><X size={17} />Decline request</button></div> : <form className="clinic-review-form" onSubmit={submit}>
-          <h3>{decision === "accepted" ? "Accept this request?" : "Decline this request?"}</h3><p>{decision === "accepted" ? "The patient will see your acceptance and can choose your enabled GCash or Pay at clinic option. Review their payment choice under Deposits & payments to confirm the visit." : "The patient will see your reason. Declining releases this time for other patients."}</p>
+          <h3>{decision === "accepted" ? "Accept this request?" : "Decline this request?"}</h3><p>{decision === "accepted" ? "The patient will see your acceptance and can choose your enabled GCash or Pay at clinic option. Authorized payment staff review the payment choice under Deposits & payments to confirm the visit." : "The patient will see your reason. Declining releases this time for other patients."}</p>
           <label className="field">{decision === "declined" ? "Reason for declining" : "Note to patient (optional)"}<textarea aria-label={decision === "declined" ? "Reason for declining" : "Note to patient (optional)"} rows={3} value={notes} maxLength={2000} required={decision === "declined"} disabled={busy} onChange={event => setNotes(event.target.value)} /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="clinic-editor-actions"><button type="button" className="button secondary" disabled={busy} onClick={() => { setDecision(null); setError(""); }}>Cancel review</button><button className="button" disabled={busy} aria-busy={busy}>{busy ? "Saving decision…" : decision === "accepted" ? "Confirm acceptance" : "Confirm decline"}</button></div>
         </form>}
       </section>}
       <AppointmentIntake key={`intake:${selected.id}`} id={selected.id} request={request} staff onBusyChange={setBusy} />
-      <AppointmentChanges key={selected.id} id={selected.id} request={request} staff onBusyChange={setBusy} onChanged={() => { setNotice("Appointment change saved."); close(); setAttempt(value=>value+1); }} />
+      <VisitFeedback id={selected.id} status={selected.status} request={request} staff onCompleted={()=>{setNotice('Visit completed. Payment status is unchanged.');close();setAttempt(value=>value+1);}} />
+      {!dentist && <AppointmentChanges key={selected.id} id={selected.id} request={request} staff onBusyChange={setBusy} onChanged={() => { setNotice("Appointment change saved."); close(); setAttempt(value=>value+1); }} />}
     </ClinicDrawer>}
   </section>;
 }

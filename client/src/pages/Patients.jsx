@@ -1,4 +1,5 @@
 import AppointmentChanges from "../components/AppointmentChanges";
+import VisitFeedback from '../components/VisitFeedback';
 import AppointmentIntake from '../components/AppointmentIntake';
 import PatientProfile from '../components/PatientProfile';
 import { useEffect, useState } from "react";
@@ -283,6 +284,7 @@ export function PatientAppointments() {
               {appointment.status === "accepted" && <p className="muted">The clinic accepted your request. Choose GCash or Pay at clinic from the payment details, where enabled by the clinic.</p>}
               <div className="appointment-card-actions"><Link className="button secondary" to={`/patient/appointments/${appointment.id}/payment`}>Deposit &amp; payment details</Link>
               <AppointmentChanges id={appointment.id} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} onChanged={updated=>setState(previous=>({...previous,appointments:previous.appointments.map(item=>item.id===updated.id ? {...item,...updated} : item)}))} /></div>
+              {appointment.status==='completed' && <VisitFeedback id={appointment.id} status={appointment.status} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} />}
               <AppointmentIntake id={appointment.id} request={(path,method,body)=>api(`/workspaces/patient${path}`,{method,body})} />
               <p>
                 Estimated cost:{" "}

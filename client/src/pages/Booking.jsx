@@ -21,6 +21,7 @@ export default function Booking() {
   const params = new URLSearchParams(useLocation().search);
   const [selection, setSelection] = useState({ clinicId: params.get("clinic") || "", serviceId: "", dentistId: "", date: "", time: "" });
   const [contact, setContact] = useState({ email: session.user.email || "", phone: "", notes: "" });
+  const [intakeAnswers,setIntakeAnswers]=useState({}),[intakeConsent,setIntakeConsent]=useState(false);
   const [key, setKey] = useState(requestKey);
   const [options, setOptions] = useState({ loading: false, error: "", data: null });
   const [times, setTimes] = useState({ loading: false, error: "", slots: [], service: null });
@@ -39,6 +40,7 @@ export default function Booking() {
     api(`/workspaces/patient/booking-options?clinicId=${encodeURIComponent(clinicId)}`, { signal: controller.signal })
       .then(data => {
         if (controller.signal.aborted) return;
+        setIntakeAnswers({});setIntakeConsent(false);
         setOptions({ loading: false, error: "", data });
         setSelection(previous => ({ ...previous, serviceId: "", dentistId: "", time: "", date: data.minDate }));
         setContact(previous => ({ ...previous, phone: previous.phone || data.patient?.phone || "" }));
@@ -70,6 +72,7 @@ export default function Booking() {
     return () => controller.abort();
   }, [clinicId, serviceId, dentistId, date, options.data, slotAttempt, refresh]);
   function select(name, value) {
+    if (name==='clinicId' || name==='serviceId') {setIntakeAnswers({});setIntakeConsent(false);}
     setKey(requestKey()); setError("");
     setSelection(previous => ({ ...previous, [name]: value, time: "",
       ...(name === "clinicId" ? { serviceId: "", dentistId: "", date: "" } : {}),
@@ -82,6 +85,7 @@ export default function Booking() {
     setBusy(true); setError("");
     try {
       const data = await api("/workspaces/patient/appointments", { method: "POST", body: {
+        ...(options.data?.intake?.questions.some(q=>!q.serviceId || q.serviceId===serviceId) ? {intake:{version:options.data.intake.version,consent:intakeConsent,answers:options.data.intake.questions.filter(q=>!q.serviceId || q.serviceId===serviceId).map(q=>({questionId:q.id,value:intakeAnswers[q.id] || ''}))}} : {}),
         ...selection, ...contact, requestKey: key, changePolicyHash: options.data?.changePolicyHash, expectedPrice: String(times.service.price), expectedDuration: times.service.duration,
       } });
       setReceipt(data.appointment);
@@ -150,6 +154,7 @@ export default function Booking() {
             <p className="summary-note">Your contact details and notes are shared with this clinic for your visit.</p>
             {service ? <p className="notice">Estimated treatment cost: {money(service.price)} · {service.duration} minutes</p> : <p className="muted">Choose a treatment to see its estimated cost.</p>}
             <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
+            {serviceId && data?.intake?.questions.some(q=>!q.serviceId || q.serviceId===serviceId) && <section className="intake-record"><h3>Clinic questions before booking</h3><p>{data.intake.purpose}</p><p><strong>Record retention:</strong> {data.intake.retention}</p>{data.intake.questions.filter(q=>!q.serviceId || q.serviceId===serviceId).map(q=><label className="field" key={q.id}>{q.label} ({q.required ? 'required' : 'optional'}){q.type==='yes_no' ? <select aria-label={`${q.label} (${q.required ? 'required' : 'optional'})`} required={q.required} value={intakeAnswers[q.id] || ''} onChange={event=>{setIntakeAnswers({...intakeAnswers,[q.id]:event.target.value});setKey(requestKey());}}><option value="">Choose an answer</option><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Unsure</option></select> : <textarea rows={3} required={q.required} maxLength={2000} value={intakeAnswers[q.id] || ''} onChange={event=>{setIntakeAnswers({...intakeAnswers,[q.id]:event.target.value});setKey(requestKey());}} />}</label>)}<label className="clinic-check"><input type="checkbox" required checked={intakeConsent} onChange={event=>{setIntakeConsent(event.target.checked);setKey(requestKey());}} />I agree to share these answers with this clinic for my visit.</label></section>}
             <ChangePolicySummary policy={data?.changePolicy} />
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button full" disabled={busy || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>

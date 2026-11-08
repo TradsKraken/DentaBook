@@ -145,6 +145,75 @@ test('private intake, follow-up, profiles, staff access, and atomic working hour
       assert.equal((await request(base,{cookie:manager.cookie})).status,403);
       await db.query("UPDATE clinics SET status='approved' WHERE id=$1",[clinicId]);
     });
+    await t.test('dentists are restricted to assigned records; completion and private feedback enforce ownership',async()=>{
+      const invited=await request(base+'/staff/invitations',{method:'POST',body:{email:'dentist-access@example.test',role:'dentist',dentistId:dentists[0]}});
+      assert.equal(invited.status,201);
+      assert.equal((await request(base+'/staff/invitations',{method:'POST',body:{email:'bad-dentist@example.test',role:'dentist',dentistId:crypto.randomUUID()}})).status,400);
+      assert.equal((await request('/auth/staff-invitation/accept',{method:'POST',body:{token:invited.data.token,email:'dentist-access@example.test',name:'Assigned dentist',password},cookie:''})).status,200);
+      const dentist=(await db.query("SELECT id FROM users WHERE email='dentist-access@example.test'")).rows[0];
+      const cookie=await session(dentist.id);
+      assert.equal((await request(base,{cookie})).data.clinic.staffRole,'dentist');
+      const assigned=(await request(base+'/appointments?status=all',{cookie}));assert.equal(assigned.status,200);assert.ok(assigned.data.appointments.every(a=>a.id===appointmentId));
+      for(const route of ['/staff','/payments','/intake-settings']) assert.equal((await request(base+route,{cookie})).status,403);
+      assert.equal((await request(base+'/schedules',{method:'POST',body:{},cookie})).status,403);
+      const complete=base+`/appointments/${appointmentId}/complete`;
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,409);
+      await db.query("UPDATE appointments SET status='confirmed' WHERE id=$1",[appointmentId]);
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,409);
+      await db.query("UPDATE appointments SET appointment_date=CURRENT_DATE-1 WHERE id=$1",[appointmentId]);
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie:other.cookie})).status,404);
+      assert.equal((await request(complete,{method:'POST',body:{confirm:false},cookie})).status,400);
+      for (const status of ['pending_review','accepted','declined','cancelled']) {
+        await db.query('UPDATE appointments SET status=$1 WHERE id=$2',[status,appointmentId]);
+        assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,409);
+      }
+      await db.query("UPDATE appointments SET status='confirmed' WHERE id=$1",[appointmentId]);
+      const pending=(await db.query(`INSERT INTO appointment_changes (appointment_id,kind,status,requester_role,request_key,request_hash,reason,policy_snapshot,original_date,original_start,original_end) VALUES ($1,'cancel','pending','patient',$2,$3,'Test pending decision','{}',CURRENT_DATE,'09:00','09:30') RETURNING id`,[appointmentId,crypto.randomUUID(),'a'.repeat(64)])).rows[0].id;
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,409);
+      await db.query("UPDATE appointment_changes SET status='withdrawn' WHERE id=$1",[pending]);
+      const before=(await db.query('SELECT * FROM payments WHERE appointment_id=$1',[appointmentId])).rows;
+      const completions=native ? await Promise.all([request(complete,{method:'POST',body:{confirm:true},cookie}),request(complete,{method:'POST',body:{confirm:true},cookie})]) : [await request(complete,{method:'POST',body:{confirm:true},cookie})];
+      assert.ok(completions.every(result=>result.status===200));
+      const audit=(await db.query('SELECT completed_by,completed_at FROM appointments WHERE id=$1',[appointmentId])).rows[0];assert.equal(audit.completed_by,dentist.id);
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,200);
+      assert.deepEqual((await db.query('SELECT completed_by,completed_at FROM appointments WHERE id=$1',[appointmentId])).rows[0],audit);
+      assert.deepEqual((await db.query('SELECT * FROM payments WHERE appointment_id=$1',[appointmentId])).rows,before);
+      const feedback=`/workspaces/patient/appointments/${appointmentId}/feedback`,body={rating:5,comment:'Private test feedback'};
+      assert.equal((await request(feedback,{method:'POST',body,cookie:stranger.cookie})).status,404);
+      assert.equal((await request(feedback,{method:'POST',body:{rating:6,comment:''},cookie:patient.cookie})).status,400);
+      for(let i=0;i<2;i++) assert.equal((await request(feedback,{method:'POST',body,cookie:patient.cookie})).status,200);
+      assert.equal((await request(feedback,{method:'POST',body:{...body,rating:4},cookie:patient.cookie})).status,409);
+      assert.equal((await request(base+`/appointments/${appointmentId}/feedback`,{cookie})).data.feedback.comment,body.comment);
+      await db.query('UPDATE clinic_memberships SET dentist_id=$1 WHERE user_id=$2',[dentists[1],dentist.id]);
+      assert.equal((await request(base+`/appointments/${appointmentId}/intake`,{cookie})).status,404);
+      assert.equal((await request(base+`/appointments/${appointmentId}/feedback`,{cookie})).status,404);
+      assert.equal((await request(complete,{method:'POST',body:{confirm:true},cookie})).status,404);
+      assert.equal((await request(base+'/appointments?status=all',{cookie})).data.appointments.length,0);
+      await db.query('UPDATE dentists SET is_active=FALSE WHERE id=$1',[dentists[1]]);
+      assert.equal((await request(base,{cookie})).status,403);
+      await db.query('UPDATE dentists SET is_active=TRUE WHERE id=$1',[dentists[1]]);
+    });
+    await t.test('booking requires current consented intake and rolls back invalid reservations',async()=>{
+      const q={id:crypto.randomUUID(),label:'Required booking question',type:'yes_no',required:true,serviceId};
+      await db.query(`INSERT INTO clinic_intake_settings (clinic_id,enabled,purpose,retention,questions,version) VALUES ($1,TRUE,'Test purpose','Test retention',$2::jsonb,50) ON CONFLICT (clinic_id) DO UPDATE SET enabled=TRUE,questions=EXCLUDED.questions,version=50`,[clinicId,JSON.stringify([q])]);
+      await db.query('INSERT INTO dentist_services (dentist_id,service_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',[dentists[0],serviceId]);
+      const date=new Date(Date.now()+8*3600000+5*86400000).toISOString().slice(0,10),day=new Date(date+'T00:00:00Z').getUTCDay();
+      await db.query('DELETE FROM dentist_schedules WHERE dentist_id=$1',[dentists[0]]);
+      await db.query("INSERT INTO dentist_schedules (dentist_id,day_of_week,start_time,end_time) VALUES ($1,$2,'09:00','17:00')",[dentists[0],day]);
+      const options=await request('/workspaces/patient/booking-options?clinicId='+clinicId,{cookie:patient.cookie});assert.equal(options.data.intake.version,50);
+      const body={clinicId,serviceId,dentistId:dentists[0],date,time:'10:00',phone:'09123456789',notes:'',expectedPrice:'100',expectedDuration:30,requestKey:crypto.randomUUID()};
+      const route='/workspaces/patient/appointments';
+      const count=async()=>Number((await db.query('SELECT COUNT(*) AS n FROM appointments')).rows[0].n),before=await count();
+      assert.equal((await request(route,{method:'POST',body,cookie:patient.cookie})).status,409);assert.equal(await count(),before);
+      const intake={version:50,consent:true,answers:[{questionId:q.id,value:'no'}]};
+      for(const invalid of [{...intake,consent:false},{...intake,answers:[]},{...intake,answers:[{questionId:q.id,value:'invalid'}]},{...intake,version:49}]) {assert.ok([400,409].includes((await request(route,{method:'POST',body:{...body,intake:invalid},cookie:patient.cookie})).status));assert.equal(await count(),before);}
+      const booked=await request(route,{method:'POST',body:{...body,intake},cookie:patient.cookie});assert.equal(booked.status,201,JSON.stringify(booked.data));
+      const id=booked.data.appointment.id;
+      assert.equal((await db.query('SELECT template_version FROM appointment_intake_submissions WHERE appointment_id=$1',[id])).rows[0].template_version,50);
+      assert.equal((await request(route,{method:'POST',body:{...body,intake},cookie:patient.cookie})).status,200);
+      assert.equal((await request(route,{method:'POST',body:{...body,intake:{...intake,answers:[{questionId:q.id,value:'yes'}]}},cookie:patient.cookie})).status,409);
+      assert.equal(await count(),before+1);
+    });
     await t.test('profile changes preserve identity and appointment contacts; password changes revoke all sessions',async()=>{
       const body={name:'Updated patient',phone:'09987654321',email:'attack@example.test',role:'system_admin'};
       assert.equal((await request('/auth/patient/profile',{method:'PUT',body,cookie:owner.cookie})).status,403);
@@ -160,6 +229,8 @@ test('private intake, follow-up, profiles, staff access, and atomic working hour
       process.env.APP_PORTAL='admin';
       for(const route of ['/auth/patient/profile','/auth/patient/password']) assert.equal((await request(route,{method:'PUT',body,cookie:owner.cookie})).status,404);
       assert.equal((await request('/auth/staff-invitation/details',{method:'POST',body:{token:invite.token}})).status,404);
+      assert.equal((await request(base+`/appointments/${appointmentId}/complete`,{method:'POST',body:{confirm:true}})).status,404);
+      assert.equal((await request(`/workspaces/patient/appointments/${appointmentId}/feedback`,{cookie:patient.cookie})).status,404);
     });
   } finally {if(previous===undefined) delete process.env.APP_PORTAL;else process.env.APP_PORTAL=previous;await new Promise(resolve=>server.close(resolve));if(native) await db.end();else await db.close();}
 });

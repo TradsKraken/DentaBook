@@ -135,3 +135,7 @@ Run `sync.bat`, or `./sync.ps1 -Message "Describe your changes"` from the reposi
 ## Client handoff
 
 Include frontend, backend, required configuration, and client documentation. Exclude `internal/`, private environment files, and developer records. See [internal delivery notes](internal/README.md).
+
+## Current development increment
+
+Visit completion with an audit trail, private patient feedback, intake during booking submission, and owner-invited dentist access restricted to assigned appointments are implemented in development. They have not been released to production. See [behavior and access rules](docs/18_VISIT_INTAKE_DENTIST_ACCESS.md).

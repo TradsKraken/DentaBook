@@ -20,9 +20,16 @@ async function clinicAccess(db,req,writing=false) {
     clinic.staffRole=membership.access_role;
   }
   if (ownsClinic) clinic.staffRole='owner';
+  if (clinic.staffRole==='dentist') {
+    const member=(await db.query('SELECT m.dentist_id FROM clinic_memberships m JOIN dentists d ON d.id=m.dentist_id AND d.clinic_id=m.clinic_id WHERE m.user_id=$1 AND m.clinic_id=$2 AND m.revoked_at IS NULL AND d.is_active=TRUE',[req.user.id,clinic.id])).rows[0];
+    if (!member) throw fail('Active linked dentist access is required.',403);
+    clinic.dentistId=member.dentist_id;
+  }
   return clinic;
 }
 function permit(clinic,path) {
+  if (clinic.staffRole==='dentist' && path!=='/' && !/^\/appointments(\/|$)/.test(path)) throw fail('Dentist access covers only your assigned appointments and follow-up.',403);
+  if (clinic.staffRole==='dentist' && (/\/changes(?:\/|$)/.test(path) || /\/cancel$/.test(path))) throw fail('Appointment changes require clinic staff.',403);
   if (path.startsWith('/staff') && clinic.staffRole!=='owner') throw fail('Only the clinic owner can manage staff access.',403);
   if (clinic.staffRole==='appointments' && path!=='/' && !/^\/(appointments|schedules)(\/|$)/.test(path))
     throw fail('Your staff access covers appointments, patient follow-up, and working hours.',403);

@@ -3,14 +3,20 @@ const bcrypt=require('bcrypt');
 const {email,text}=require('./validation');
 const {hashToken,rateLimit}=require('./auth');
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
-const validRole=role=>['manager','appointments'].includes(role);
+const validRole=role=>['manager','appointments','dentist'].includes(role);
 const validToken=value=>typeof value==='string' && /^[a-f0-9]{64}$/.test(value);
 async function audit(db,clinicId,actor,subject,invitation,action,role=null) {
   await db.query('INSERT INTO clinic_staff_events (clinic_id,actor_id,subject_id,invitation_id,action,access_role) VALUES ($1,$2,$3,$4,$5,$6)',[clinicId,actor,subject,invitation,action,role]);
 }
 function registerStaffEndpoints(endpoint) {
-  endpoint('get','/staff',async(db,clinic)=>({
-    members:(await db.query(`SELECT m.user_id AS id,u.full_name AS name,u.email,m.access_role AS role,m.joined_at AS "joinedAt",m.revoked_at AS "revokedAt"
+  async function dentistBinding(db,clinic,b) {
+    if (b.role!=='dentist') { if (b.dentistId) throw fail('Only dentist access can link a dentist profile.'); return null; }
+    if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(b.dentistId || '')) throw fail('Choose an active dentist from this clinic.');
+    if (!(await db.query('SELECT id FROM dentists WHERE id=$1 AND clinic_id=$2 AND is_active=TRUE',[b.dentistId || null,clinic.id])).rows.length) throw fail('Choose an active dentist from this clinic.');
+    return b.dentistId;
+  }
+  endpoint('get','/staff' ,async(db,clinic)=>({
+    members:(await db.query(`SELECT m.user_id AS id,u.full_name AS name,u.email,m.access_role AS role,m.dentist_id AS "dentistId",m.joined_at AS "joinedAt",m.revoked_at AS "revokedAt"
       FROM clinic_memberships m JOIN users u ON u.id=m.user_id WHERE m.clinic_id=$1 ORDER BY m.joined_at,m.user_id`,[clinic.id])).rows,
     invitations:(await db.query(`SELECT id,email,access_role AS role,expires_at AS "expiresAt",accepted_at AS "acceptedAt",revoked_at AS "revokedAt"
       FROM clinic_staff_invitations WHERE clinic_id=$1 ORDER BY created_at DESC,id`,[clinic.id])).rows,
@@ -20,7 +26,8 @@ function registerStaffEndpoints(endpoint) {
   }));
   endpoint('post','/staff/invitations',async(db,clinic,req)=>{
     const b=req.body || {};
-    if (!email(b.email) || !validRole(b.role)) throw fail('Enter the staff email and choose manager or appointment staff.');
+    if (!email(b.email) || !validRole(b.role)) throw fail('Enter the staff email and choose manager, appointment staff, or dentist.');
+    const dentistId=await dentistBinding(db,clinic,b);
     const address=b.email.trim().toLowerCase();
     const existing=(await db.query(`SELECT u.id,u.role,u.owner_access,
       EXISTS(SELECT 1 FROM clinics WHERE owner_user_id=u.id) AS owner,
@@ -30,8 +37,8 @@ function registerStaffEndpoints(endpoint) {
       throw fail('This address already belongs to an account that cannot join this clinic. Use a separate staff email.',409);
     await db.query('UPDATE clinic_staff_invitations SET revoked_at=CURRENT_TIMESTAMP WHERE clinic_id=$1 AND email=$2 AND accepted_at IS NULL AND revoked_at IS NULL',[clinic.id,address]);
     const token=crypto.randomBytes(32).toString('hex');
-    const invitation=(await db.query(`INSERT INTO clinic_staff_invitations (clinic_id,email,access_role,token_hash,invited_by,expires_at)
-      VALUES ($1,$2,$3,$4,$5,CURRENT_TIMESTAMP + INTERVAL '48 hours') RETURNING id,expires_at AS "expiresAt"`,[clinic.id,address,b.role,hashToken(token),req.user.id])).rows[0];
+    const invitation=(await db.query(`INSERT INTO clinic_staff_invitations (clinic_id,email,access_role,token_hash,invited_by,expires_at,dentist_id)
+      VALUES ($1,$2,$3,$4,$5,CURRENT_TIMESTAMP + INTERVAL '48 hours',$6) RETURNING id,expires_at AS "expiresAt"`,[clinic.id,address,b.role,hashToken(token),req.user.id,dentistId])).rows[0];
     await audit(db,clinic.id,req.user.id,null,invitation.id,'invited',b.role);
     return {invitation,token};
   });
@@ -42,8 +49,9 @@ function registerStaffEndpoints(endpoint) {
     return {revoked:true};
   });
   endpoint('put','/staff/members/:id',async(db,clinic,req)=>{
-    if (!validRole(req.body?.role)) throw fail('Choose manager or appointment staff.');
-    const result=await db.query('UPDATE clinic_memberships SET access_role=$1 WHERE user_id=$2 AND clinic_id=$3 AND revoked_at IS NULL RETURNING user_id',[req.body.role,req.params.id,clinic.id]);
+    if (!validRole(req.body?.role)) throw fail('Choose manager, appointment staff, or dentist.');
+    const dentistId=await dentistBinding(db,clinic,req.body);
+    const result=await db.query('UPDATE clinic_memberships SET access_role=$1,dentist_id=$4 WHERE user_id=$2 AND clinic_id=$3 AND revoked_at IS NULL RETURNING user_id',[req.body.role,req.params.id,clinic.id,dentistId]);
     if (!result.rows.length) throw fail('Active staff member not found.',404);
     await audit(db,clinic.id,req.user.id,req.params.id,null,'role_changed',req.body.role);
     return {saved:true};
@@ -56,6 +64,9 @@ function registerStaffEndpoints(endpoint) {
     await db.query("DELETE FROM sessions WHERE user_id=$1 AND role='clinic_staff'",[req.params.id]);
     return {revoked:true};
   });
+}
+async function dentistBindingForInvitation(db,i) {
+  if (i.access_role==='dentist' && !(await db.query('SELECT id FROM dentists WHERE id=$1 AND clinic_id=$2 AND is_active=TRUE',[i.dentist_id,i.clinic_id])).rows.length) throw fail('The linked dentist is unavailable.',409);
 }
 function registerInvitationRoutes(router,pool) {
   const limiter=rateLimit({limit:20,windowMs:15*60*1000});
@@ -90,8 +101,9 @@ function registerInvitationRoutes(router,pool) {
         if (!text(b.name,150)) throw fail('Enter your full name.');
         user=(await db.query(`INSERT INTO users (full_name,email,password_hash,role) VALUES ($1,$2,$3,'clinic_staff') RETURNING id`,[b.name.trim(),invitation.email,await bcrypt.hash(b.password,12)])).rows[0];
       }
-      await db.query(`INSERT INTO clinic_memberships (user_id,clinic_id,access_role,invited_by) VALUES ($1,$2,$3,$4)
-        ON CONFLICT (user_id) DO UPDATE SET clinic_id=EXCLUDED.clinic_id,access_role=EXCLUDED.access_role,invited_by=EXCLUDED.invited_by,joined_at=CURRENT_TIMESTAMP,revoked_at=NULL`,[user.id,clinic.id,invitation.access_role,invitation.invited_by]);
+      await dentistBindingForInvitation(db,invitation);
+      await db.query(`INSERT INTO clinic_memberships (user_id,clinic_id,access_role,invited_by,dentist_id) VALUES ($1,$2,$3,$4,$5)
+        ON CONFLICT (user_id) DO UPDATE SET clinic_id=EXCLUDED.clinic_id,access_role=EXCLUDED.access_role,dentist_id=EXCLUDED.dentist_id,invited_by=EXCLUDED.invited_by,joined_at=CURRENT_TIMESTAMP,revoked_at=NULL`,[user.id,clinic.id,invitation.access_role,invitation.invited_by,invitation.dentist_id]);
       await db.query('UPDATE clinic_staff_invitations SET accepted_at=CURRENT_TIMESTAMP WHERE id=$1',[invitation.id]);
       await audit(db,clinic.id,user.id,user.id,invitation.id,'joined',invitation.access_role);
       await db.query("DELETE FROM sessions WHERE user_id=$1 AND role='clinic_staff'",[user.id]);

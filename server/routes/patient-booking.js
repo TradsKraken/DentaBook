@@ -1,5 +1,6 @@
 const express = require("express");
 const {policyColumns,policyFrom,policyHash} = require("../appointment-changes");
+const {bookingIntake,saveBookingIntake}=require('../booking-intake');
 const crypto = require("node:crypto");
 const { email } = require("../validation");
 const { validId, timePattern, fail, bookingWindow, availability } = require("../booking");
@@ -27,7 +28,7 @@ function createPatientBookingRouter(pool) {
         FROM dentists d WHERE d.clinic_id=$1 AND d.is_active=TRUE ORDER BY d.full_name,d.id`, [clinic.id]);
       const patient = (await pool.query("SELECT full_name AS name,email,phone FROM users WHERE id=$1", [req.user.id])).rows[0];
       const { minDate, maxDate } = bookingWindow();
-      res.json({ changePolicy:policyFrom(clinic), changePolicyHash:policyHash(policyFrom(clinic)), clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
+      res.json({ intake:await bookingIntake(pool,clinic.id), changePolicy:policyFrom(clinic), changePolicyHash:policyHash(policyFrom(clinic)), clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
     } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); }
   });
   router.get("/availability", async (req, res, next) => {
@@ -49,6 +50,7 @@ function createPatientBookingRouter(pool) {
       const requestHash = contactEmail => crypto.createHash("sha256").update(JSON.stringify([
         b.clinicId, b.serviceId, b.dentistId, b.date, b.time, contactEmail.trim().toLowerCase(),
         b.phone.trim(), b.notes.trim(), b.expectedPrice, b.expectedDuration,
+        ...(b.intake ? [b.intake] : []),
       ])).digest("hex");
       client = await pool.connect();
       await client.query("BEGIN");
@@ -84,6 +86,7 @@ function createPatientBookingRouter(pool) {
         [code,b.clinicId,b.dentistId,req.user.id,patient.name,normalizedEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash,policy.cancelEnabled || policy.rescheduleEnabled ? JSON.stringify(policy) : null]);
       const id = result.rows[0].id;
       await client.query("INSERT INTO appointment_services (appointment_id,service_id,service_price,service_name) VALUES ($1,$2,$3,$4)", [id,b.serviceId,available.service.price,available.service.name]);
+      await saveBookingIntake(client,b.clinicId,b.serviceId,id,req.user.id,b.requestKey,b.intake);
       const appointment = await receipt(client, id, req.user.id);
       await client.query("COMMIT");
       res.status(201).json({ appointment });

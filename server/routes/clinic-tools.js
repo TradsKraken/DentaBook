@@ -26,6 +26,10 @@ function createClinicToolsRouter(pool,{payments}={}) {
         const clinic=await clinicAccess(client,req,writing);
         permit(clinic,path);
         if (req.params.id && !uuid.test(req.params.id)) throw fail("Record not found.", 404);
+        if (clinic.staffRole==='dentist' && req.params.id) {
+          const assigned=(await client.query('SELECT id FROM appointments WHERE id=$1 AND clinic_id=$2 AND dentist_id=$3',[req.params.id,clinic.id,clinic.dentistId])).rows[0];
+          if (!assigned) throw fail('Assigned appointment not found.',404);
+        }
         const data = await action(client, clinic, req);
         if (writing) await client.query("COMMIT");
         res.status(responseStatus).json(data);
@@ -37,16 +41,18 @@ function createClinicToolsRouter(pool,{payments}={}) {
       } finally { if (writing) client?.release(); }
     });
   }
+  require('../visits').registerVisitEndpoints(endpoint);
   require('../staff').registerStaffEndpoints(endpoint);
   require('../intake').registerIntakeEndpoints(endpoint);
   endpoint("get", "/", async (db, clinic) => {
+    if (clinic.staffRole==='dentist') return {clinic,services:[],dentists:[],schedules:[],assignments:[],pendingAppointments:(await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND dentist_id=$2 AND status='pending_review'",[clinic.id,clinic.dentistId])).rows[0].count};
     const services = await db.query(`SELECT ${serviceColumns} FROM services WHERE clinic_id=$1 ORDER BY name,id`, [clinic.id]);
     const dentists = await db.query(`SELECT ${dentistColumns} FROM dentists WHERE clinic_id=$1 ORDER BY full_name,id`, [clinic.id]);
     const schedules = await db.query(`SELECT ds.id, ds.dentist_id AS "dentistId", ds.day_of_week AS day, to_char(ds.start_time,'HH24:MI') AS start, to_char(ds.end_time,'HH24:MI') AS end FROM dentist_schedules ds JOIN dentists d ON d.id=ds.dentist_id WHERE d.clinic_id=$1 AND ds.is_available=TRUE ORDER BY ds.day_of_week,ds.start_time,ds.id`, [clinic.id]);
     const assignments = await db.query(`SELECT ds.dentist_id AS "dentistId",ds.service_id AS "serviceId" FROM dentist_services ds
       JOIN dentists d ON d.id=ds.dentist_id JOIN services s ON s.id=ds.service_id
       WHERE d.clinic_id=$1 AND s.clinic_id=$1 ORDER BY ds.dentist_id,ds.service_id`, [clinic.id]);
-    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review'", [clinic.id]);
+    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review' AND ($2::uuid IS NULL OR dentist_id=$2)", [clinic.id,clinic.dentistId || null]);
     return { clinic, services: services.rows, dentists: dentists.rows, schedules: schedules.rows, assignments: assignments.rows, pendingAppointments: pending.rows[0].count };
   });
   endpoint("put", "/profile", async (db, clinic, { body: b = {} }) => {
@@ -199,8 +205,8 @@ function createClinicToolsRouter(pool,{payments}={}) {
       COALESCE((SELECT json_agg(COALESCE(aps.service_name,s.name) ORDER BY s.name)
         FROM appointment_services aps JOIN services s ON s.id=aps.service_id WHERE aps.appointment_id=a.id),'[]'::json) AS services
       FROM appointments a LEFT JOIN dentists d ON d.id=a.dentist_id
-      WHERE a.clinic_id=$1 AND ($2='all' OR a.status=$2 OR ($2='reschedule_requests' AND EXISTS(SELECT 1 FROM appointment_changes ac WHERE ac.appointment_id=a.id AND ac.status='pending'))) ORDER BY a.created_at DESC,a.id DESC LIMIT 100`, [clinic.id,status]);
-    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review'", [clinic.id]);
+      WHERE a.clinic_id=$1 AND ($3::uuid IS NULL OR a.dentist_id=$3) AND ($2='all' OR a.status=$2 OR ($2='reschedule_requests' AND EXISTS(SELECT 1 FROM appointment_changes ac WHERE ac.appointment_id=a.id AND ac.status='pending'))) ORDER BY a.created_at DESC,a.id DESC LIMIT 100`, [clinic.id,status,clinic.dentistId || null]);
+    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review' AND ($2::uuid IS NULL OR dentist_id=$2)", [clinic.id,clinic.dentistId || null]);
     return { appointments: result.rows, pendingAppointments: pending.rows[0].count };
   });
   endpoint("put", "/appointments/:id/review", async (db, clinic, req) => {
@@ -228,7 +234,7 @@ function createClinicToolsRouter(pool,{payments}={}) {
     }
     await db.query(`UPDATE appointments SET status=$1,review_notes=$2,reviewed_by=$3,reviewed_at=CURRENT_TIMESTAMP,
       updated_at=CURRENT_TIMESTAMP WHERE id=$4 AND clinic_id=$5`, [decision,notes.trim() || null,req.user.id,appointment.id,clinic.id]);
-    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review'", [clinic.id]);
+    const pending = await db.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND status='pending_review' AND ($2::uuid IS NULL OR dentist_id=$2)", [clinic.id,clinic.dentistId || null]);
     return { appointment: { id: appointment.id, status: decision, reviewNotes: notes.trim() || null }, pendingAppointments: pending.rows[0].count };
   });
   return router;

@@ -205,7 +205,7 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState(""), [notice, setNotice] = useState("");
   const [attempt, setAttempt] = useState(0), [version, setVersion] = useState(0);
   const staffRole=data?.clinic.staffRole || clinic.staffRole || 'owner';
-  const allowedSections=sections.filter(item=>staffRole==='appointments' ? ['appointments','schedules'].includes(item.id) : item.id!=='staff' || staffRole==='owner');
+  const allowedSections=sections.filter(item=>staffRole==='dentist' ? item.id==='appointments' : staffRole==='appointments' ? ['appointments','schedules'].includes(item.id) : item.id!=='staff' || staffRole==='owner');
   const section=allowedSections.find(item=>item.id===params.get('section')) || allowedSections[0];
   const heading = useRef(null);
   const base = "/workspaces/clinic/manage", query = owner ? `?clinicId=${encodeURIComponent(clinicId)}` : "";
@@ -229,7 +229,7 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
       {clinicPicker}
       <button className="clinic-mobile-menu" aria-label={navigationOpen ? "Close clinic navigation" : "Open clinic navigation"} aria-expanded={navigationOpen} aria-controls="clinic-navigation" onClick={() => setNavigationOpen(value => !value)}><Menu size={19} /><span>{section.label}</span><ChevronDown size={17} /></button>
       <nav id="clinic-navigation" className="clinic-navigation" aria-label="Clinic workspace"><p className="clinic-nav-caption">WORKSPACE</p>{allowedSections.map(({ id, label, icon: Icon }, index) => <div key={id}>{index === 3 && <p className="clinic-nav-caption">CLINIC SETUP</p>}<button className={`clinic-nav-link ${section.id === id ? "is-active" : ""}`} aria-current={section.id === id ? "page" : undefined} aria-label={label} onClick={() => navigate(id)}><Icon size={19} /><span>{id === "appointments" ? "Appointments" : label}</span>{id === "appointments" && pending > 0 && <b aria-hidden="true">{pending}</b>}</button></div>)}</nav>
-      <div className="clinic-sidebar-footer"><div className="clinic-account"><span className="clinic-avatar" aria-hidden="true">{initials(user.name)}</span><div><strong>{user.name}</strong><small>{owner ? "Owner access" : "Clinic staff"}</small></div></div>{signOut}</div>
+      <div className="clinic-sidebar-footer"><div className="clinic-account"><span className="clinic-avatar" aria-hidden="true">{initials(user.name)}</span><div><strong>{user.name}</strong><small>{owner ? "Owner access" : staffRole==='dentist' ? "Dentist · assigned visits" : "Clinic staff"}</small></div></div>{signOut}</div>
     </aside>
     <div className="clinic-content"><header className="clinic-page-header"><div><p className="clinic-breadcrumb">Clinic workspace <span>/</span> {section.title || section.label}</p><h1 ref={heading} tabIndex={-1}>{section.title || section.label}</h1><p>{section.description}</p></div><div className="clinic-header-actions">
       <div className="clinic-mobile-signout">{signOut}</div><button className="clinic-icon-button" aria-label="Refresh workspace" disabled={loading} aria-busy={loading} onClick={() => setAttempt(value => value + 1)}><RefreshCw size={18} /></button>
@@ -241,11 +241,11 @@ export function ClinicTools({ clinicId, owner, clinic, counts, user, clinicPicke
         {section.id === "payments" && data.clinic.id === clinicId && <ClinicPayments key={`${clinicId}:${version}`} data={data} request={request} saved={saved} receiptBase={id => `${base}/payments/${id}/receipt${query}`} />}
         {section.id === "policies" && <ClinicChangePolicy key={`${clinicId}:${version}`} clinic={data.clinic} request={request} saved={saved} />}
         {section.id === "profile" && <Profile key={version} clinic={data.clinic} request={request} saved={saved} />}
-        {section.id === 'staff' && <ClinicStaff key={clinicId} request={request} />}
+        {section.id === 'staff' && <ClinicStaff key={clinicId} request={request} dentists={data.dentists} />}
         {section.id === 'intake' && <ClinicIntakeSettings key={clinicId} request={request} services={data.services} />}
         {(section.id === "services" || section.id === "dentists") && <Catalog key={section.id} type={section.id} data={data[section.id]} services={data.services} assignments={data.assignments || []} request={request} saved={saved} />}
         {section.id === "schedules" && <Schedules data={data} request={request} saved={saved} navigate={navigate} />}
-        {section.id === "appointments" && <ClinicInbox request={request} onReviewed={pendingAppointments => { setData(previous => ({ ...previous, pendingAppointments })); onUpdated({ ...data, pendingAppointments }); }} />}
+        {section.id === "appointments" && <ClinicInbox dentist={staffRole==='dentist'} request={request} onReviewed={pendingAppointments => { setData(previous => ({ ...previous, pendingAppointments })); onUpdated({ ...data, pendingAppointments }); }} />}
       </>}
       <footer className="clinic-content-footer">DentaBook clinic workspace <span>All appointment times use Philippine time (UTC+8).</span></footer>
     </div>

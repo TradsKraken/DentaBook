@@ -78,6 +78,8 @@ Done when clinics can manage exceptions without publishing unusable slots or sil
 
 ### 7. Visit completion
 
+Implemented in development source; not yet live. See [completion, intake, and dentist access](18_VISIT_INTAKE_DENTIST_ACCESS.md).
+
 - [ ] Define eligible completion transitions and staff permissions, including treatment of cancelled and future visits.
 - [ ] Add an authorized completion action with staff identity and timestamp.
 - [ ] Keep visit completion and payment status separate; completion must not imply an unpaid balance was collected.
@@ -86,6 +88,8 @@ Done when clinics can manage exceptions without publishing unusable slots or sil
 Done when clinics can record completed visits and patients see the saved outcome.
 
 ### 8. Patient feedback
+
+Private, appointment-linked feedback is implemented in development source; not yet live. Public reviews, moderation, and published ratings remain future work.
 
 - [ ] Permit feedback only from the owning patient after an eligible completed visit, with duplicate protection.
 - [ ] Add review submission, moderation/reporting rules, and appropriate patient identity display.

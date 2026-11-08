@@ -46,6 +46,7 @@ function createWorkspaceRouter(pool,{payments,changes}={}) {
   changeEndpoint('post','/appointments/:id/cancel',req=>changes.change(req.params.id,req.user.id,'cancel',req.body || {}));
   changeEndpoint('post','/appointments/:id/reschedule',req=>changes.change(req.params.id,req.user.id,'reschedule',req.body || {}));
   changeEndpoint('post','/appointments/:id/changes/:changeId/withdraw',req=>changes.withdraw(req.params.id,req.user.id,req.params.changeId));
+  router.use('/patient',requireRole('patient'),require('../visits').createFeedbackRouter(pool));
   router.use('/patient',requireRole('patient'),changeRouter);
   router.use('/patient',requireRole('patient'),require('../intake').createPatientIntakeRouter(pool));
   router.use("/patient", requireRole("patient"), createPatientBookingRouter(pool),createPatientPaymentRouter(pool,payments));
@@ -75,6 +76,11 @@ function createWorkspaceRouter(pool,{payments,changes}={}) {
         return res.status(403).json({
           error: "Clinic approval is required to access the dashboard.",
         });
+      if (clinic.staffRole==='dentist') {
+        clinic=await require('../clinic-access').clinicAccess(pool,req);
+        const pending=(await pool.query("SELECT COUNT(*)::int AS count FROM appointments WHERE clinic_id=$1 AND dentist_id=$2 AND status='pending_review'",[clinic.id,clinic.dentistId])).rows[0].count;
+        return res.json({clinic,counts:{dentists:0,services:0,pendingAppointments:pending}});
+      }
       const result = await pool.query(
         `SELECT
         (SELECT COUNT(*)::int FROM dentists WHERE clinic_id = $1 AND is_active = TRUE) AS dentists,
