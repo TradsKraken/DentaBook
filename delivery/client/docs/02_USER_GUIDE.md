@@ -1,6 +1,6 @@
 # User guide
 
-**Current through the live release of 5 November 2026.**
+**Current through the live release of 8 November 2026.**
 
 For a visual walkthrough, see the [patient, clinic, and administrator workflows](11_DIAGRAMS_AND_WORKFLOWS.md).
 
@@ -36,7 +36,7 @@ Opening a personal page while signed out leads to patient sign-in. After a succe
 1. Open **Book an appointment** or a clinic’s **Request an appointment** link.
 2. Select a clinic, treatment, assigned dentist, and date.
 3. Choose an available time and check the estimated cost. Your account email is filled when available; you may enter a different appointment contact email without changing your account email or appointment ownership. Check your phone number and add optional visit notes.
-4. Submit once and read the saved request code. The initial status is **pending review**.
+4. Answer the clinic’s applicable intake questions and explicitly agree to share your answers. Required answers and booking save together; refresh options if the questions changed. Submit once and read the saved request code. The initial status is **pending review**.
 5. Open **My appointments** and use **Refresh appointments** to see the clinic’s decision and note.
 
 Accounts without an email can enter a valid appointment contact email. An appointment contact email never grants access to the account.
@@ -118,3 +118,21 @@ A review records the decision, reviewer, time, and notes. Approval is an applica
 Choose **Sign out** before using a shared device or changing between patient and clinic accounts. Those two roles share the main website's browser session. Administrator access has its own hostname and session. Administrator sessions last one hour; patient and clinic sessions last eight hours unless revoked earlier.
 
 If sign-in expires, sign in again. Changing a password or account role through an authorized maintenance process revokes existing sessions.
+
+## Ask your chosen clinic before booking
+
+Open a clinic profile and choose **Ask about a concern**, or open **My clinic concerns**. Sign in, choose the clinic, and describe your symptoms and reason for a check-up (10–4,000 characters). Only this clinic receives it. One open concern is allowed per clinic; another draft moves to the existing conversation’s reply field. Up to three new concerns are allowed in 24 hours and five messages per minute per author.
+
+An active owner-invited dentist opens **Patient concerns**, reads an unassigned conversation and selects **Accommodate patient**. Only the first successful claim assigns the dentist. The patient sees the assigned dentist’s name. Dentists see their own assigned concerns and the unassigned queue, while authorized clinic staff can triage concerns. Owners/managers may reassign to an active dentist with a reason. Replies and management history stay private to the patient and authorized clinic.
+
+Staff can close, mark spam or reopen a concern. Owners/managers can impose a clinic-specific 24-hour restriction or remove it, with patient-visible reasons. These actions do not restrict appointment booking at other clinics. Accommodating a concern does not reserve a time or confirm an appointment; use **Book an appointment with this clinic** when ready.
+
+## Notification tabs
+
+Patients use the header bell or **Notifications** link. Clinics and dentists use **Notifications** in the workspace menu. New concerns and patient replies notify the chosen clinic; clinic replies, assignment and management updates notify the patient. Notifications respect current access, refresh every 30 seconds while visible and on focus, and link to the related concern. Use **Mark as read** or **Mark all as read**; each person has their own saved read state. Previous/Next controls reach older notifications. Email/SMS, device push, and appointment reminders are not enabled.
+
+## Dentist access, completed visits and feedback
+
+Owners choose **Staff access**, invite a **Dentist**, and link an active dentist profile from their clinic. The dentist accepts the private single-use invitation and signs in at `/clinic/sign-in`. A public profile alone grants no account access. Dentists review only assigned appointments and see their private intake/follow-up. They cannot manage staff, payments, clinic setup, or appointment changes. Removing access, hiding the profile or suspending the clinic removes access on subsequent requests.
+
+After a confirmed visit’s scheduled end, authorized staff or the assigned dentist can confirm attendance and select **Mark visit completed**. Resolve pending appointment changes first. Completion records the staff member/time; it does not collect payment or change unpaid status. The patient then opens **My appointments**, chooses a rating (1–5), and submits optional feedback once. Feedback is private to the patient and authorized clinic staff; no public rating is published.

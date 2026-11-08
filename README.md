@@ -24,7 +24,7 @@ Cancellation and clinic-approved rescheduling are now live, released and verifie
 
 Released to production on 5 November 2026: clinic-configured private intake, saved clinic follow-up/patient replies, patient name/phone/password editing, owner-managed manager/appointment-staff invitations, and easier multi-dentist/multi-day working hours with split shifts and editing. See [intake, staff access, and working hours](docs/17_INTAKE_STAFF_AND_HOURS.md). These changes are live and verified through the production portals. Account-email editing awaits verified delivery; follow-up currently appears in the signed-in portals.
 
-Notifications, completion, feedback, password recovery, verified email changes, date-specific closures, automated refunds, cash-collection recording, dentist-specific access/MFA, and complete history pagination remain future increments.
+Email/SMS notifications, public reviews/moderation, password recovery, verified email changes, date-specific closures, automated refunds, cash-collection recording, MFA, and complete appointment/payment history pagination remain future increments.
 
 ## Development on this server
 
@@ -136,12 +136,12 @@ Run `sync.bat`, or `./sync.ps1 -Message "Describe your changes"` from the reposi
 
 Include frontend, backend, required configuration, and client documentation. Exclude `internal/`, private environment files, and developer records. See [internal delivery notes](internal/README.md).
 
-## Current development increment
+## Released 8 November 2026
 
-Visit completion with an audit trail, private patient feedback, intake during booking submission, and owner-invited dentist access restricted to assigned appointments are implemented in development. They have not been released to production. See [behavior and access rules](docs/18_VISIT_INTAKE_DENTIST_ACCESS.md).
+Visit completion with an audit trail, private patient feedback, intake during booking submission, and owner-invited dentist access restricted to assigned appointments are live in production, released 8 November 2026. See [behavior and access rules](docs/18_VISIT_INTAKE_DENTIST_ACCESS.md).
 
-## Clinic concerns — development preview
+## Clinic concerns — live 8 November 2026
 
-Patients can use **Ask about a concern** on a clinic profile or **My clinic concerns** to send symptoms and questions to their chosen clinic. Linked dentists use **Patient concerns → Accommodate patient**; the first claim assigns the dentist. Private replies, clinic spam controls, reversible restrictions, and server-enforced submission/message limits are available in development. Concerns do not confirm appointments. See [workflow and controls](docs/19_PATIENT_CONCERNS.md). This increment is not released to production.
+Patients can use **Ask about a concern** on a clinic profile or **My clinic concerns** to send symptoms and questions to their chosen clinic. Linked dentists use **Patient concerns → Accommodate patient**; the first claim assigns the dentist. Private replies, clinic spam controls, reversible restrictions, and server-enforced submission/message limits are live in production. Concerns do not confirm appointments. See [workflow and controls](docs/19_PATIENT_CONCERNS.md). This increment was released 8 November 2026.
 
-Concern updates also have patient and clinic **Notifications** tabs, unread indicators, persistent per-user read status, and links back to conversations. This is in-app delivery in the development preview; see [notification scope](docs/20_CONCERN_NOTIFICATIONS.md).
+Concern updates also have patient and clinic **Notifications** tabs, unread indicators, persistent per-user read status, and links back to conversations. This is live in-app delivery; see [notification scope](docs/20_CONCERN_NOTIFICATIONS.md).

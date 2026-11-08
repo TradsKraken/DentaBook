@@ -1,6 +1,6 @@
 # Concern notifications
 
-Development preview increment; not a production release.
+Live in production, released 8 November 2026.
 
 Patients have `/patient/notifications`, accessible from the header bell, appointment navigation, and footer. Clinic staff and linked dentists have a Notifications tab in the clinic workspace.
 
@@ -21,3 +21,5 @@ Available in the rebuilt development preview at `http://10.10.1.113:3013`; migra
 The backend regression run passed 92 checks, with six existing environment-specific checks skipped. All 13 feature-suite checks passed on disposable PostgreSQL, including notification ownership, per-user reads, transactional duplicate protection, current dentist visibility, pagination boundaries and mark-all-read across pages. Existing browser regressions passed 34 checks after correcting and rerunning the phone-header layout check; eight environment-specific journeys were skipped. Two Nginx navigation/security checks passed against the built development preview.
 
 The real API/PostgreSQL notification browser journey passed clinic and patient notification lists, individual/all read actions, read-state persistence after reload, and links to the correct private concern. Interfaces passed at 390px, 320px, 768px and 1440px; patient phone screenshots were visually reviewed. All test records stayed in disposable databases.
+
+Production release: 8 November 2026. Application commit `618b34d`; migrations 008–010 applied through the restore-point release manager. Current customer data was retained. Earlier development-only verification notes above describe the original test stage.

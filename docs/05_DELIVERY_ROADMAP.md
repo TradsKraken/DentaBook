@@ -1,6 +1,6 @@
 # DentaBook completion checklist
 
-Updated 5 November 2026. Work through the numbered items in order unless a requested feature takes priority. This is a development checklist, not a website release announcement. Checking a development task does not mean it is live in production.
+Updated 8 November 2026. Work through the numbered items in order unless a requested feature takes priority. This is a development checklist, not a website release announcement. Checking a development task does not mean it is live in production.
 
 ## Already implemented
 
@@ -49,6 +49,8 @@ Completed and live: pending requests preserve the original reservation, and clin
 
 ### 4. Email notifications and reminders
 
+In-app notifications for clinic concerns are live as of 8 November 2026. Email delivery and appointment reminders below remain future work.
+
 - [ ] Configure a real email provider and sender; decide notification preferences and reminder timing. SMS is a later optional channel.
 - [ ] Add durable queued delivery with retries, duplicate prevention, and delivery/failure records.
 - [ ] Send appointment requests/decisions, confirmations, cancellations, and rescheduling updates to the saved appointment contact email.
@@ -78,23 +80,23 @@ Done when clinics can manage exceptions without publishing unusable slots or sil
 
 ### 7. Visit completion
 
-Implemented in development source; not yet live. See [completion, intake, and dentist access](18_VISIT_INTAKE_DENTIST_ACCESS.md).
+Released and live on 8 November 2026. See [completion, intake, and dentist access](18_VISIT_INTAKE_DENTIST_ACCESS.md).
 
-- [ ] Define eligible completion transitions and staff permissions, including treatment of cancelled and future visits.
-- [ ] Add an authorized completion action with staff identity and timestamp.
-- [ ] Keep visit completion and payment status separate; completion must not imply an unpaid balance was collected.
-- [ ] Test duplicate completion, invalid transitions, and cross-clinic access.
+- [x] Define eligible completion transitions and staff permissions, including treatment of cancelled and future visits.
+- [x] Add an authorized completion action with staff identity and timestamp.
+- [x] Keep visit completion and payment status separate; completion must not imply an unpaid balance was collected.
+- [x] Test duplicate completion, invalid transitions, and cross-clinic access.
 
 Done when clinics can record completed visits and patients see the saved outcome.
 
 ### 8. Patient feedback
 
-Private, appointment-linked feedback is implemented in development source; not yet live. Public reviews, moderation, and published ratings remain future work.
+Private, appointment-linked feedback is live, released 8 November 2026. Public reviews, moderation, and published ratings remain future work.
 
-- [ ] Permit feedback only from the owning patient after an eligible completed visit, with duplicate protection.
+- [x] Permit feedback only from the owning patient after an eligible completed visit, with duplicate protection.
 - [ ] Add review submission, moderation/reporting rules, and appropriate patient identity display.
 - [ ] Show only real published feedback and calculate ratings only from eligible records.
-- [ ] Test unauthorized submissions, moderation visibility, and empty states.
+- [x] Test unauthorized submissions, private feedback visibility, and empty states. Public moderation remains future work.
 
 Done when completed visits can produce authentic, appropriately moderated feedback. Depends on item 7.
 
@@ -122,7 +124,7 @@ Done when clinics can gather necessary information and follow up through a saved
 
 - [x] Let patients edit name/phone and change passwords using their current password; password changes revoke all sessions. Account-email editing remains unavailable pending verified delivery in items 4–5.
 - [x] Add owner-managed private staff invitations, clinic membership, manager/appointment-staff permissions, role changes, immediate revocation, and audit events.
-- [x] Keep dentist logins and MFA explicitly outside these roles until their separate access/MFA requirements are agreed. Dentist profiles do not grant sign-in access.
+- [x] Dentist access is now owner-invited, linked to an active profile, and restricted to assigned appointments/concerns. Dentist profiles alone grant no access; MFA remains future work.
 - [x] Test invitation expiry/reuse/replacement, revoked sessions, role escalation, cross-clinic/portal boundaries, and mobile journeys.
 
 Released 5 November 2026: patients use **My account**; clinic owners use **Staff access**. Invitations expire after 48 hours and are shared directly by the owner, with no claim of email delivery. Managers cannot manage staff; appointment staff access appointments/intake/follow-up and working hours.

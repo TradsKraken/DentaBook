@@ -2,7 +2,7 @@
 
 ## Purpose
 
-DentaBook helps people browse approved clinics, explore treatments, estimate published costs, and request appointments. The source in this delivery matches the production features released through 5 November 2026. Clinic review, direct GCash verification, unpaid Pay at clinic confirmation, cancellation/rescheduling, private intake/follow-up, profile/password editing, and scoped staff access are live.
+DentaBook helps people browse approved clinics, explore treatments, estimate published costs, and request appointments. The source in this delivery matches the production features released through 8 November 2026. Clinic review, direct GCash verification, unpaid Pay at clinic confirmation, cancellation/rescheduling, private intake/follow-up, profile/password editing, and scoped staff access are live.
 
 ## Who uses the website
 
@@ -23,7 +23,7 @@ The calculator estimates published costs without creating a booking or collectin
 
 Clinics supply their own intake questions and purpose/retention statements. Answers remain private to the patient and authorized clinic staff; follow-up appears in the signed-in portals. Retention statements do not trigger automatic record deletion. Owners share staff invitations directly, without automated email delivery.
 
-Notifications/reminders, password recovery, verified email changes, closures/buffers, reservation expiry, completion/feedback, cash collection/refund recording, dentist-specific sign-in/MFA, complete history pagination, and expanded off-host recovery remain planned. See the [status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md).
+Email/SMS/push and automated reminders, password recovery, verified email changes, closures/buffers, reservation expiry, public reviews/moderation, cash collection/refund recording, MFA, complete appointment/payment history pagination, and expanded off-host recovery remain planned. Clinic concerns, in-app notifications, dentist access, completion and private feedback are live. See the [status and development plan](06_STATUS_AND_DEVELOPMENT_PLAN.md).
 
 ## Interface and handoff
 

@@ -44,6 +44,23 @@ test.describe("production public and administrator listeners", () => {
     expect((await request.get(origins.admin + "/index.html")).status()).toBe(404);
   });
 
+  test("concerns and notifications require sessions and stay outside administration", async ({ page, request }) => {
+    for (const portal of ['patient','clinic']) {
+      for (const resource of ['concerns','notifications']) {
+        const path=`/api/workspaces/${portal}/${resource}`;
+        expect((await request.get(origins.public+path)).status()).toBe(401);
+        expect((await request.get(origins.admin+path)).status()).toBe(404);
+      }
+    }
+    for (const path of ['/patient/concerns','/patient/notifications']) {
+      await page.goto(origins.public+path);
+      await expect(page.getByRole('heading',{name:'Sign in to continue.',exact:true})).toBeVisible();
+      const url=new URL(page.url());expect(url.origin).toBe(new URL(origins.public).origin);expect(url.searchParams.get('next')).toBe(path);
+    }
+    await page.goto(origins.public+'/clinic?section=notifications');
+    await expect(page.getByRole('heading',{name:'Sign in to your clinic.',exact:true})).toBeVisible();
+  });
+
   test("live portal journeys preserve their origin and work on phones, tablets, and desktop", async ({ page }) => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));

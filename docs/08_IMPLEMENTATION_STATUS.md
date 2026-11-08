@@ -1,6 +1,6 @@
 # Incremental implementation status
 
-Updated 5 November 2026. The [ordered completion checklist](05_DELIVERY_ROADMAP.md) tracks the remaining work.
+Updated 8 November 2026. The [ordered completion checklist](05_DELIVERY_ROADMAP.md) tracks the remaining work.
 
 ## Live foundation
 
@@ -24,7 +24,7 @@ Rescheduling retains the original booking until clinic approval atomically reche
 
 ## Remaining work
 
-Notifications/reminders, password recovery and verification (including verified account-email changes), date-specific closures and scheduling buffers, reservation expiry, visit completion, feedback, cash collection/refunds, dentist-specific sign-in/MFA, full history pagination, and expanded monitoring/off-host recovery remain future increments. A payment gateway is optional later work.
+Email/SMS/push and reminders, password recovery and verification (including verified account-email changes), date-specific closures and scheduling buffers, reservation expiry, public reviews/moderation, cash collection/refunds, MFA, full history pagination, and expanded monitoring/off-host recovery remain future increments. A payment gateway is optional later work.
 
 ## Intake, staff access, and easier working hours — released 5 November 2026
 
@@ -46,14 +46,16 @@ Release-manager safeguard tests and the existing restore-point integrity checks 
 
 The appointment-change release passed seven additional checks against the deployed HTTPS website: four real portal/security journeys and three interface journeys using test-only API fixtures. The production migration and disabled default policy settings were verified without inserting customer records. All three retained restore points passed integrity verification.
 
-## Visit completion, feedback, booking intake, and dentist access — development
+## Visit completion, feedback, booking intake, and dentist access — live 8 November 2026
 
-Available in the rebuilt development preview and verified with isolated API/browser journeys; not released to production. Confirmed past visits can be completed with staff identity/time while payment status remains unchanged. Owning patients can submit private feedback once. Clinic-configured intake is required during booking submission and saves atomically with the appointment. Owners can invite a dentist linked to an active profile; server checks restrict the account to assigned appointment review, intake/follow-up, completion, and feedback. See [behavior and access rules](18_VISIT_INTAKE_DENTIST_ACCESS.md). Public ratings, MFA, and email notifications remain outside this increment.
+Released to production on 8 November 2026 after isolated API/browser verification. Confirmed past visits can be completed with staff identity/time while payment status remains unchanged. Owning patients can submit private feedback once. Clinic-configured intake is required during booking submission and saves atomically with the appointment. Owners can invite a dentist linked to an active profile; server checks restrict the account to assigned appointment review, intake/follow-up, completion, and feedback. See [behavior and access rules](18_VISIT_INTAKE_DENTIST_ACCESS.md). Public ratings, MFA, and email notifications remain outside this increment.
 
-## Patient clinic concerns — development preview
+## Patient clinic concerns — live 8 November 2026
 
-Clinic-specific concern conversations, first-dentist accommodation, patient/clinic replies, reasoned reassignment, reversible spam classification, clinic-specific 24-hour restrictions, and server-enforced daily/message limits are implemented. One open conversation is allowed per patient per clinic. Guests must sign in, with the chosen clinic preserved. Duplicate submissions reuse saved records and additional drafts are retained for replying. Appointment booking remains separate. See [clinic concern rules](19_PATIENT_CONCERNS.md). Not released to production.
+Clinic-specific concern conversations, first-dentist accommodation, patient/clinic replies, reasoned reassignment, reversible spam classification, clinic-specific 24-hour restrictions, and server-enforced daily/message limits are implemented. One open conversation is allowed per patient per clinic. Guests must sign in, with the chosen clinic preserved. Duplicate submissions reuse saved records and additional drafts are retained for replying. Appointment booking remains separate. See [clinic concern rules](19_PATIENT_CONCERNS.md). Released to production on 8 November 2026.
 
-## Concern notification tabs — development preview
+## Concern notification tabs — live 8 November 2026
 
-Persistent in-app notifications now cover new clinic concerns, patient/clinic replies, assignment and concern-management updates. Patients have a Notifications page and header bell; clinic staff/dentists have a Notifications tab with unread counts. Read state is individual and durable, with mark-all/read actions, paginated history, authorized concern links, and periodic refresh. No email/SMS/push or appointment-reminder delivery is claimed. See [notification scope and access](20_CONCERN_NOTIFICATIONS.md). Not released to production.
+Persistent in-app notifications now cover new clinic concerns, patient/clinic replies, assignment and concern-management updates. Patients have a Notifications page and header bell; clinic staff/dentists have a Notifications tab with unread counts. Read state is individual and durable, with mark-all/read actions, paginated history, authorized concern links, and periodic refresh. No email/SMS/push or appointment-reminder delivery is claimed. See [notification scope and access](20_CONCERN_NOTIFICATIONS.md). Released to production on 8 November 2026.
+
+Production release on 8 November 2026 used committed application source `618b34d`. Migrations 008–010 are applied; current customer data was retained. Verified pre-release restore point: `20261108T073434221646Z-58962be0`. Five restore points are retained.

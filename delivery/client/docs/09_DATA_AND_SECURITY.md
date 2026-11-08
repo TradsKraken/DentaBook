@@ -17,7 +17,7 @@ The [diagram guide](11_DIAGRAMS_AND_WORKFLOWS.md) includes the current session-c
 | Private intake | Patient-authorized submissions with consent, question/version/purpose/retention snapshots, authors, and timestamps |
 | Follow-up | Saved clinic information requests and owning-patient replies; appointment/payment status stays separate |
 | Staff access | Clinic memberships, manager/appointment-staff roles, hashed expiring invitation tokens, and access audit events |
-| Reviews | Completed-visit review workflows remain planned |
+| Reviews | One private feedback record for an eligible completed visit; no public ratings |
 
 Database relationships link clinics to their owners, dentists/services to clinics, and appointments to patients and clinics. The API uses the session's account identity for private data rather than trusting a patient or clinic identifier supplied by the browser.
 
@@ -39,7 +39,7 @@ API processes run as a non-root account with a read-only container filesystem, t
 
 Public browser HTTPS has been verified. For this deployment, NPM Force SSL is off and HTTP/2 Support is on; forcing a redirect at NPM caused a public redirect loop. The Force SSL switch is a redirect setting, not proof of encryption on every connection. Cloudflare-to-NPM transport depends on its separate origin/TLS configuration and was not established by these redirect checks. The NPM-to-application LAN hop and application-to-database Docker hop are not encrypted by the current setup. Database-volume and backup encryption are not automatically configured.
 
-MFA, self-service password recovery, email verification, durable shared request throttling, and a full security audit trail are future work. Current request limits are stored in each API process's memory and reset with that process. The project has automated access-control tests; it has not undergone an independent penetration assessment.
+MFA, self-service password recovery, email verification, durable shared request throttling, and a full security audit trail are future work. Existing authentication/request middleware limits are stored in each API process’s memory and reset with that process. Concern creation/message limits use persisted records and transactional author locks. The project has automated access-control tests; it has not undergone an independent penetration assessment.
 
 Operators with host or database access can access stored records. Control access to hosting, database backups, source repositories, and configuration separately. Agree data retention, account support, and recovery responsibilities with the project owner before collecting additional information in later features.
 
@@ -61,4 +61,8 @@ Patients explicitly consent before submitting clinic questions. Only the owning 
 
 Owners manage 48-hour single-use invitations and staff access. Tokens are random, stored only as hashes, shown once, and carried in the invitation URL fragment rather than a query string. Acceptance cannot convert patient/admin accounts or join an already-active account to another clinic. Revocation removes clinic sessions and is independently enforced by membership checks; role changes apply to existing sessions. Access events retain actor/time and relevant role/invitation information. These events are not a claim of a complete platform security audit trail.
 
-Patient name/phone edits do not rewrite booked contacts. Password changes require the current password and revoke all sessions. Verified account-email changes, self-service recovery, email delivery, dentist-specific access, and MFA remain future work.
+Patient name/phone edits do not rewrite booked contacts. Password changes require the current password and revoke all sessions. Verified account-email changes, self-service recovery, email delivery and MFA remain future work. Dentist access is owner-invited and restricted to a linked active profile.
+
+## Newly persisted records
+
+Migration 008 adds completion author/time and linked dentist staff/invitation roles. Migration 009 adds clinic-specific concerns, private messages/management events and expiring clinic-specific restrictions. Migration 010 adds concern notifications and individual read records. Notification titles exclude symptom excerpts; thread links recheck patient ownership and current clinic/dentist permissions. Reassignment removes former-dentist notification access. Failed concern writes roll back their notifications; repeated retry keys do not duplicate them.

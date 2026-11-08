@@ -1,6 +1,14 @@
 # Delivery verification
 
-Latest application verification: **5 November 2026**. Private intake/follow-up, patient name/phone/password editing, scoped clinic staff access, and easier multi-dentist working hours are now live alongside booking, payments, cancellation, and rescheduling. Earlier checks below describe their historical increment.
+Latest application verification: **8 November 2026**. Clinic concerns, in-app notifications, restricted dentist access, intake during booking, visit completion and private patient feedback are live. Earlier sections below describe historical releases.
+
+## 8 November 2026 — Live concerns, notifications, dentist access and visit feedback
+
+- Runtime application source: `618b34d`. Migrations 008, 009 and 010 are applied in production. Release used the version-saving manager and retained the current database; five verified restore points are retained. The pre-release restore point is `20261108T073434221646Z-58962be0`.
+- Previous isolated validation passed 92 backend regression checks (six environment-specific checks skipped), all 13 real-PostgreSQL feature-suite checks, and the real notification/concern browser journey. Private access, competing claims, duplicate handling, intake rollback, completion/payment separation, feedback, persistent read states, pagination and spam controls were exercised without customer data.
+- Existing browser regressions passed 34 applicable checks after fixing/rechecking the phone header. Eight environment-specific journeys were skipped. The real concern/notification journeys checked 390px first, then 320px, 768px and 1440px; phone screenshots were visually reviewed.
+- Five post-deployment checks passed through the actual HTTPS public and administration origins: portal separation; protected concern/notification APIs and sign-in destinations; public/admin pages and controls at all four widths; legacy patient redirects; and first-party CSP/security headers with blocked inline script execution. Edge-injected third-party telemetry is outside the application-owned asset header check. No production account, clinic, concern, message, appointment or payment records were created.
+- The release-manager safeguard suite passed all 20 checks. These checks do not claim email/SMS/push delivery, public review moderation, MFA, an independent security audit, or off-host disaster recovery.
 
 ## Intake, staff, profiles, and easier hours — 5 November 2026 (live)
 

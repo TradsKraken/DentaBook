@@ -74,3 +74,9 @@ Verify required/optional and service-specific questions, purpose/retention state
 Verify profile edits leave account identity and existing booking contacts intact. A password change requires the current password and revokes every session. Invitations must be private, expire, accept once, reject another identity/portal, and respect active clinic membership. Managers cannot grant staff access; appointment staff cannot administer setup/payments. Role changes/revocation must apply to existing sessions, with access events retained.
 
 Check bulk hours across multiple dentists/days and split shifts; conflicting batches must not partially save, identical hours must not duplicate on retry, hidden/foreign dentists must be rejected, and edited hours must preserve appointment times. Verify 390px first, then 320px, 768px, and 1440px. The isolated real PostgreSQL/browser tests require explicit harness flags and must never target customer data.
+
+## Concern, notification, dentist and completion acceptance
+
+Verify clinic selection survives sign-in; one open concern is reused without losing a new draft; only the first competing dentist claim succeeds; former/foreign dentists cannot access reassigned concerns. Check private replies, daily/burst limits, reversible spam classification/restrictions, and unchanged booking access. Check notification count/list/read ownership, independent staff read states, retries, pagination, mark-all-read and concern links. Verify required intake and consent save atomically with booking. Complete only confirmed past visits after resolving pending changes; payment state must remain unchanged. Feedback is private, once per eligible visit.
+
+The delivered real-browser tests require explicit isolated-harness flags (`PLAYWRIGHT_CONCERNS_INTEGRATION`, `PLAYWRIGHT_NOTIFICATIONS_INTEGRATION`, `PLAYWRIGHT_VISIT_INTEGRATION`) and must never create test records in production.

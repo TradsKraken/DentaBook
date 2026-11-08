@@ -38,7 +38,9 @@ test("production responses enforce browser security headers and block inline scr
     return window.injectedScriptExecuted === true;
   });
   expect(executed).toBe(false);
-  const assets = await page.locator("script[src]").evaluateAll(scripts => scripts.map(script => script.src));
+  // Edge providers may inject third-party telemetry. Only application-owned assets inherit our Nginx headers.
+  const assets = (await page.locator("script[src]").evaluateAll(scripts => scripts.map(script => script.src)))
+    .filter(asset => new URL(asset).origin === new URL(response.url()).origin);
   expect(assets.length).toBeGreaterThan(0);
   for (const asset of assets) {
     const result = await request.get(asset);

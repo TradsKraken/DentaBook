@@ -1,6 +1,6 @@
 # Visit completion, booking intake, and dentist access
 
-Status: available in the development preview; not released to production.
+Status: live in production, released 8 November 2026.
 
 ## Behavior and access rules
 
@@ -19,3 +19,5 @@ The backend regression suite passed 90 active checks (six existing real-PostgreS
 The new real browser journey passed with the actual API and disposable PostgreSQL: owner dentist invitation, acceptance/sign-in, intake before booking, assigned dentist review, Pay at clinic confirmation, completion, feedback submission/reload, clinic feedback visibility, and unchanged unpaid status. The changed interfaces were checked first at 390px, then 320px, 768px, and 1440px for overflow, readable controls, and 44px actions. Phone screenshots were visually reviewed. Existing browser regressions passed 34 checks; the additional Nginx security-header check passed against the development preview (it is not applicable to Vite). Six environment-specific browser checks were skipped.
 
 Development preview: patient/clinic at `http://10.10.1.113:3013`; administration remains separate at port 3015. Production was not deployed.
+
+Production release: 8 November 2026. Application commit `618b34d`; migrations 008–010 applied through the restore-point release manager. Current customer data was retained. Earlier development-only verification notes above describe the original test stage.

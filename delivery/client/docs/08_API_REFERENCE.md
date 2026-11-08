@@ -68,7 +68,7 @@ Successful endpoints return JSON, except logout returns HTTP 204. Sign-in sets a
 | 429 | Temporary request-rate limit; follow `Retry-After` |
 | 503 | Service or database temporarily unavailable |
 
-Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are live. GCash and Pay at clinic endpoints are described below. Gateway callbacks, cash collection, refund actions, completion, and password-reset APIs are not delivered.
+Most errors use an `error` message, with `fields` where relevant. `/health` uses its status/database readiness structure. Clinic setup, availability, creation, and request-review APIs above are live. GCash and Pay at clinic endpoints are described below. Gateway callbacks, cash collection, refund actions and password-reset APIs are not delivered.
 
 ## Booking request contract (live)
 
@@ -130,3 +130,29 @@ Approved owning clinics use `PUT /api/workspaces/clinic/manage/appointment-polic
 Question objects contain UUID `id`, `label`, `type` (`text`/`yes_no`), boolean `required`, and `serviceId` (own-clinic service UUID or null). Up to 30 questions are supported; answers contain `questionId` and `value`. Submission records preserve question/policy snapshots and consent. Clinic settings use optimistic version checks; retries with changed content return conflict.
 
 Membership/approval is rechecked on clinic requests. Managers can use setup/payment tools but cannot administer staff; appointment staff can use appointments/intake/follow-up and working hours only. Platform-owner selectors retain `clinicId`; ordinary members cannot select another clinic. The earlier client-only `/schedules/weekly` endpoint is superseded by bulk assignment and individual editing in the current live release.
+
+## Concern, notification, and completed-visit APIs — live 8 November 2026
+
+All paths below are relative to `/api`, require the corresponding server-validated patient or clinic-staff session, and are blocked on the administrator listener. Mutations retain the request/origin checks described above. Platform owners selecting a clinic retain `clinicId`.
+
+| Method | Path | Behavior |
+| --- | --- | --- |
+| GET/POST | `/workspaces/patient/concerns` | Paginated own concerns (`offset`) or create with `clinicId`, `concern`, UUID `requestKey` |
+| GET | `/workspaces/patient/concerns/:id` | Own private concern and saved messages |
+| POST | `/workspaces/patient/concerns/:id/messages` | Own open-concern reply: `body`, UUID `requestKey` |
+| GET | `/workspaces/clinic/concerns` | Clinic queue, scoped to current dentist access where applicable |
+| GET | `/workspaces/clinic/concerns/:id` | Authorized private conversation |
+| POST | `/workspaces/clinic/concerns/:id/messages` | Authorized clinic reply: `body`, UUID `requestKey` |
+| POST | `/workspaces/clinic/concerns/:id/claim` | Active linked dentist claims an open unassigned concern |
+| POST | `/workspaces/clinic/concerns/:id/manage` | `action`, `reason`, UUID `requestKey`; reassign also needs clinic-owned active `dentistId` |
+| GET | `/workspaces/patient/notifications` | Own paginated notifications and unread count; `offset` or `summary=1` |
+| GET | `/workspaces/clinic/notifications` | Current clinic/dentist-scoped notifications and personal unread count |
+| POST | `/workspaces/{patient or clinic}/notifications/:id/read` | Mark one authorized notification read for this user |
+| POST | `/workspaces/{patient or clinic}/notifications/read-all` | Mark all currently authorized notifications read for this user |
+| POST | `/workspaces/clinic/manage/appointments/:id/complete` | `confirm: true`; confirmed past visits only, with no pending changes |
+| GET | `/workspaces/clinic/manage/appointments/:id/feedback` | Authorized private feedback and completion author/time |
+| GET/POST | `/workspaces/patient/appointments/:id/feedback` | Own eligible visit; submit integer `rating` (1–5) and string `comment` (up to 2,000 characters) once |
+
+Concern management actions are `close`, `spam`, `reopen`, `restrict`, `unrestrict`, `reassign`. The last three require owner/manager access. Create/reply limits are enforced with durable records and author locks. Notifications save transactionally through database triggers; read records are per user. Source contains no email/SMS or device-push delivery.
+
+Booking options include current clinic intake settings. When applicable questions are enabled, booking submission includes `intake: {version, consent: true, answers: [{questionId, value}]}`. The API validates the question version, consent and required answers, and saves the intake snapshot with the booking in one transaction. Staff invitations also support `role: "dentist"` with an active clinic-owned `dentistId`. Dentist appointment access remains restricted to their linked profile.

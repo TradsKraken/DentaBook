@@ -1,5 +1,12 @@
 # Website update history
 
+## 8 November 2026 — Clinic concerns, notifications, dentist access, intake at booking, and completed-visit feedback (live)
+
+Patients can send symptoms or questions to their chosen clinic. The first linked dentist to accommodate an unassigned concern becomes assigned; patients and authorized clinic staff exchange private replies. Patient and clinic Notifications show unread counts, individual read state, and links back to conversations. Clinics can collect required consented intake during booking, complete eligible confirmed visits, and receive private patient feedback afterward. Payment status stays separate from completion.
+
+Concern controls include one open conversation per patient per clinic, three new concerns per 24 hours, five messages per minute per author, duplicate protection, reasoned reassignment, reversible spam classification, and clinic-specific 24-hour restrictions. Dentist access uses owner invitations linked to an active clinic profile and the clinic sign-in. Notifications refresh while visible every 30 seconds and on focus; read status persists per person. Email/SMS/push, automated reminders, public ratings/moderation, and MFA remain future work. Released through the verified restore-point manager; current customer data was preserved.
+
+
 ## 5 November 2026 — Private intake, staff access, profiles, and easier working hours (live)
 
 Clinics configure required/optional intake questions for all treatments or one service, with a stated purpose/retention policy and explicit patient consent. Authorized staff read private answers, request information, and see the patient's saved response without changing appointment/payment state. Patients edit name/phone and change passwords using the current password; password changes sign out all devices. Owners share private 48-hour single-use invitations for managers and appointment staff, change roles, revoke access immediately, and view access history. Working hours now select multiple dentists/days, support split shifts and batch previews, reject overlaps atomically, retain identical shifts on retry, and allow individual shift edits. This replaces the earlier single-dentist weekly editor in the current release while retaining its historical record below. Existing appointments, quotes, payments, and receipts are preserved.
