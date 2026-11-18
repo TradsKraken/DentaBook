@@ -56,12 +56,12 @@ There is one open conversation per patient per clinic. If you start another conc
 ### 4. Request an appointment
 
 1. Choose **Request an appointment** on a clinic profile or open [Book a visit](https://dentabook.forgroup.space/patient/book).
-2. Select the clinic, treatment, dentist, visit date, and an available time.
-3. Check the estimated cost and contact details. The contact email may differ from your account email; changing it here does not change your account.
+2. Select the clinic, one or more treatments using checkboxes, dentist, visit date, and an available time.
+3. Check the combined estimated cost, duration, and contact details. The contact email may differ from your account email; changing it here does not change your account.
 4. Answer the clinic's required intake questions, if enabled, and agree to share those answers.
 5. Review the details and choose **Send appointment request**. Read and retain the saved appointment reference.
 
-The first status is **pending review**, not confirmed. One request covers one treatment and dentist. Times use Philippine time; availability can change before the request is saved. If a selected time is taken, refresh the available times and choose another.
+The first status is **pending review**, not confirmed. Requests cover the selected treatments with an available dentist. Times use Philippine standard time (12-hour AM/PM format); availability can change before the request is saved. If a selected time is taken, refresh the available times and choose another.
 
 <img src="docs/screenshots/patient-04-book-visit.png" alt="Step 4: appointment booking controls for treatment, dentist, date, time and patient details; all records and the displayed estimate are illustrative" width="800" />
 

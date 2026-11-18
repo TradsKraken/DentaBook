@@ -1,5 +1,10 @@
 # Website updates
 
+## 19 November 2026 — Multiple treatment selection in appointment requests and standard 12-hour AM/PM time (live)
+
+Patients can select multiple treatments using checkboxes when requesting an appointment, automatically calculating combined duration and total estimated cost while filtering dentists offering all chosen treatments and collecting relevant intake answers. Time displays across the site—including appointment slots, booked visits, weekly working schedules, deposit receipts, and reschedule requests—now use standard 12-hour AM/PM time for easier understanding. Redundant cost estimation has been removed from clinic visit planning.
+
+
 ## 8 November 2026 — Password visibility icon inside the input (live)
 
 The password visibility control is now a tappable eye icon inside the password input. There is no separate button box or visible Show/Hide text. Each field still starts hidden and has an independent, keyboard-accessible 44px control with an announced action/state. Input padding keeps the password text clear of the icon.

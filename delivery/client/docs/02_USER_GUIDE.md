@@ -34,14 +34,14 @@ Patient registration does not grant clinic or administrator access. Password rec
 Opening a personal page while signed out leads to patient sign-in. After a successful sign-in, the website returns to the requested patient page. To request a visit:
 
 1. Open **Book an appointment** or a clinic’s **Request an appointment** link.
-2. Select a clinic, treatment, assigned dentist, and date.
-3. Choose an available time and check the estimated cost. Your account email is filled when available; you may enter a different appointment contact email without changing your account email or appointment ownership. Check your phone number and add optional visit notes.
+2. Select a clinic, one or more treatments using checkboxes, an assigned dentist, and a date.
+3. Choose an available time (displayed in standard 12-hour AM/PM time) and check the combined estimated cost and duration. Your account email is filled when available; you may enter a different appointment contact email without changing your account email or appointment ownership. Check your phone number and add optional visit notes.
 4. Answer the clinic’s applicable intake questions and explicitly agree to share your answers. Required answers and booking save together; refresh options if the questions changed. Submit once and read the saved request code. The initial status is **pending review**.
 5. Open **My appointments** and use **Refresh appointments** to see the clinic’s decision and note.
 
 Accounts without an email can enter a valid appointment contact email. An appointment contact email never grants access to the account.
 
-All times use Philippine time. Requests cover one treatment, today through 90 days ahead, with 15 minutes of lead time. If a time or quote changes, refresh and choose from the current options. A saved pending request reserves the time while the clinic reviews it. Identical submission retries return the same saved request.
+All times use Philippine standard time (12-hour AM/PM format). Requests cover chosen treatments with an available dentist, today through 90 days ahead, with 15 minutes of lead time. If a time or quote changes, refresh and choose from the current options. A saved pending request reserves the time while the clinic reviews it. Identical submission retries return the same saved request.
 
 **Accepted** means the clinic accepted the request. Open **Deposit & payment details** to see the clinic’s enabled GCash and Pay at clinic options. GCash requires agreeing to the saved deposit/refund terms, transferring in your own GCash app to the displayed clinic account, then submitting the transaction reference. Never provide your PIN or OTP. Staff check their actual account before verifying payment; an eligible accepted visit is then confirmed and a deposit receipt is available to you. Pay at clinic requires staff confirmation and remains unpaid without a receipt. If no method is enabled, contact the clinic. A declined request shows the clinic’s reason. Use **Manage appointment** for cancellation or reschedule requests when enabled by the clinic. The clinic sets notice deadlines and terms; the original reservation remains until a requested replacement is approved. Cancellation preserves payments/receipts and may require refund review; it does not return money automatically.
 
