@@ -1,6 +1,6 @@
 const express = require("express");
-const {policyColumns,policyFrom,policyHash} = require("../appointment-changes");
-const {bookingIntake,saveBookingIntake}=require('../booking-intake');
+const { policyColumns, policyFrom, policyHash } = require("../appointment-changes");
+const { bookingIntake, saveBookingIntake } = require('../booking-intake');
 const crypto = require("node:crypto");
 const { email } = require("../validation");
 const { validId, timePattern, fail, bookingWindow, availability } = require("../booking");
@@ -28,12 +28,22 @@ function createPatientBookingRouter(pool) {
         FROM dentists d WHERE d.clinic_id=$1 AND d.is_active=TRUE ORDER BY d.full_name,d.id`, [clinic.id]);
       const patient = (await pool.query("SELECT full_name AS name,email,phone FROM users WHERE id=$1", [req.user.id])).rows[0];
       const { minDate, maxDate } = bookingWindow();
-      res.json({ intake:await bookingIntake(pool,clinic.id), changePolicy:policyFrom(clinic), changePolicyHash:policyHash(policyFrom(clinic)), clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
+      res.json({ intake: await bookingIntake(pool, clinic.id), changePolicy: policyFrom(clinic), changePolicyHash: policyHash(policyFrom(clinic)), clinic, services: services.rows, dentists: dentists.rows, patient, minDate, maxDate, timezone: "Asia/Manila" });
     } catch (error) { if (error.status) return res.status(error.status).json({ error: error.message }); next(error); }
   });
   router.get("/availability", async (req, res, next) => {
     try {
-      const selection = Object.fromEntries(["clinicId", "serviceId", "dentistId", "date"].map(key => [key, req.query[key]]));
+      const rawServices = req.query.serviceIds || req.query.serviceId;
+      const serviceIds = Array.isArray(rawServices)
+        ? rawServices
+        : (typeof rawServices === "string" ? rawServices.split(",").map(s => s.trim()).filter(Boolean) : []);
+      const selection = {
+        clinicId: req.query.clinicId,
+        dentistId: req.query.dentistId,
+        date: req.query.date,
+        serviceIds,
+        serviceId: serviceIds[0] || req.query.serviceId,
+      };
       if (!validId(selection.clinicId)) throw fail("Choose a clinic.");
       const clinic = await pool.query("SELECT id FROM clinics WHERE id=$1 AND status='approved'", [selection.clinicId]);
       if (!clinic.rows.length) throw fail("This clinic is no longer available for booking.", 404);
@@ -44,11 +54,16 @@ function createPatientBookingRouter(pool) {
     const b = req.body || {};
     let client;
     try {
-      if (![b.clinicId, b.serviceId, b.dentistId, b.requestKey].every(validId) || !timePattern.test(b.time) || typeof b.phone !== "string" || !/^[+0-9() .-]{7,30}$/.test(b.phone.trim()) || b.phone.replace(/\D/g, "").length < 7 || typeof b.notes !== "string" || b.notes.trim().length > 2000 || typeof b.expectedPrice !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(b.expectedPrice) || !Number.isInteger(b.expectedDuration))
+        const rawServices = b.serviceIds || b.serviceId;
+      const serviceIds = Array.isArray(rawServices)
+        ? rawServices
+        : (typeof rawServices === "string" ? rawServices.split(",").map(s => s.trim()).filter(Boolean) : []);
+      if (![b.clinicId, b.dentistId, b.requestKey].every(validId) || !serviceIds.length || !serviceIds.every(validId) || !timePattern.test(b.time) || typeof b.phone !== "string" || !/^[+0-9() .-]{7,30}$/.test(b.phone.trim()) || b.phone.replace(/\D/g, "").length < 7 || typeof b.notes !== "string" || b.notes.trim().length > 2000 || typeof b.expectedPrice !== "string" || !/^\d{1,8}(\.\d{1,2})?$/.test(b.expectedPrice) || !Number.isInteger(b.expectedDuration))
         throw fail("Choose an available time and enter valid contact details. Visit notes can contain up to 2,000 characters.");
       if (b.email !== undefined && !email(b.email)) throw fail("Enter a valid contact email for this appointment.");
+      const hashServiceKey = serviceIds.length === 1 && !b.serviceIds ? serviceIds[0] : serviceIds.slice().sort();
       const requestHash = contactEmail => crypto.createHash("sha256").update(JSON.stringify([
-        b.clinicId, b.serviceId, b.dentistId, b.date, b.time, contactEmail.trim().toLowerCase(),
+        b.clinicId, hashServiceKey, b.dentistId, b.date, b.time, contactEmail.trim().toLowerCase(),
         b.phone.trim(), b.notes.trim(), b.expectedPrice, b.expectedDuration,
         ...(b.intake ? [b.intake] : []),
       ])).digest("hex");
@@ -72,9 +87,9 @@ function createPatientBookingRouter(pool) {
       // availability, prices, assignments, and the reservation are checked atomically.
       const clinic = (await client.query(`SELECT c.id,${policyColumns} FROM clinics c WHERE c.id=$1 AND c.status='approved' FOR UPDATE`, [b.clinicId])).rows[0];
       if (!clinic) throw fail("This clinic is no longer available for booking.", 409);
-      const policy=policyFrom(clinic);
-      if (b.changePolicyHash !== undefined && b.changePolicyHash !== policyHash(policy)) throw fail("The clinic’s appointment policy changed. Reload booking options and review the terms.",409);
-      const available = await availability(client, b);
+      const policy = policyFrom(clinic);
+      if (b.changePolicyHash !== undefined && b.changePolicyHash !== policyHash(policy)) throw fail("The clinic’s appointment policy changed. Reload booking options and review the terms.", 409);
+      const available = await availability(client, { ...b, serviceIds, serviceId: serviceIds[0] });
       const slot = available.slots.find(item => item.time === b.time);
       if (!slot) throw fail("That time is no longer available. Refresh the available times and choose another slot.", 409);
       if (Number(available.service.price) !== Number(b.expectedPrice) || available.service.duration !== b.expectedDuration)
@@ -83,10 +98,13 @@ function createPatientBookingRouter(pool) {
       const result = await client.query(`INSERT INTO appointments
         (appointment_code,clinic_id,dentist_id,patient_user_id,patient_name,patient_email,patient_phone,appointment_date,start_time,end_time,estimated_total_cost,status,medical_notes,booking_request_key,booking_request_hash,change_policy_snapshot)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending_review',$12,$13,$14,$15::jsonb) RETURNING id`,
-        [code,b.clinicId,b.dentistId,req.user.id,patient.name,normalizedEmail,b.phone.trim(),b.date,slot.time,slot.end,available.service.price,b.notes.trim() || null,b.requestKey,hash,policy.cancelEnabled || policy.rescheduleEnabled ? JSON.stringify(policy) : null]);
+        [code, b.clinicId, b.dentistId, req.user.id, patient.name, normalizedEmail, b.phone.trim(), b.date, slot.time, slot.end, available.service.price, b.notes.trim() || null, b.requestKey, hash, policy.cancelEnabled || policy.rescheduleEnabled ? JSON.stringify(policy) : null]);
       const id = result.rows[0].id;
-      await client.query("INSERT INTO appointment_services (appointment_id,service_id,service_price,service_name) VALUES ($1,$2,$3,$4)", [id,b.serviceId,available.service.price,available.service.name]);
-      await saveBookingIntake(client,b.clinicId,b.serviceId,id,req.user.id,b.requestKey,b.intake);
+      const servicesToInsert = available.services || (available.service ? [available.service] : []);
+      for (const item of servicesToInsert) {
+        await client.query("INSERT INTO appointment_services (appointment_id,service_id,service_price,service_name) VALUES ($1,$2,$3,$4)", [id, item.id, item.price, item.name]);
+      }
+      await saveBookingIntake(client, b.clinicId, serviceIds, id, req.user.id, b.requestKey, b.intake);
       const appointment = await receipt(client, id, req.user.id);
       await client.query("COMMIT");
       res.status(201).json({ appointment });

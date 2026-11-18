@@ -192,6 +192,44 @@ test("patient requests and clinic decisions persist with protected, atomic reser
       const inbox=(await request(management+"/appointments?status=all",{cookie:staff.cookie})).data.appointments;
       assert.equal(inbox.find(item=>item.id===created.data.appointment.id).email,"contact@example.test");
     });
+    await t.test("patients can request appointments with multiple treatments, calculating combined duration, price, and breakdown atomically", async () => {
+      const secondServiceId = (await db.query("INSERT INTO services (clinic_id,name,category,estimated_price,duration_minutes) VALUES ($1,'Second treatment','Preventive',800.00,30) RETURNING id", [clinicId])).rows[0].id;
+      await db.query("INSERT INTO dentist_services (dentist_id,service_id) VALUES ($1,$2)", [dentistId, secondServiceId]);
+      const multiQuery = new URLSearchParams({ clinicId, dentistId, date });
+      multiQuery.append("serviceIds", serviceId);
+      multiQuery.append("serviceIds", secondServiceId);
+      const avail = await request(`${base}/availability?${multiQuery}`);
+      assert.equal(avail.status, 200);
+      assert.equal(avail.data.service.duration, 75);
+      assert.equal(Number(avail.data.service.price), 2000.50);
+      assert.equal(avail.data.services.length, 2);
+      const slot = avail.data.slots.find(s => s.time === "15:00");
+      assert.ok(slot);
+      assert.equal(slot.end, "16:15");
+      const multiBody = {
+        clinicId,
+        dentistId,
+        date,
+        time: "15:00",
+        serviceIds: [serviceId, secondServiceId],
+        email: "patient@example.test",
+        phone: "09123456789",
+        notes: "Multiple treatments test notes",
+        requestKey: crypto.randomUUID(),
+        expectedPrice: "2000.50",
+        expectedDuration: 75,
+      };
+      const created = await request(base + "/appointments", { method: "POST", body: multiBody });
+      assert.equal(created.status, 201);
+      assert.equal(Number(created.data.appointment.total), 2000.50);
+      assert.deepEqual(created.data.appointment.services.sort(), ["Original treatment", "Second treatment"]);
+      const storedServices = (await db.query("SELECT service_name,service_price FROM appointment_services WHERE appointment_id=$1 ORDER BY service_name", [created.data.appointment.id])).rows;
+      assert.equal(storedServices.length, 2);
+      assert.equal(storedServices[0].service_name, "Original treatment");
+      assert.equal(Number(storedServices[0].service_price), 1200.50);
+      assert.equal(storedServices[1].service_name, "Second treatment");
+      assert.equal(Number(storedServices[1].service_price), 800.00);
+    });
     await t.test("administrator API cannot reach patient or clinic booking routes",async()=>{
       process.env.APP_PORTAL="admin";
       assert.equal((await request(base+"/appointments",{method:"POST",body})).status,404);

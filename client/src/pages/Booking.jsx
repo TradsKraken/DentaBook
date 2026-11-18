@@ -13,15 +13,15 @@ function requestKey() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
   const hex = [...bytes].map(value => value.toString(16).padStart(2, "0")).join("");
-  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 export default function Booking() {
   const { session, refresh } = useAuth();
   const directory = useClinics();
   const params = new URLSearchParams(useLocation().search);
-  const [selection, setSelection] = useState({ clinicId: params.get("clinic") || "", serviceId: "", dentistId: "", date: "", time: "" });
+  const [selection, setSelection] = useState({ clinicId: params.get("clinic") || "", serviceIds: [], dentistId: "", date: "", time: "" });
   const [contact, setContact] = useState({ email: session.user.email || "", phone: "", notes: "" });
-  const [intakeAnswers,setIntakeAnswers]=useState({}),[intakeConsent,setIntakeConsent]=useState(false);
+  const [intakeAnswers, setIntakeAnswers] = useState({}), [intakeConsent, setIntakeConsent] = useState(false);
   const [key, setKey] = useState(requestKey);
   const [options, setOptions] = useState({ loading: false, error: "", data: null });
   const [times, setTimes] = useState({ loading: false, error: "", slots: [], service: null });
@@ -30,7 +30,7 @@ export default function Booking() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [receipt, setReceipt] = useState(null);
-  const { clinicId, serviceId, dentistId, date } = selection;
+  const { clinicId, serviceIds, dentistId, date } = selection;
   useEffect(() => {
     if (!clinicId || !directory.clinics.some(item => item.id === clinicId)) {
       setOptions({ loading: false, error: "", data: null }); return;
@@ -40,128 +40,200 @@ export default function Booking() {
     api(`/workspaces/patient/booking-options?clinicId=${encodeURIComponent(clinicId)}`, { signal: controller.signal })
       .then(data => {
         if (controller.signal.aborted) return;
-        setIntakeAnswers({});setIntakeConsent(false);
+        setIntakeAnswers({}); setIntakeConsent(false);
         setOptions({ loading: false, error: "", data });
-        setSelection(previous => ({ ...previous, serviceId: "", dentistId: "", time: "", date: data.minDate }));
+        setSelection(previous => ({ ...previous, serviceIds: [], dentistId: "", time: "", date: data.minDate }));
         setContact(previous => ({ ...previous, phone: previous.phone || data.patient?.phone || "" }));
       })
       .catch(error => {
         if (!controller.signal.aborted) {
           setOptions({ loading: false, error: error.message, data: null });
-          if (error.status === 401) refresh().catch(() => {});
+          if (error.status === 401) refresh().catch(() => { });
         }
       });
     return () => controller.abort();
   }, [clinicId, optionsAttempt, directory.clinics, refresh]);
   useEffect(() => {
     setSelection(previous => ({ ...previous, time: "" }));
-    if (!options.data || options.loading || !serviceId || !dentistId || !date) {
-      setTimes({ loading: false, error: "", slots: [], service: null }); return;
-    }
-    const controller = new AbortController();
-    setTimes({ loading: true, error: "", slots: [], service: null });
-    const query = new URLSearchParams({ clinicId, serviceId, dentistId, date });
-    api(`/workspaces/patient/availability?${query}`, { signal: controller.signal })
-      .then(data => { if (!controller.signal.aborted) setTimes({ loading: false, error: "", ...data }); })
-      .catch(error => {
-        if (!controller.signal.aborted) {
-          setTimes({ loading: false, error: error.message, slots: [], service: null });
-          if (error.status === 401) refresh().catch(() => {});
-        }
-      });
-    return () => controller.abort();
-  }, [clinicId, serviceId, dentistId, date, options.data, slotAttempt, refresh]);
-  function select(name, value) {
-    if (name==='clinicId' || name==='serviceId') {setIntakeAnswers({});setIntakeConsent(false);}
-    setKey(requestKey()); setError("");
-    setSelection(previous => ({ ...previous, [name]: value, time: "",
-      ...(name === "clinicId" ? { serviceId: "", dentistId: "", date: "" } : {}),
-      ...(name === "serviceId" ? { dentistId: "" } : {}),
-    }));
-  }
-  async function submit(event) {
-    event.preventDefault();
-    if (!times.service || !times.slots.some(slot => slot.time === selection.time)) { setError("Choose an available appointment time."); return; }
-    setBusy(true); setError("");
-    try {
-      const data = await api("/workspaces/patient/appointments", { method: "POST", body: {
-        ...(options.data?.intake?.questions.some(q=>!q.serviceId || q.serviceId===serviceId) ? {intake:{version:options.data.intake.version,consent:intakeConsent,answers:options.data.intake.questions.filter(q=>!q.serviceId || q.serviceId===serviceId).map(q=>({questionId:q.id,value:intakeAnswers[q.id] || ''}))}} : {}),
-        ...selection, ...contact, requestKey: key, changePolicyHash: options.data?.changePolicyHash, expectedPrice: String(times.service.price), expectedDuration: times.service.duration,
-      } });
-      setReceipt(data.appointment);
-    } catch (error) {
-      setError(error.message);
-      if (error.status === 409) setSlotAttempt(value => value + 1);
-      if (error.status === 401) refresh().catch(() => {});
-    } finally { setBusy(false); }
-  }
-  if (receipt) return <div className="wrap page"><section className="panel success-panel">
-    <span className="success-icon"><CheckCircle2 size={40} /></span>
-    <p className="eyebrow">{receipt.appointmentCode}</p>
-    <h1>Your appointment request is saved.</h1>
-    <p>{receipt.clinicName} · {receipt.date} · {receipt.time} (Philippine time)</p>
-    <p>{receipt.services.join(", ")} · {receipt.dentistName}</p>
-    <p>Estimated cost: {money(receipt.total)}</p>
-    <p className="notice">Status: {receipt.status.replaceAll("_", " ")}. The clinic reviews your request first. After acceptance, open your appointment’s payment details for the clinic’s GCash or Pay at clinic options.</p>
-    <Link className="button" to="/patient/appointments">View my appointments</Link>
-  </section></div>;
-  const data = options.data;
-  const service = times.service || data?.services.find(item => item.id === serviceId);
-  const dentists = data?.dentists.filter(item => item.serviceIds.includes(serviceId)) || [];
-  const availableServices = data?.services.filter(item => data.dentists.some(dentist => dentist.serviceIds.includes(item.id))) || [];
-  return <div className="wrap page">
-    <PageTitle eyebrow="PLAN YOUR NEXT VISIT" title="Request a dental appointment." text="Choose a treatment and an available time. Your clinic will review the request. All times are Philippine time (UTC+8)." />
-    {directory.loading ? <p role="status">Loading clinics…</p> : directory.error ? <div className="panel" role="alert"><p>We couldn’t load the clinic directory.</p><button className="button secondary" onClick={directory.retry}>Reload clinics</button></div> : directory.clinics.length === 0 ? <div className="panel empty"><CalendarDays size={36} /><h2>No clinics available for booking yet.</h2><p>Approved clinics will appear here when they join DentaBook.</p></div> : <form onSubmit={submit}>
-      <fieldset className="booking-fieldset" disabled={busy}>
-        <div className="booking-layout">
-          <section className="panel">
-            <h2>Your visit</h2>
-            <label className="field">Clinic<select aria-label="Clinic" value={clinicId} onChange={event => select("clinicId", event.target.value)} required>
-              <option value="">Choose a clinic</option>{directory.clinics.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
-            </select></label>
-            <button type="button" className="button secondary" disabled={!clinicId || options.loading} onClick={() => { setOptionsAttempt(value => value + 1); setKey(requestKey()); setError(""); }}>Refresh clinic booking options</button>
-            {clinicId && !directory.clinics.some(item => item.id === clinicId) && <p className="notice">The selected clinic is unavailable. Choose another clinic.</p>}
-            {options.loading ? <p role="status">Loading booking options…</p> : options.error ? <div role="alert"><p>{options.error}</p><button type="button" className="button secondary" onClick={() => setOptionsAttempt(value => value + 1)}>Reload booking options</button></div> : data && <>
-              <p className="muted">{data.clinic.address}</p>
-              {availableServices.length === 0 ? <p className="notice">This clinic has no services assigned to a published dentist yet. Contact the clinic or choose another clinic.</p> : <>
-                <label className="field">Treatment<select aria-label="Treatment" value={serviceId} onChange={event => select("serviceId", event.target.value)} required>
-                  <option value="">Choose a treatment</option>{availableServices.map(item => <option value={item.id} key={item.id}>{item.name} · {money(item.price)}</option>)}
-                </select></label>
-                {serviceId && <label className="field">Dentist<select aria-label="Dentist" value={dentistId} onChange={event => select("dentistId", event.target.value)} required>
-                  <option value="">Choose a dentist</option>{dentists.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
-                </select></label>}
-                {dentistId && <>
-                  <label className="field">Visit date<input type="date" value={date} min={data.minDate} max={data.maxDate} onChange={event => select("date", event.target.value)} required /></label>
-                  <div className="booking-times" aria-label="Available appointment times">
-                    <h3>Available times</h3>
-                    {times.loading ? <p role="status">Checking available times…</p> : times.error ? <p className="form-error" role="alert">{times.error}</p> : !times.slots.length ? <p className="notice">No available times on this date. Choose another date or dentist.</p> : <div className="booking-time-grid">{times.slots.map(slot => <button type="button" key={slot.time} className={`button ${selection.time === slot.time ? "" : "secondary"}`} aria-pressed={selection.time === slot.time} onClick={() => {
-                      setSelection(previous => ({ ...previous, time: slot.time })); setKey(requestKey()); setError("");
-                    }}>{slot.time}–{slot.end}</button>)}</div>}
-                    <button type="button" className="button secondary" disabled={times.loading} onClick={() => setSlotAttempt(value => value + 1)}>Refresh available times</button>
-                    <p className="summary-note">Book up to 90 days ahead, at least 15 minutes before the visit. A time is reserved only when your request is saved.</p>
-                  </div>
-                </>}
+      if (!options.data || options.loading || !serviceIds.length || !dentistId || !date) {
+        setTimes({ loading: false, error: "", slots: [], service: null }); return;
+      }
+      const controller = new AbortController();
+      setTimes({ loading: true, error: "", slots: [], service: null });
+      const query = new URLSearchParams({ clinicId, dentistId, date });
+      for (const id of serviceIds) {
+        query.append("serviceIds", id);
+      }
+      api(`/workspaces/patient/availability?${query}`, { signal: controller.signal })
+        .then(data => { if (!controller.signal.aborted) setTimes({ loading: false, error: "", ...data }); })
+        .catch(error => {
+          if (!controller.signal.aborted) {
+            setTimes({ loading: false, error: error.message, slots: [], service: null });
+            if (error.status === 401) refresh().catch(() => { });
+          }
+        });
+      return () => controller.abort();
+}, [clinicId, serviceIds.slice().sort().join(","), dentistId, date, options.data, slotAttempt, refresh]);
+function select(name, value) {
+  if (name === 'clinicId') { setIntakeAnswers({}); setIntakeConsent(false); }
+  setKey(requestKey()); setError("");
+  setSelection(previous => ({
+    ...previous, [name]: value, time: "",
+    ...(name === "clinicId" ? { serviceIds: [], dentistId: "", date: "" } : {}),
+  }));
+}
+function toggleService(id) {
+  setIntakeAnswers({}); setIntakeConsent(false);
+  setKey(requestKey()); setError("");
+  setSelection(previous => {
+    const nextIds = previous.serviceIds.includes(id)
+      ? previous.serviceIds.filter(item => item !== id)
+      : [...previous.serviceIds, id];
+    return {
+      ...previous,
+      serviceIds: nextIds,
+      dentistId: "",
+      time: "",
+    };
+  });
+}
+async function submit(event) {
+  event.preventDefault();
+  if (!times.service || !times.slots.some(slot => slot.time === selection.time)) { setError("Choose an available appointment time."); return; }
+  setBusy(true); setError("");
+  try {
+    const data = await api("/workspaces/patient/appointments", {
+      method: "POST", body: {
+        ...(matchingIntakeQuestions.length > 0 ? { intake: { version: options.data.intake.version, consent: intakeConsent, answers: matchingIntakeQuestions.map(q => ({ questionId: q.id, value: intakeAnswers[q.id] || '' })) } } : {}),
+        clinicId,
+        dentistId,
+        date,
+        time: selection.time,
+        serviceIds,
+        serviceId: serviceIds[0],
+        ...contact,
+        requestKey: key,
+        changePolicyHash: options.data?.changePolicyHash,
+        expectedPrice: String(times.service.price),
+        expectedDuration: times.service.duration,
+      }
+    });
+    setReceipt(data.appointment);
+  } catch (error) {
+    setError(error.message);
+    if (error.status === 409) setSlotAttempt(value => value + 1);
+    if (error.status === 401) refresh().catch(() => { });
+  } finally { setBusy(false); }
+}
+if (receipt) return <div className="wrap page"><section className="panel success-panel">
+  <span className="success-icon"><CheckCircle2 size={40} /></span>
+  <p className="eyebrow">{receipt.appointmentCode}</p>
+  <h1>Your appointment request is saved.</h1>
+  <p>{receipt.clinicName} · {receipt.date} · {receipt.time} (Philippine time)</p>
+  <p>{receipt.services.join(", ")} · {receipt.dentistName}</p>
+  <p>Estimated cost: {money(receipt.total)}</p>
+  <p className="notice">Status: {receipt.status.replaceAll("_", " ")}. The clinic reviews your request first. After acceptance, open your appointment’s payment details for the clinic’s GCash or Pay at clinic options.</p>
+  <Link className="button" to="/patient/appointments">View my appointments</Link>
+</section></div>;
+const data = options.data;
+const availableServices = data?.services.filter(item => data.dentists.some(dentist => dentist.serviceIds.includes(item.id))) || [];
+const dentists = data?.dentists.filter(item => serviceIds.length > 0 && serviceIds.every(sId => item.serviceIds.includes(sId))) || [];
+const selectedServicesList = data?.services.filter(item => serviceIds.includes(item.id)) || [];
+const selectedTotalCost = selectedServicesList.reduce((sum, item) => sum + Number(item.price), 0);
+const selectedTotalDuration = selectedServicesList.reduce((sum, item) => sum + item.duration, 0);
+const matchingIntakeQuestions = data?.intake?.questions.filter(q => !q.serviceId || serviceIds.includes(q.serviceId)) || [];
+return <div className="wrap page">
+  <PageTitle eyebrow="PLAN YOUR NEXT VISIT" title="Request a dental appointment." text="Choose treatments and an available time. Your clinic will review the request. All times are Philippine time (UTC+8)." />
+  {directory.loading ? <p role="status">Loading clinics…</p> : directory.error ? <div className="panel" role="alert"><p>We couldn’t load the clinic directory.</p><button className="button secondary" onClick={directory.retry}>Reload clinics</button></div> : directory.clinics.length === 0 ? <div className="panel empty"><CalendarDays size={36} /><h2>No clinics available for booking yet.</h2><p>Approved clinics will appear here when they join DentaBook.</p></div> : <form onSubmit={submit}>
+    <fieldset className="booking-fieldset" disabled={busy}>
+      <div className="booking-layout">
+        <section className="panel">
+          <h2>Your visit</h2>
+          <label className="field">Clinic<select aria-label="Clinic" value={clinicId} onChange={event => select("clinicId", event.target.value)} required>
+            <option value="">Choose a clinic</option>{directory.clinics.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
+          </select></label>
+          <button type="button" className="button secondary" disabled={!clinicId || options.loading} onClick={() => { setOptionsAttempt(value => value + 1); setKey(requestKey()); setError(""); }}>Refresh clinic booking options</button>
+          {clinicId && !directory.clinics.some(item => item.id === clinicId) && <p className="notice">The selected clinic is unavailable. Choose another clinic.</p>}
+          {options.loading ? <p role="status">Loading booking options…</p> : options.error ? <div role="alert"><p>{options.error}</p><button type="button" className="button secondary" onClick={() => setOptionsAttempt(value => value + 1)}>Reload booking options</button></div> : data && <>
+            <p className="muted">{data.clinic.address}</p>
+            {availableServices.length === 0 ? <p className="notice">This clinic has no services assigned to a published dentist yet. Contact the clinic or choose another clinic.</p> : <>
+              <div className="field">
+                <span style={{ fontWeight: 600, display: "block", marginBottom: 6 }}>Treatments</span>
+                <div className="service-picker" aria-label="Choose treatments">
+                  {availableServices.map(item => {
+                    const isChecked = serviceIds.includes(item.id);
+                    return (
+                      <label key={item.id} className={isChecked ? "selected" : ""}>
+                        <input
+                          type="checkbox"
+                          aria-label={item.name}
+                          checked={isChecked}
+                          onChange={() => toggleService(item.id)}
+                        />
+                        <span>
+                          <strong>{item.name}</strong>
+                          <small>{item.duration} minutes</small>
+                        </span>
+                        <strong>{money(item.price)}</strong>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              {serviceIds.length === 0 ? (
+                <p className="muted">Choose one or more treatments above.</p>
+              ) : (
+                <p className="notice">
+                  Selected {serviceIds.length} {serviceIds.length === 1 ? "treatment" : "treatments"}: {money(selectedTotalCost)} · {selectedTotalDuration} minutes total
+                </p>
+              )}
+              {serviceIds.length > 0 && (
+                dentists.length === 0 ? (
+                  <p className="notice">No dentist at this clinic is assigned to perform all selected treatments together. Choose another combination of treatments or contact the clinic.</p>
+                ) : (
+                  <label className="field">Dentist<select aria-label="Dentist" value={dentistId} onChange={event => select("dentistId", event.target.value)} required>
+                    <option value="">Choose a dentist</option>{dentists.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}
+                  </select></label>
+                )
+              )}
+              {dentistId && <>
+                <label className="field">Visit date<input type="date" value={date} min={data.minDate} max={data.maxDate} onChange={event => select("date", event.target.value)} required /></label>
+                <div className="booking-times" aria-label="Available appointment times">
+                  <h3>Available times</h3>
+                  {times.loading ? <p role="status">Checking available times…</p> : times.error ? <p className="form-error" role="alert">{times.error}</p> : !times.slots.length ? <p className="notice">No available times on this date. Choose another date or dentist.</p> : <div className="booking-time-grid">{times.slots.map(slot => <button type="button" key={slot.time} className={`button ${selection.time === slot.time ? "" : "secondary"}`} aria-pressed={selection.time === slot.time} onClick={() => {
+                    setSelection(previous => ({ ...previous, time: slot.time })); setKey(requestKey()); setError("");
+                  }}>{slot.time}–{slot.end}</button>)}</div>}
+                  <button type="button" className="button secondary" disabled={times.loading} onClick={() => setSlotAttempt(value => value + 1)}>Refresh available times</button>
+                  <p className="summary-note">Book up to 90 days ahead, at least 15 minutes before the visit. A time is reserved only when your request is saved.</p>
+                </div>
               </>}
             </>}
-          </section>
-          <section className="panel booking-summary">
-            <h2>Your details and estimate</h2>
-            <p>Booking for {session.user.name}</p>
-            <label className="field">Contact email<input type="email" autoComplete="email" value={contact.email} required maxLength={254} aria-describedby="booking-email-help" onChange={event => { setContact(previous => ({ ...previous, email: event.target.value })); setKey(requestKey()); }} /></label>
-            <p className="summary-note" id="booking-email-help">Enter the email address the clinic should use for this appointment. Changing it here does not change your account email.</p>
-            <label className="field">Contact phone<input type="tel" autoComplete="tel" value={contact.phone} maxLength={30} required onChange={event => { setContact(previous => ({ ...previous, phone: event.target.value })); setKey(requestKey()); }} /></label>
-            <label className="field">Visit notes (optional)<textarea aria-label="Visit notes (optional)" rows={4} maxLength={2000} value={contact.notes} onChange={event => { setContact(previous => ({ ...previous, notes: event.target.value })); setKey(requestKey()); }} /></label>
-            <p className="summary-note">Your contact details and notes are shared with this clinic for your visit.</p>
-            {service ? <p className="notice">Estimated treatment cost: {money(service.price)} · {service.duration} minutes</p> : <p className="muted">Choose a treatment to see its estimated cost.</p>}
-            <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
-            {serviceId && data?.intake?.questions.some(q=>!q.serviceId || q.serviceId===serviceId) && <section className="intake-record"><h3>Clinic questions before booking</h3><p>{data.intake.purpose}</p><p><strong>Record retention:</strong> {data.intake.retention}</p>{data.intake.questions.filter(q=>!q.serviceId || q.serviceId===serviceId).map(q=><label className="field" key={q.id}>{q.label} ({q.required ? 'required' : 'optional'}){q.type==='yes_no' ? <select aria-label={`${q.label} (${q.required ? 'required' : 'optional'})`} required={q.required} value={intakeAnswers[q.id] || ''} onChange={event=>{setIntakeAnswers({...intakeAnswers,[q.id]:event.target.value});setKey(requestKey());}}><option value="">Choose an answer</option><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Unsure</option></select> : <textarea rows={3} required={q.required} maxLength={2000} value={intakeAnswers[q.id] || ''} onChange={event=>{setIntakeAnswers({...intakeAnswers,[q.id]:event.target.value});setKey(requestKey());}} />}</label>)}<label className="clinic-check"><input type="checkbox" required checked={intakeConsent} onChange={event=>{setIntakeConsent(event.target.checked);setKey(requestKey());}} />I agree to share these answers with this clinic for my visit.</label></section>}
-            <ChangePolicySummary policy={data?.changePolicy} />
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="button full" disabled={busy || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
-            <Link className="text-link" to="/patient/appointments">View my saved requests</Link>
-          </section>
-        </div>
-      </fieldset>
-    </form>}
-  </div>;
+          </>}
+        </section>
+        <section className="panel booking-summary">
+          <h2>Your details and estimate</h2>
+          <p>Booking for {session.user.name}</p>
+          <label className="field">Contact email<input type="email" autoComplete="email" value={contact.email} required maxLength={254} aria-describedby="booking-email-help" onChange={event => { setContact(previous => ({ ...previous, email: event.target.value })); setKey(requestKey()); }} /></label>
+          <p className="summary-note" id="booking-email-help">Enter the email address the clinic should use for this appointment. Changing it here does not change your account email.</p>
+          <label className="field">Contact phone<input type="tel" autoComplete="tel" value={contact.phone} maxLength={30} required onChange={event => { setContact(previous => ({ ...previous, phone: event.target.value })); setKey(requestKey()); }} /></label>
+          <label className="field">Visit notes (optional)<textarea aria-label="Visit notes (optional)" rows={4} maxLength={2000} value={contact.notes} onChange={event => { setContact(previous => ({ ...previous, notes: event.target.value })); setKey(requestKey()); }} /></label>
+          <p className="summary-note">Your contact details and notes are shared with this clinic for your visit.</p>
+          {times.service ? (
+            <p className="notice">Estimated treatment cost: {money(times.service.price)} · {times.service.duration} minutes</p>
+          ) : selectedServicesList.length > 0 ? (
+            <p className="notice">Estimated treatment cost: {money(selectedTotalCost)} · {selectedTotalDuration} minutes</p>
+          ) : (
+            <p className="muted">Choose one or more treatments to see the estimated cost.</p>
+          )}
+          <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
+          {serviceIds.length > 0 && matchingIntakeQuestions.length > 0 && <section className="intake-record"><h3>Clinic questions before booking</h3><p>{data.intake.purpose}</p><p><strong>Record retention:</strong> {data.intake.retention}</p>{matchingIntakeQuestions.map(q => <label className="field" key={q.id}>{q.label} ({q.required ? 'required' : 'optional'}){q.type === 'yes_no' ? <select aria-label={`${q.label} (${q.required ? 'required' : 'optional'})`} required={q.required} value={intakeAnswers[q.id] || ''} onChange={event => { setIntakeAnswers({ ...intakeAnswers, [q.id]: event.target.value }); setKey(requestKey()); }}><option value="">Choose an answer</option><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Unsure</option></select> : <textarea rows={3} required={q.required} maxLength={2000} value={intakeAnswers[q.id] || ''} onChange={event => { setIntakeAnswers({ ...intakeAnswers, [q.id]: event.target.value }); setKey(requestKey()); }} />}</label>)}<label className="clinic-check"><input type="checkbox" required checked={intakeConsent} onChange={event => { setIntakeConsent(event.target.checked); setKey(requestKey()); }} />I agree to share these answers with this clinic for my visit.</label></section>}
+          <ChangePolicySummary policy={data?.changePolicy} />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="button full" disabled={busy || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error || serviceIds.length === 0 || !dentistId} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
+          <Link className="text-link" to="/patient/appointments">View my saved requests</Link>
+        </section>
+      </div>
+    </fieldset>
+  </form>}
+</div>;
 }

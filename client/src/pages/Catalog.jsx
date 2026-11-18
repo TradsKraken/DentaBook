@@ -238,15 +238,9 @@ export function Clinic() {
           <h2>Plan your visit.</h2>
           <Link className="button" to={`/patient/book?clinic=${clinic.id}`}>Request an appointment <ArrowRight size={17} /></Link>
           <p className="muted">
-            Use this clinic’s published prices to calculate an estimate.
+            Select treatments and request an appointment with this clinic.
           </p>
           <Link className="button secondary" to={`/patient/concerns?clinic=${clinic.id}`}>Ask about a concern</Link>
-          <Link
-            className="button secondary"
-            to={`/calculator?clinic=${clinic.id}`}
-          >
-            Estimate my cost <ArrowRight size={17} />
-          </Link>
           <p className="summary-note">
             Final treatment costs are confirmed by the clinic after assessment.
           </p>
