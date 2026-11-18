@@ -47,6 +47,8 @@ function restrictPortal(req, res, next) {
     (patient && path === "/auth/register-patient") ||
     (clinic && ["/auth/register-clinic", "/auth/login"].includes(path))
   );
+  const authRecovery = req.method === "POST" && ["/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(path);
+  const patientAuth = patient && req.method === "POST" && ["/auth/resend-verification", "/auth/google"].includes(path);
   const patientPayment = patient && ((read && /^\/workspaces\/patient\/appointments\/[^/]+\/payment$/.test(path)) ||
     (req.method === "POST" && /^\/workspaces\/patient\/appointments\/[^/]+\/(payment-choice|payment-reference)$/.test(path)) ||
     (read && /^\/workspaces\/patient\/payments\/[^/]+\/receipt$/.test(path)));
@@ -70,7 +72,7 @@ function restrictPortal(req, res, next) {
       (req.method === "POST" && /^\/workspaces\/admin\/clinics\/[^/]+\/review$/.test(path))));
   const concerns=((patient && /^\/workspaces\/patient\/concerns(?:\/[a-f0-9-]+(?:\/messages)?)?$/i.test(path)) || (clinic && /^\/workspaces\/clinic\/concerns(?:\/[a-f0-9-]+(?:\/(messages|claim|manage))?)?$/i.test(path))) && ['GET','HEAD','POST'].includes(req.method);
   const notifications=((patient && path.startsWith('/workspaces/patient/notifications')) || (clinic && path.startsWith('/workspaces/clinic/notifications'))) && (read || req.method==='POST');
-  if (notifications || concerns || visits || common || login || registration || workspace || patientPayment || clinicPayment || patientChanges || clinicChanges || accountTools || invitations || intake || clinicTools) return next();
+  if (authRecovery || patientAuth || notifications || concerns || visits || common || login || registration || workspace || patientPayment || clinicPayment || patientChanges || clinicChanges || accountTools || invitations || intake || clinicTools) return next();
   return res.status(404).set("Cache-Control", "no-store").json({ error: "API route not found in this portal." });
 }
 module.exports = { configuredPortal, portalAllowsRole, restrictPortal };

@@ -54,6 +54,9 @@ function createPatientBookingRouter(pool) {
     const b = req.body || {};
     let client;
     try {
+      if (req.user?.role === "patient" && req.user.isEmailVerified === false) {
+        throw fail("Please verify your email address before booking an appointment.", 403);
+      }
         const rawServices = b.serviceIds || b.serviceId;
       const serviceIds = Array.isArray(rawServices)
         ? rawServices

@@ -2,8 +2,9 @@ import AppointmentChanges from "../components/AppointmentChanges";
 import VisitFeedback from '../components/VisitFeedback';
 import AppointmentIntake from '../components/AppointmentIntake';
 import PatientProfile from '../components/PatientProfile';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { useEffect, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react";
 import { PageTitle, formatStandardTime } from "../components/Shared";
 import { Field, SignOut } from "./Onboarding";
@@ -19,7 +20,8 @@ const empty = {
   confirmation: "",
 };
 export function PatientRegistration() {
-  const { session } = useAuth();
+  const { session, refresh } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const destination = patientDestination(
     new URLSearchParams(location.search).get("next"),
@@ -54,8 +56,8 @@ export function PatientRegistration() {
     try {
       const { confirmation, ...body } = form;
       await api("/auth/register-patient", { method: "POST", body });
-      setForm(empty);
-      setComplete(true);
+      await refresh();
+      navigate(destination, { replace: true });
     } catch (error) {
       setError(error.message);
       setFields(error.fields || {});
@@ -92,6 +94,10 @@ export function PatientRegistration() {
           text="Browse without an account. Register to access booking and your personal appointment information."
         />
         <form className="panel" onSubmit={submit}>
+          <GoogleSignInButton destination={destination} text="Sign up with Google" />
+          <div className="auth-divider">
+            <span>or register with email</span>
+          </div>
           <Field
             label="Full name"
             name="name"
@@ -180,7 +186,18 @@ export function PatientAccount() {
           <dt>Name</dt>
           <dd>{session.user.name}</dd>
           <dt>Email</dt>
-          <dd>{session.user.email || "No email address set"}</dd>
+          <dd>
+            {session.user.email || "No email address set"}{" "}
+            {session.user.isEmailVerified ? (
+              <span style={{ marginLeft: 8, fontSize: 12, color: "#1e5e34", background: "#eef8f2", padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                Verified
+              </span>
+            ) : (
+              <span style={{ marginLeft: 8, fontSize: 12, color: "#a22e42", background: "#fff0f1", padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                Unverified · <Link to="/patient/verify-email" style={{ textDecoration: "underline" }}>Verify now</Link>
+              </span>
+            )}
+          </dd>
         </dl>
         <PatientProfile />
         <div className="form-actions">

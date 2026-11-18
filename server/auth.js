@@ -34,7 +34,8 @@ function requireSession(pool) {
         return res.status(401).json({ error: "Please sign in to continue." });
       const result = await pool.query(
         `SELECT u.id, u.full_name AS name, u.email, u.phone, u.username, s.role,
-          u.owner_access AS "ownerAccess"
+          u.owner_access AS "ownerAccess",
+          COALESCE(u.is_email_verified, false) AS "isEmailVerified"
         FROM sessions s JOIN users u ON u.id = s.user_id
         WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP
           AND (s.role = u.role OR (u.role = 'system_admin' AND u.owner_access
@@ -101,6 +102,32 @@ function rateLimit({ limit, windowMs }) {
     next();
   };
 }
+async function createAndSetSession({ res, req, pool, user, role }) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const previous = sessionToken(req);
+  if (previous) {
+    await pool.query("DELETE FROM sessions WHERE token_hash = $1", [
+      hashToken(previous),
+    ]);
+  }
+  await pool.query("DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP");
+  const duration = user.owner_access || role === "system_admin" ? 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
+  const created = await pool.query(
+    `INSERT INTO sessions (token_hash, user_id, role, expires_at)
+    SELECT $1, u.id, $3::varchar, CURRENT_TIMESTAMP + $4 * INTERVAL '1 millisecond'
+    FROM users u WHERE u.id = $2
+      AND (u.role = $3 OR (u.role = 'system_admin' AND u.owner_access))
+      AND (NOT u.development_only OR $5 = 'development')
+    FOR SHARE RETURNING token_hash`,
+    [hashToken(token), user.id, role, duration, process.env.NODE_ENV || ""],
+  );
+  if (!created.rows.length) return false;
+  res.cookie(cookieName(), token, {
+    ...cookieOptions(),
+    maxAge: duration,
+  });
+  return true;
+}
 module.exports = {
   COOKIE,
   cookieName,
@@ -111,4 +138,5 @@ module.exports = {
   requireRole,
   protectMutation,
   rateLimit,
+  createAndSetSession,
 };

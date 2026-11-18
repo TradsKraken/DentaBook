@@ -99,6 +99,10 @@ function toggleService(id) {
 }
 async function submit(event) {
   event.preventDefault();
+  if (session?.user?.isEmailVerified === false) {
+    setError("Please verify your email address before booking an appointment.");
+    return;
+  }
   if (!times.service || !times.slots.some(slot => slot.time === selection.time)) { setError("Choose an available appointment time."); return; }
   setBusy(true); setError("");
   try {
@@ -228,8 +232,16 @@ return <div className="wrap page">
           <p className="summary-note">Final treatment and cost depend on the clinic’s assessment. This request does not collect payment or confirm a visit.</p>
           {serviceIds.length > 0 && matchingIntakeQuestions.length > 0 && <section className="intake-record"><h3>Clinic questions before booking</h3><p>{data.intake.purpose}</p><p><strong>Record retention:</strong> {data.intake.retention}</p>{matchingIntakeQuestions.map(q => <label className="field" key={q.id}>{q.label} ({q.required ? 'required' : 'optional'}){q.type === 'yes_no' ? <select aria-label={`${q.label} (${q.required ? 'required' : 'optional'})`} required={q.required} value={intakeAnswers[q.id] || ''} onChange={event => { setIntakeAnswers({ ...intakeAnswers, [q.id]: event.target.value }); setKey(requestKey()); }}><option value="">Choose an answer</option><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Unsure</option></select> : <textarea rows={3} required={q.required} maxLength={2000} value={intakeAnswers[q.id] || ''} onChange={event => { setIntakeAnswers({ ...intakeAnswers, [q.id]: event.target.value }); setKey(requestKey()); }} />}</label>)}<label className="clinic-check"><input type="checkbox" required checked={intakeConsent} onChange={event => { setIntakeConsent(event.target.checked); setKey(requestKey()); }} />I agree to share these answers with this clinic for my visit.</label></section>}
           <ChangePolicySummary policy={data?.changePolicy} />
+          {session?.user?.isEmailVerified === false && (
+            <p className="notice" style={{ borderColor: "#f6d89b", background: "#fdf5e6", color: "#7a4f01" }}>
+              Please verify your email address to book appointments.{" "}
+              <Link to="/patient/verify-email" style={{ textDecoration: "underline", fontWeight: "bold" }}>
+                Verify email now
+              </Link>
+            </p>
+          )}
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="button full" disabled={busy || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error || serviceIds.length === 0 || !dentistId} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
+          <button className="button full" disabled={busy || session?.user?.isEmailVerified === false || times.loading || !selection.time || !data || !contact.email.trim() || !!options.error || serviceIds.length === 0 || !dentistId} aria-busy={busy}>{busy ? "Sending request…" : "Send appointment request"}</button>
           <Link className="text-link" to="/patient/appointments">View my saved requests</Link>
         </section>
       </div>

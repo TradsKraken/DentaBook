@@ -2,6 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
 const { registration, patientRegistration, email } = require("../validation");
+const { createVerificationCredentials } = require("../tokens");
+const { sendVerificationEmail, sendPasswordResetEmail } = require("../email");
+const { verifyGoogleIdToken } = require("../google-auth");
 const {
   cookieName,
   cookieOptions,
@@ -9,6 +12,7 @@ const {
   sessionToken,
   requireSession,
   rateLimit,
+  createAndSetSession,
 } = require("../auth");
 const dummyHash = bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
 
@@ -126,8 +130,10 @@ function createAccountRouter(pool) {
           .json({ error: "Please check your account details.", fields });
       try {
         const hash = await bcrypt.hash(body.password, 12);
-        await pool.query(
-          `INSERT INTO users (full_name,email,phone,password_hash,role) VALUES ($1,$2,$3,$4,'patient')`,
+        const userResult = await pool.query(
+          `INSERT INTO users (full_name,email,phone,password_hash,role,is_email_verified)
+           VALUES ($1,$2,$3,$4,'patient',FALSE)
+           RETURNING id, full_name AS name, email, phone, role, owner_access AS "ownerAccess", is_email_verified AS "isEmailVerified"`,
           [
             body.name.trim(),
             body.email.trim().toLowerCase(),
@@ -135,7 +141,34 @@ function createAccountRouter(pool) {
             hash,
           ],
         );
-        res.status(201).json({ registered: true });
+        const newUser = userResult.rows[0];
+
+        const creds = createVerificationCredentials();
+        await pool.query(
+          `INSERT INTO verification_tokens (user_id, token_hash, code_hash, purpose, expires_at)
+           VALUES ($1, $2, $3, 'verify_email', CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+          [newUser.id, creds.tokenHash, creds.codeHash],
+        );
+
+        try {
+          await sendVerificationEmail({
+            email: newUser.email,
+            name: newUser.name,
+            token: creds.token,
+            code: creds.code,
+          });
+        } catch (mailErr) {
+          console.error("[Register] Failed to send verification email:", mailErr.message);
+        }
+
+        await createAndSetSession({ res, req, pool, user: newUser, role: "patient" });
+
+        res.status(201).json({
+          registered: true,
+          signedIn: true,
+          email: newUser.email,
+          isEmailVerified: false,
+        });
       } catch (error) {
         if (error.code === "23505")
           return res
@@ -219,6 +252,270 @@ function createAccountRouter(pool) {
   router.post("/clinic/login", loginLimit, loginFor("clinic_staff"));
   router.post("/admin/login", loginLimit, loginFor("system_admin"));
   router.post("/patient/login", loginLimit, loginFor("patient"));
+
+  router.post("/verify-email", rateLimit({ limit: 15, windowMs: 15 * 60 * 1000 }), async (req, res, next) => {
+    const { token, code, email } = req.body || {};
+    if (!token && !code) {
+      return res.status(400).json({ error: "Please provide a verification link token or 6-digit code." });
+    }
+    try {
+      let tokenRow = null;
+      if (token) {
+        const hashed = hashToken(token);
+        const result = await pool.query(
+          `SELECT t.id, t.user_id, t.attempts, t.expires_at, u.email
+           FROM verification_tokens t JOIN users u ON u.id = t.user_id
+           WHERE t.token_hash = $1 AND t.purpose = 'verify_email'`,
+          [hashed]
+        );
+        tokenRow = result.rows[0];
+      } else if (code) {
+        const cleanCode = String(code).trim();
+        if (!/^\d{6}$/.test(cleanCode)) {
+          return res.status(400).json({ error: "The verification code must be exactly 6 digits." });
+        }
+        const hashedCode = hashToken(cleanCode);
+        const authedToken = sessionToken(req);
+        let targetUserId = null;
+        if (authedToken) {
+          const authUser = await pool.query(
+            `SELECT u.id FROM sessions s JOIN users u ON u.id = s.user_id
+             WHERE s.token_hash = $1 AND s.expires_at > CURRENT_TIMESTAMP`,
+            [hashToken(authedToken)]
+          );
+          if (authUser.rows.length) targetUserId = authUser.rows[0].id;
+        }
+
+        let query;
+        let params;
+        if (targetUserId) {
+          query = `SELECT t.id, t.user_id, t.attempts, t.expires_at, u.email
+                   FROM verification_tokens t JOIN users u ON u.id = t.user_id
+                   WHERE t.user_id = $1 AND t.code_hash = $2 AND t.purpose = 'verify_email'`;
+          params = [targetUserId, hashedCode];
+        } else if (email && typeof email === "string") {
+          query = `SELECT t.id, t.user_id, t.attempts, t.expires_at, u.email
+                   FROM verification_tokens t JOIN users u ON u.id = t.user_id
+                   WHERE LOWER(u.email) = $1 AND t.code_hash = $2 AND t.purpose = 'verify_email'`;
+          params = [email.trim().toLowerCase(), hashedCode];
+        } else {
+          return res.status(400).json({ error: "Enter the email associated with your account along with the 6-digit code." });
+        }
+        const result = await pool.query(query, params);
+        tokenRow = result.rows[0];
+      }
+
+      if (!tokenRow) {
+        return res.status(400).json({ error: "Invalid verification link or code. Please check your email or request a new code." });
+      }
+
+      if (new Date(tokenRow.expires_at).getTime() <= Date.now()) {
+        await pool.query("DELETE FROM verification_tokens WHERE id = $1", [tokenRow.id]);
+        return res.status(400).json({ error: "This verification code has expired. Please request a new one." });
+      }
+
+      if (tokenRow.attempts >= 5) {
+        await pool.query("DELETE FROM verification_tokens WHERE id = $1", [tokenRow.id]);
+        return res.status(400).json({ error: "Too many failed attempts. Please request a new verification email." });
+      }
+
+      await pool.query("UPDATE users SET is_email_verified = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = $1", [tokenRow.user_id]);
+      await pool.query("DELETE FROM verification_tokens WHERE user_id = $1 AND purpose = 'verify_email'", [tokenRow.user_id]);
+
+      res.json({ verified: true, email: tokenRow.email });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/resend-verification", requireSession(pool), rateLimit({ limit: 5, windowMs: 15 * 60 * 1000 }), async (req, res, next) => {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ error: "Only patient accounts require email verification." });
+    }
+    try {
+      const userResult = await pool.query("SELECT id, full_name, email, is_email_verified FROM users WHERE id = $1", [req.user.id]);
+      const user = userResult.rows[0];
+      if (!user) return res.status(404).json({ error: "User not found." });
+      if (user.is_email_verified) {
+        return res.json({ alreadyVerified: true, message: "Your email is already verified." });
+      }
+
+      await pool.query("DELETE FROM verification_tokens WHERE user_id = $1 AND purpose = 'verify_email'", [user.id]);
+
+      const creds = createVerificationCredentials();
+      await pool.query(
+        `INSERT INTO verification_tokens (user_id, token_hash, code_hash, purpose, expires_at)
+         VALUES ($1, $2, $3, 'verify_email', CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+        [user.id, creds.tokenHash, creds.codeHash]
+      );
+
+      await sendVerificationEmail({
+        email: user.email,
+        name: user.full_name,
+        token: creds.token,
+        code: creds.code,
+      });
+
+      res.json({ sent: true, email: user.email });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/forgot-password", rateLimit({ limit: 10, windowMs: 60 * 60 * 1000 }), async (req, res, next) => {
+    const rawEmail = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    if (!rawEmail || !email(rawEmail)) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+    try {
+      const userResult = await pool.query(
+        "SELECT id, full_name, email FROM users WHERE LOWER(email) = $1 AND role IN ('patient', 'clinic_staff')",
+        [rawEmail]
+      );
+      const user = userResult.rows[0];
+      if (user) {
+        await pool.query("DELETE FROM verification_tokens WHERE user_id = $1 AND purpose = 'reset_password'", [user.id]);
+
+        const creds = createVerificationCredentials();
+        await pool.query(
+          `INSERT INTO verification_tokens (user_id, token_hash, code_hash, purpose, expires_at)
+           VALUES ($1, $2, $3, 'reset_password', CURRENT_TIMESTAMP + INTERVAL '15 minutes')`,
+          [user.id, creds.tokenHash, creds.codeHash]
+        );
+
+        await sendPasswordResetEmail({
+          email: user.email,
+          name: user.full_name,
+          token: creds.token,
+          code: creds.code,
+        });
+      }
+      res.json({
+        sent: true,
+        message: "If an account matches that email address, password reset instructions have been sent.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/reset-password", rateLimit({ limit: 10, windowMs: 15 * 60 * 1000 }), async (req, res, next) => {
+    const b = req.body || {};
+    const newPassword = typeof b.password === "string" ? b.password : "";
+    if (newPassword.length < 12 || Buffer.byteLength(newPassword, "utf8") > 72) {
+      return res.status(400).json({ error: "Password must be at least 12 characters, up to 72 UTF-8 bytes." });
+    }
+    if (!b.token && !b.code) {
+      return res.status(400).json({ error: "Provide a valid reset link or code." });
+    }
+    try {
+      let tokenRow = null;
+      if (b.token) {
+        const hashed = hashToken(b.token);
+        const result = await pool.query(
+          `SELECT t.id, t.user_id, t.attempts, t.expires_at, u.email
+           FROM verification_tokens t JOIN users u ON u.id = t.user_id
+           WHERE t.token_hash = $1 AND t.purpose = 'reset_password'`,
+          [hashed]
+        );
+        tokenRow = result.rows[0];
+      } else if (b.code) {
+        const rawCode = String(b.code).trim();
+        const rawEmail = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
+        if (!/^\d{6}$/.test(rawCode) || !rawEmail) {
+          return res.status(400).json({ error: "Enter the email associated with your account and the 6-digit reset code." });
+        }
+        const hashed = hashToken(rawCode);
+        const result = await pool.query(
+          `SELECT t.id, t.user_id, t.attempts, t.expires_at, u.email
+           FROM verification_tokens t JOIN users u ON u.id = t.user_id
+           WHERE LOWER(u.email) = $1 AND t.code_hash = $2 AND t.purpose = 'reset_password'`,
+          [rawEmail, hashed]
+        );
+        tokenRow = result.rows[0];
+      }
+
+      if (!tokenRow) {
+        return res.status(400).json({ error: "Invalid password reset link or code. Please request a new reset email." });
+      }
+
+      if (new Date(tokenRow.expires_at).getTime() <= Date.now()) {
+        await pool.query("DELETE FROM verification_tokens WHERE id = $1", [tokenRow.id]);
+        return res.status(400).json({ error: "This password reset link has expired. Please request a new reset email." });
+      }
+
+      if (tokenRow.attempts >= 5) {
+        await pool.query("DELETE FROM verification_tokens WHERE id = $1", [tokenRow.id]);
+        return res.status(400).json({ error: "Too many failed attempts. Please request a new reset email." });
+      }
+
+      const hash = await bcrypt.hash(newPassword, 12);
+      await pool.query(
+        "UPDATE users SET password_hash = $1, is_email_verified = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+        [hash, tokenRow.user_id]
+      );
+      await pool.query("DELETE FROM verification_tokens WHERE user_id = $1 AND purpose = 'reset_password'", [tokenRow.user_id]);
+
+      res.clearCookie(cookieName(), cookieOptions());
+      res.json({ reset: true, message: "Your password has been successfully reset. Please sign in." });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/google", rateLimit({ limit: 30, windowMs: 15 * 60 * 1000 }), async (req, res, next) => {
+    const { credential } = req.body || {};
+    if (!credential || typeof credential !== "string") {
+      return res.status(400).json({ error: "Missing Google authentication credential." });
+    }
+    try {
+      const googleUser = await verifyGoogleIdToken(credential);
+      const email = googleUser.email.toLowerCase();
+
+      let userResult = await pool.query(
+        `SELECT id, full_name, email, role, google_id, is_email_verified, owner_access AS "ownerAccess"
+         FROM users WHERE google_id = $1 OR LOWER(email) = $2`,
+        [googleUser.googleId, email]
+      );
+
+      let user = userResult.rows[0];
+
+      if (user) {
+        if (user.role !== "patient") {
+          return res.status(403).json({ error: "Google sign-in is only available for patient accounts. Clinic staff and administrators must sign in through their designated portals." });
+        }
+        if (!user.google_id || !user.is_email_verified) {
+          await pool.query(
+            "UPDATE users SET google_id = COALESCE(google_id, $1), is_email_verified = TRUE, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+            [googleUser.googleId, user.id]
+          );
+          user.is_email_verified = true;
+        }
+      } else {
+        const randomPassword = crypto.randomBytes(32).toString("hex");
+        const hash = await bcrypt.hash(randomPassword, 12);
+        const insertResult = await pool.query(
+          `INSERT INTO users (full_name, email, google_id, password_hash, role, is_email_verified)
+           VALUES ($1, $2, $3, $4, 'patient', TRUE)
+           RETURNING id, full_name, email, role, owner_access AS "ownerAccess", is_email_verified`,
+          [googleUser.name, email, googleUser.googleId, hash]
+        );
+        user = insertResult.rows[0];
+      }
+
+      const signedIn = await createAndSetSession({ res, req, pool, user, role: "patient" });
+      if (!signedIn) {
+        return res.status(500).json({ error: "Could not create session for Google sign-in." });
+      }
+
+      res.json({ signedIn: true, email: user.email, name: user.full_name });
+    } catch (error) {
+      if (error.message.includes("Google") || error.message.includes("token") || error.message.includes("credential")) {
+        return res.status(401).json({ error: error.message });
+      }
+      next(error);
+    }
+  });
   router.get("/me", requireSession(pool), async (req, res, next) => {
     try {
       res.json({

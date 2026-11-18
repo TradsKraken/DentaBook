@@ -1,5 +1,6 @@
 import Notifications, {PatientNotificationLink} from './components/Notifications';
 import Concerns from './components/Concerns';
+import EmailVerificationBanner from './components/EmailVerificationBanner';
 import { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -19,6 +20,9 @@ import Booking from "./pages/Booking";
 import PatientPayment from "./pages/PatientPayment";
 import ClinicJoin from './pages/ClinicJoin';
 import About from "./pages/About";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { patientAuthSuffix } from "./patientNavigation";
 import { AuthProvider, WorkspaceGate, useAuth } from "./hooks/useAuth";
 import { usePageMotion } from "./hooks/usePageMotion";
@@ -74,67 +78,70 @@ function Site() {
           </div>
         </header>
       ) : (
-        <header className="site-header">
-          <div className="wrap header-inner">
-            <Brand />
-            <nav
-              id="main-navigation"
-              className={menu ? "nav open" : "nav"}
-              aria-label="Main navigation"
-              onClick={(event) => {
-                if (event.target.closest("a")) setMenu(false);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape") setMenu(false);
-              }}
-            >
-              <NavLink to="/" end>
-                Home
-              </NavLink>
-              <NavLink to="/clinics">Find a clinic</NavLink>
-              <NavLink to="/services">Services</NavLink>
-              <NavLink to="/calculator">Cost calculator</NavLink>
-              <NavLink to="/about">About us</NavLink>
-              <NavLink className="mobile-nav-link" to="/patient/book">
-                Book a visit
-              </NavLink>
-              <PortalLink portal="clinic" className="mobile-nav-link" to="/clinic/sign-in">
-                Clinic sign in
-              </PortalLink>
-              <NavLink
-                className="mobile-nav-link"
-                to={patient ? "/patient/account" : patientSignIn}
+        <>
+          <header className="site-header">
+            <div className="wrap header-inner">
+              <Brand />
+              <nav
+                id="main-navigation"
+                className={menu ? "nav open" : "nav"}
+                aria-label="Main navigation"
+                onClick={(event) => {
+                  if (event.target.closest("a")) setMenu(false);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") setMenu(false);
+                }}
               >
-                {patient ? "My account" : "Patient sign in"}
-              </NavLink>
-              <NavLink className="mobile-nav-link" to="/patient/appointments">
-                My appointments
-              </NavLink>
-            </nav>
-            <div className={`header-actions ${patient ? "patient-header-actions" : ""}`}>
-              <PatientNotificationLink enabled={patient} />
-              <NavLink
-                className="appointments-link"
-                to={patient ? "/patient/account" : patientSignIn}
-              >
-                <UserRound size={16} />
-                {patient ? "My account" : "Sign in"}
-              </NavLink>
-              <Link className="button small" to="/patient/book">
-                Book a visit <ArrowUpRight size={16} />
-              </Link>
-              <button
-                className="menu-button"
-                aria-label={menu ? "Close menu" : "Open menu"}
-                aria-expanded={menu}
-                aria-controls="main-navigation"
-                onClick={() => setMenu(!menu)}
-              >
-                {menu ? <X /> : <Menu />}
-              </button>
+                <NavLink to="/" end>
+                  Home
+                </NavLink>
+                <NavLink to="/clinics">Find a clinic</NavLink>
+                <NavLink to="/services">Services</NavLink>
+                <NavLink to="/calculator">Cost calculator</NavLink>
+                <NavLink to="/about">About us</NavLink>
+                <NavLink className="mobile-nav-link" to="/patient/book">
+                  Book a visit
+                </NavLink>
+                <PortalLink portal="clinic" className="mobile-nav-link" to="/clinic/sign-in">
+                  Clinic sign in
+                </PortalLink>
+                <NavLink
+                  className="mobile-nav-link"
+                  to={patient ? "/patient/account" : patientSignIn}
+                >
+                  {patient ? "My account" : "Patient sign in"}
+                </NavLink>
+                <NavLink className="mobile-nav-link" to="/patient/appointments">
+                  My appointments
+                </NavLink>
+              </nav>
+              <div className={`header-actions ${patient ? "patient-header-actions" : ""}`}>
+                <PatientNotificationLink enabled={patient} />
+                <NavLink
+                  className="appointments-link"
+                  to={patient ? "/patient/account" : patientSignIn}
+                >
+                  <UserRound size={16} />
+                  {patient ? "My account" : "Sign in"}
+                </NavLink>
+                <Link className="button small" to="/patient/book">
+                  Book a visit <ArrowUpRight size={16} />
+                </Link>
+                <button
+                  className="menu-button"
+                  aria-label={menu ? "Close menu" : "Open menu"}
+                  aria-expanded={menu}
+                  aria-controls="main-navigation"
+                  onClick={() => setMenu(!menu)}
+                >
+                  {menu ? <X /> : <Menu />}
+                </button>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+          <EmailVerificationBanner />
+        </>
       )}
       <main ref={motionRef} id="main" className={adminArea ? "admin-main" : pathname === "/clinic" ? "clinic-main" : undefined}>
         <Routes>
@@ -158,6 +165,12 @@ function Site() {
             path="/patient/sign-in"
             element={<SignIn portal="patient" />}
           />
+          <Route path="/patient/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email" element={<LegacyRedirect to="/patient/verify-email" />} />
+          <Route path="/patient/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password" element={<LegacyRedirect to="/patient/forgot-password" />} />
+          <Route path="/patient/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<LegacyRedirect to="/patient/reset-password" />} />
           <Route path="/patient/notifications" element={<WorkspaceGate role="patient"><Notifications /></WorkspaceGate>} />
           <Route path="/patient/concerns" element={<WorkspaceGate role="patient"><Concerns /></WorkspaceGate>} />
           <Route path="/patient/register" element={<PatientRegistration />} />

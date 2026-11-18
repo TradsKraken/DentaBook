@@ -1,4 +1,5 @@
 import PasswordField from '../components/PasswordField';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -354,6 +355,14 @@ export function SignIn({ portal = "clinic" }) {
           }
         />
         <form className="panel" onSubmit={submit}>
+          {patient && (
+            <>
+              <GoogleSignInButton destination={destination} text="Sign in with Google" />
+              <div className="auth-divider">
+                <span>or sign in with email</span>
+              </div>
+            </>
+          )}
           <Field
             label="Email address or username"
             name="email"
@@ -374,6 +383,17 @@ export function SignIn({ portal = "clinic" }) {
               setForm({ ...form, password: event.target.value })
             }
           />
+          {patient && (
+            <div style={{ display: "flex", justifyContent: "flex-end", margin: "-6px 0 16px" }}>
+              <Link
+                to="/patient/forgot-password"
+                className="text-link"
+                style={{ fontSize: "13px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
           {error && (
             <p className="form-error" role="alert">
               {error}
