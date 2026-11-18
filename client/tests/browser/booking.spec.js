@@ -31,7 +31,7 @@ test("booking preserves contact input across load errors and requires a new slot
   await page.getByLabel("Dentist", { exact: true }).selectOption(dentist.id);
   await expect(page.getByRole("alert")).toContainText("Available times could not be loaded");
   state.failSlots = false; await page.getByRole("button", { name: "Refresh available times", exact: true }).tap();
-  await page.getByRole("button", { name: "09:00–09:30", exact: true }).tap();
+  await page.getByRole("button", { name: "9:00 AM – 9:30 AM", exact: true }).tap();
   await page.getByLabel("Contact email", { exact: true }).fill("appointment@example.test");
   await page.getByLabel("Visit notes (optional)", { exact: true }).fill("Keep these visit notes");
   await page.getByRole("button", { name: "Send appointment request", exact: true }).tap();
@@ -39,7 +39,7 @@ test("booking preserves contact input across load errors and requires a new slot
   await expect(page.getByLabel("Visit notes (optional)", { exact: true })).toHaveValue("Keep these visit notes");
   await expect(page.getByRole("button", { name: "Send appointment request", exact: true })).toBeDisabled();
   await expect(page.getByRole("heading", { name: "Your appointment request is saved." })).toHaveCount(0);
-  state.conflict = false; await page.getByRole("button", { name: "09:00–09:30", exact: true }).tap();
+  state.conflict = false; await page.getByRole("button", { name: "9:00 AM – 9:30 AM", exact: true }).tap();
   await page.getByRole("button", { name: "Send appointment request", exact: true }).tap();
   await expect(page.getByRole("heading", { name: "Your appointment request is saved." })).toBeVisible();
   expect(state.writes[0].email).toBe("appointment@example.test");
@@ -105,7 +105,7 @@ test("an account without an email can enter a valid appointment contact email", 
   await page.goto(`/patient/book?clinic=${clinic.id}`);
   await page.getByRole("checkbox", { name: service.name, exact: true }).check();
   await page.getByLabel("Dentist", { exact: true }).selectOption(dentist.id);
-  await page.getByRole("button", { name: "09:00–09:30", exact: true }).tap();
+  await page.getByRole("button", { name: "9:00 AM – 9:30 AM", exact: true }).tap();
   await expect(page.getByLabel("Contact email", { exact: true })).toHaveValue("");
   const submit = page.getByRole("button", { name: "Send appointment request", exact: true });
   await expect(submit).toBeDisabled();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatStandardTimeRange } from "./Shared";
 const requestKey = () => {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
@@ -67,7 +68,7 @@ export default function AppointmentChanges({ id, request, staff = false, onChang
         {action === "cancel" && <p>The reserved time will be released. Payment records and receipts will remain available. Refunds require clinic review.</p>}
         {action === "reschedule" && <><p>Choose another time with the same clinic, dentist, and treatment. Your original estimate and deposit remain attached to this appointment. The requested time is reserved only when the clinic approves it.</p>
           <label className="field">Replacement date<input type="date" required min={today} max={maxDate} value={date} onChange={event => { setDate(event.target.value); setKey(requestKey()); }} /></label>
-          {date && <><h4>Replacement times</h4>{slots.loading ? <p role="status">Checking replacement times…</p> : slots.error ? <p role="alert">{slots.error}</p> : !slots.slots.length ? <p>No replacement times on this date. Choose another date.</p> : <div className="booking-time-grid">{slots.slots.map(slot => <button type="button" className={`button ${time === slot.time ? "" : "secondary"}`} aria-pressed={time === slot.time} key={slot.time} onClick={() => { setTime(slot.time); setKey(requestKey()); }}>{slot.time}–{slot.end}</button>)}</div>}<button type="button" className="button secondary" onClick={() => setSlotAttempt(value => value + 1)} disabled={slots.loading}>Refresh replacement times</button></>}
+          {date && <><h4>Replacement times</h4>{slots.loading ? <p role="status">Checking replacement times…</p> : slots.error ? <p role="alert">{slots.error}</p> : !slots.slots.length ? <p>No replacement times on this date. Choose another date.</p> : <div className="booking-time-grid">{slots.slots.map(slot => <button type="button" className={`button ${time === slot.time ? "" : "secondary"}`} aria-pressed={time === slot.time} key={slot.time} onClick={() => { setTime(slot.time); setKey(requestKey()); }}>{formatStandardTimeRange(slot.time, slot.end)}</button>)}</div>}<button type="button" className="button secondary" onClick={() => setSlotAttempt(value => value + 1)} disabled={slots.loading}>Refresh replacement times</button></>}
         </>}
         {!["cancel","reschedule"].includes(action) && <label className="field">Reschedule decision<select aria-label="Reschedule decision" required value={time} onChange={event => setTime(event.target.value)}><option value="">Choose a decision</option><option value="approved">Approve replacement time</option><option value="declined">Decline and keep original visit</option></select></label>}
         <label className="field">{staff && !["cancel","reschedule"].includes(action) ? "Decision note" : "Reason for change"}<textarea aria-label={staff && !["cancel","reschedule"].includes(action) ? "Decision note" : "Reason for change"} required rows={3} maxLength={2000} value={reason} onChange={event => { setReason(event.target.value); setKey(requestKey()); }} /></label>
@@ -76,8 +77,8 @@ export default function AppointmentChanges({ id, request, staff = false, onChang
       {error && <p role="alert" className="form-error">{error}</p>}
       {!!state.changes.length && <section className="appointment-change-history"><h3>Change history</h3>{state.changes.map(change => <div className="appointment-change-record" key={change.id}>
         <strong>{change.kind === "cancel" ? "Cancellation" : "Reschedule"} · {change.status}</strong>
-        <p>Original: {change.originalDate} · {change.originalTime}–{change.originalEnd}</p>
-        {change.requestedDate && <p>Requested: {change.requestedDate} · {change.requestedTime}–{change.requestedEnd}</p>}
+        <p>Original: {change.originalDate} · {formatStandardTimeRange(change.originalTime, change.originalEnd)}</p>
+        {change.requestedDate && <p>Requested: {change.requestedDate} · {formatStandardTimeRange(change.requestedTime, change.requestedEnd)}</p>}
         <p>{change.reason}</p>{change.reviewNotes && <p>Clinic note: {change.reviewNotes}</p>}
         <p className="muted">Requested by {change.requestedBy || (change.requesterRole === "patient" ? "patient" : "clinic staff")} · {new Date(change.requestedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })} (Philippine time)</p>
         {change.reviewedAt && <p className="muted">{change.reviewedBy ? `Reviewed by ${change.reviewedBy} · ` : "Updated: "}{new Date(change.reviewedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</p>}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import {requestId} from '../requestId';
+import { formatStandardTime } from "../components/Shared";
 import PaymentReceipt, { paymentMoney } from "../components/PaymentReceipt";
 export default function PatientPayment() {
   const { id } = useParams(), base = `/workspaces/patient/appointments/${id}`;
@@ -26,7 +27,7 @@ export default function PatientPayment() {
   }
   return <div className="wrap page patient-payment"><Link className="payment-back" to="/patient/appointments">← My appointments</Link><h1>Payment options</h1>
     {state.loading ? <p role="status">Loading appointment and payment details…</p> : state.error ? <div className="panel" role="alert"><p>{state.error}</p><button className="button secondary" onClick={() => setAttempt(value => value + 1)}>Try again</button></div> : <>
-      <section className="panel"><p className="eyebrow">{state.appointment.code}</p><h2>{state.appointment.clinicName}</h2><p>{state.appointment.date} · {state.appointment.time} (Philippine time)</p><p>{state.appointment.dentistName}</p><p className="notice">Appointment: {state.appointment.status.replaceAll("_", " ")}</p>
+      <section className="panel"><p className="eyebrow">{state.appointment.code}</p><h2>{state.appointment.clinicName}</h2><p>{state.appointment.date} · {formatStandardTime(state.appointment.time)} (Philippine time)</p><p>{state.appointment.dentistName}</p><p className="notice">Appointment: {state.appointment.status.replaceAll("_", " ")}</p>
         <dl className="payment-details"><div><dt>Estimated treatment cost</dt><dd>{paymentMoney(state.appointment.total)}</dd></div><div><dt>Patient email</dt><dd>{state.appointment.patientEmail}</dd></div>{state.quote && <div><dt>GCash deposit ({Number(state.quote.percentage)}%)</dt><dd>{paymentMoney(state.quote.amount)}</dd></div>}</dl>
         {state.quote && <><h3>Cancellation and refund terms</h3><p className="payment-terms">{state.quote.terms}</p></>}
         {state.payment && <p role="status">{state.payment.channel === "walk_in" ? state.payment.status === "failed" ? "Pay at clinic · choice declined" : "Pay at clinic · unpaid" : `GCash · ${state.payment.status === "paid" ? "payment checked by clinic" : state.payment.status === "failed" ? "not verified" : state.payment.claimedReference ? "reference awaiting verification" : "awaiting transfer"}`}</p>}

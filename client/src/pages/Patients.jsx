@@ -5,7 +5,7 @@ import PatientProfile from '../components/PatientProfile';
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react";
-import { PageTitle } from "../components/Shared";
+import { PageTitle, formatStandardTime } from "../components/Shared";
 import { Field, SignOut } from "./Onboarding";
 import { useAuth } from "../hooks/useAuth";
 import { patientDestination } from "../patientNavigation";
@@ -270,7 +270,7 @@ export function PatientAppointments() {
                   "en-PH",
                   { dateStyle: "long" },
                 )}{" "}
-                · {appointment.time}
+                · {formatStandardTime(appointment.time)}
               </p>
               {appointment.dentistName && (
                 <p className="muted">{appointment.dentistName}</p>

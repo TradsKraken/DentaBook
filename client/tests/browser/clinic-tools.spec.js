@@ -93,10 +93,10 @@ test("staff maintain their profile, services, dentists, and hours through the cl
   await page.getByLabel("End time", { exact: true }).fill("12:00");
   await page.getByRole("button", { name: "Save working hours", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByText("Monday · 09:00–12:00", { exact: true })).toBeVisible();
+  await expect(page.getByText("Monday · 9:00 AM – 12:00 PM", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator(".clinic-page-header h1")).toHaveText("Working hours");
-  await page.getByRole("button", { name: "Remove Monday 09:00 schedule for Test Dentist", exact: true }).click();
+  await page.getByRole("button", { name: "Remove Monday 9:00 AM schedule for Test Dentist", exact: true }).click();
   await expect(page.getByText("No working hours saved yet.", { exact: true })).toBeVisible();
   expect(state.schedules).toHaveLength(0); expect(state.writes.every(write => write.header === "1")).toBe(true);
   await clinicSection(page, "Dentists");

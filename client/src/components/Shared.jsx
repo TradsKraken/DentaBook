@@ -2,6 +2,26 @@ import { Link } from "react-router-dom";
 import { ArrowRight, MapPin, Search, Stethoscope } from "lucide-react";
 import { useClinics } from "../hooks/useClinics";
 
+export function formatStandardTime(value) {
+  if (!value || typeof value !== "string") return value || "";
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return value;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  if (hours < 0 || hours > 23) return value;
+  const period = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${hours}:${minutes} ${period}`;
+}
+
+export function formatStandardTimeRange(start, end) {
+  if (!start) return "";
+  const formattedStart = formatStandardTime(start);
+  if (!end) return formattedStart;
+  const formattedEnd = formatStandardTime(end);
+  return `${formattedStart} – ${formattedEnd}`;
+}
+
 export function Tooth({ size = 24, ...props }) {
   return (
     <svg

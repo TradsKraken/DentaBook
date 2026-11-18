@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CalendarDays, CheckCircle2 } from "lucide-react";
 import { api } from "../api";
-import { PageTitle } from "../components/Shared";
+import { PageTitle, formatStandardTime, formatStandardTimeRange } from "../components/Shared";
 import { useAuth } from "../hooks/useAuth";
 import { useClinics } from "../hooks/useClinics";
 
@@ -129,7 +129,7 @@ if (receipt) return <div className="wrap page"><section className="panel success
   <span className="success-icon"><CheckCircle2 size={40} /></span>
   <p className="eyebrow">{receipt.appointmentCode}</p>
   <h1>Your appointment request is saved.</h1>
-  <p>{receipt.clinicName} · {receipt.date} · {receipt.time} (Philippine time)</p>
+  <p>{receipt.clinicName} · {receipt.date} · {formatStandardTime(receipt.time)} (Philippine time)</p>
   <p>{receipt.services.join(", ")} · {receipt.dentistName}</p>
   <p>Estimated cost: {money(receipt.total)}</p>
   <p className="notice">Status: {receipt.status.replaceAll("_", " ")}. The clinic reviews your request first. After acceptance, open your appointment’s payment details for the clinic’s GCash or Pay at clinic options.</p>
@@ -202,7 +202,7 @@ return <div className="wrap page">
                   <h3>Available times</h3>
                   {times.loading ? <p role="status">Checking available times…</p> : times.error ? <p className="form-error" role="alert">{times.error}</p> : !times.slots.length ? <p className="notice">No available times on this date. Choose another date or dentist.</p> : <div className="booking-time-grid">{times.slots.map(slot => <button type="button" key={slot.time} className={`button ${selection.time === slot.time ? "" : "secondary"}`} aria-pressed={selection.time === slot.time} onClick={() => {
                     setSelection(previous => ({ ...previous, time: slot.time })); setKey(requestKey()); setError("");
-                  }}>{slot.time}–{slot.end}</button>)}</div>}
+                  }}>{formatStandardTimeRange(slot.time, slot.end)}</button>)}</div>}
                   <button type="button" className="button secondary" disabled={times.loading} onClick={() => setSlotAttempt(value => value + 1)}>Refresh available times</button>
                   <p className="summary-note">Book up to 90 days ahead, at least 15 minutes before the visit. A time is reserved only when your request is saved.</p>
                 </div>

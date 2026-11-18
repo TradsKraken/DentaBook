@@ -11,6 +11,7 @@ import ClinicIntakeSettings from './ClinicIntakeSettings';
 import WorkingHoursEditor from './WorkingHoursEditor';
 import { ClinicDrawer, ClinicEmpty, ClinicStatus } from "./ClinicUi";
 import { api } from "../api";
+import { formatStandardTime, formatStandardTimeRange } from "./Shared";
 
 const categories = ["Preventive", "Restorative", "Cosmetic", "Surgical", "Orthodontic", "General"];
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -156,9 +157,9 @@ function Schedules({ data, request, saved, navigate }) {
         if (!shifts.length) return null;
         return <section className="clinic-week-day" key={day}><h3>{day}<small>{shifts.length} {shifts.length === 1 ? "shift" : "shifts"}</small></h3><div>{shifts.map(item => {
           const dentist = data.dentists.find(person => person.id === item.dentistId);
-          return <article className="clinic-shift" key={item.id}><span className="clinic-shift-icon"><Clock3 size={18} /></span><div><h4>{dentist?.name || "Dentist unavailable"}{dentist && !dentist.isActive ? " (hidden)" : ""}</h4><p>{day} · {item.start}–{item.end}</p></div>
-            <button className="clinic-row-button" disabled={!!removing || !dentist?.isActive} aria-label={`Edit ${day} ${item.start} schedule for ${dentist?.name || 'dentist'}`} onClick={()=>setEditing(item)}><Pencil size={15} />Edit hours</button>
-            <button className="clinic-row-button" disabled={!!removing} aria-busy={removing === item.id} aria-label={`Remove ${day} ${item.start} schedule for ${dentist?.name || "dentist"}`} onClick={async () => {
+          return <article className="clinic-shift" key={item.id}><span className="clinic-shift-icon"><Clock3 size={18} /></span><div><h4>{dentist?.name || "Dentist unavailable"}{dentist && !dentist.isActive ? " (hidden)" : ""}</h4><p>{day} · {formatStandardTimeRange(item.start, item.end)}</p></div>
+            <button className="clinic-row-button" disabled={!!removing || !dentist?.isActive} aria-label={`Edit ${day} ${formatStandardTime(item.start)} schedule for ${dentist?.name || 'dentist'}`} onClick={()=>setEditing(item)}><Pencil size={15} />Edit hours</button>
+            <button className="clinic-row-button" disabled={!!removing} aria-busy={removing === item.id} aria-label={`Remove ${day} ${formatStandardTime(item.start)} schedule for ${dentist?.name || "dentist"}`} onClick={async () => {
               setRemoving(item.id); setError("");
               try { await request(`/schedules/${item.id}`, "DELETE"); saved("Working hours removed. Existing appointments have not changed."); }
               catch (error) { setError(error.message); }

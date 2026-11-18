@@ -44,11 +44,10 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     await login(patient, "patient", "patient@example.test");
     async function chooseVisit() {
       await patient.goto(`/patient/book?clinic=${clinicId}`);
-      await patient.getByLabel("Treatment", { exact: true }).selectOption(serviceId);
       await patient.getByRole("checkbox", { name: "Test treatment", exact: true }).check();
       await patient.getByLabel("Dentist", { exact: true }).selectOption(dentistId);
       await patient.getByLabel("Visit date", { exact: true }).fill(tomorrow());
-      await expect(patient.getByRole("button", { name: /09:00–09:30|09:30–10:00/ }).first()).toBeVisible();
+      await expect(patient.getByRole("button", { name: /9:00 AM – 9:30 AM|9:30 AM – 10:00 AM/ }).first()).toBeVisible();
     }
     await chooseVisit();
     await expect(patient.getByLabel("Contact email", { exact: true })).toHaveValue("patient@example.test");
@@ -59,7 +58,7 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
       await patient.screenshot({ path: testInfo.outputPath(`real-booking-${width}.png`), fullPage: true });
     }
     await patient.setViewportSize({ width: 390, height: 844 });
-    await patient.getByRole("button", { name: "09:00–09:30", exact: true }).tap();
+    await patient.getByRole("button", { name: "9:00 AM – 9:30 AM", exact: true }).tap();
     await patient.getByLabel("Visit notes (optional)", { exact: true }).fill("First isolated visit");
     await patient.getByRole("button", { name: "Send appointment request", exact: true }).tap();
     await expect(patient.getByRole("heading", { name: "Your appointment request is saved." })).toBeVisible();
@@ -79,13 +78,12 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     await expect(patient.getByText("Please contact the clinic for the next steps.", { exact: false })).toBeVisible();
     // A second request uses another real slot; the first reservation is excluded.
     await patient.goto(`/patient/book?clinic=${clinicId}`);
-    await patient.getByLabel("Treatment", { exact: true }).selectOption(serviceId);
     await patient.getByRole("checkbox", { name: "Test treatment", exact: true }).check();
     await patient.getByLabel("Dentist", { exact: true }).selectOption(dentistId);
     await patient.getByLabel("Visit date", { exact: true }).fill(tomorrow());
-    await expect(patient.getByRole("button", { name: "09:30–10:00", exact: true })).toBeVisible();
-    await expect(patient.getByRole("button", { name: "09:00–09:30", exact: true })).toHaveCount(0);
-    await patient.getByRole("button", { name: "09:30–10:00", exact: true }).tap();
+    await expect(patient.getByRole("button", { name: "9:30 AM – 10:00 AM", exact: true })).toBeVisible();
+    await expect(patient.getByRole("button", { name: "9:00 AM – 9:30 AM", exact: true })).toHaveCount(0);
+    await patient.getByRole("button", { name: "9:30 AM – 10:00 AM", exact: true }).tap();
     await patient.getByRole("button", { name: "Send appointment request", exact: true }).tap();
     await expect(patient.getByRole("heading", { name: "Your appointment request is saved." })).toBeVisible();
     const secondCode = await patient.locator("main .eyebrow").textContent();
@@ -162,7 +160,7 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     await staff.getByRole("button", { name: "Close panel", exact: true }).click();
     // Reuse the slot that the earlier decline released, then defer payment.
     await chooseVisit();
-    await patient.getByRole("button", { name: "09:30–10:00", exact: true }).click();
+    await patient.getByRole("button", { name: "9:30 AM – 10:00 AM", exact: true }).click();
     await patient.getByRole("button", { name: "Send appointment request", exact: true }).click();
     await expect(patient.getByRole("heading", { name: "Your appointment request is saved." })).toBeVisible();
     const walkCode = await patient.locator("main .eyebrow").textContent();
@@ -202,7 +200,7 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     await paidCard.getByRole("button", { name: "Manage appointment", exact: true }).click();
     await paidCard.getByRole("button", { name: "Request reschedule", exact: true }).click();
     await paidCard.getByLabel("Replacement date", { exact: true }).fill(tomorrow());
-    await paidCard.getByRole("button", { name: "10:00–10:30", exact: true }).click();
+    await paidCard.getByRole("button", { name: "10:00 AM – 10:30 AM", exact: true }).click();
     await paidCard.getByLabel("Reason for change", { exact: true }).fill("Please move my visit to a later time.");
     for (const width of [390, 320, 768, 1440]) {
       await patient.setViewportSize({ width, height: 900 }); await mobileControls(patient, `Reschedule request at ${width}`);
@@ -210,7 +208,7 @@ test("real booking, payment, cancellation, and clinic-approved rescheduling work
     }
     await paidCard.getByRole("button", { name: "Send reschedule request", exact: true }).click();
     await expect(paidCard.getByText("Reschedule · pending", { exact: true })).toBeVisible();
-    await expect(paidCard.getByText(/Original:.*09:00/)).toBeVisible();
+    await expect(paidCard.getByText(/Original:.*9:00 AM/)).toBeVisible();
     await clinicSection(staff, "Appointment inbox");
     await staff.getByLabel("Appointment status", { exact: true }).selectOption("reschedule_requests");
     await staff.getByRole("button", { name: `View ${firstCode}`, exact: true }).click();

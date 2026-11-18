@@ -53,13 +53,13 @@ test("patient changes have retryable unavailable states and cancellation retains
 test("reschedule conflicts preserve the original visit and entered reason, and patients can withdraw a saved request",async({page})=>{
   const state=await fixture(page);await page.goto("/patient/appointments");
   await page.getByRole("button",{name:"Manage appointment",exact:true}).tap();await page.getByRole("button",{name:"Request reschedule",exact:true}).tap();
-  await page.getByLabel("Replacement date",{exact:true}).fill(date);await page.getByRole("button",{name:"10:00–10:30",exact:true}).tap();
+  await page.getByLabel("Replacement date",{exact:true}).fill(date);await page.getByRole("button",{name:"10:00 AM – 10:30 AM",exact:true}).tap();
   await page.getByLabel("Reason for change",{exact:true}).fill("A later time");state.conflict=true;
   await page.getByRole("button",{name:"Send reschedule request",exact:true}).tap();
   await expect(page.getByRole("alert")).toContainText("Your original appointment is unchanged");
   await expect(page.getByText("Status: confirmed",{exact:true})).toBeVisible();await expect(page.getByLabel("Reason for change",{exact:true})).toHaveValue("A later time");
   await expect(page.getByRole("button",{name:"Send reschedule request",exact:true})).toBeDisabled();state.conflict=false;
-  await page.getByRole("button",{name:"Refresh replacement times",exact:true}).tap();await page.getByRole("button",{name:"10:00–10:30",exact:true}).tap();
+  await page.getByRole("button",{name:"Refresh replacement times",exact:true}).tap();await page.getByRole("button",{name:"10:00 AM – 10:30 AM",exact:true}).tap();
   await page.getByRole("button",{name:"Send reschedule request",exact:true}).tap();await expect(page.getByText("Reschedule · pending",{exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Withdraw reschedule request",exact:true}).tap();await expect(page.getByText("Reschedule · pending",{exact:true})).toHaveCount(0);
   await expect(page.getByText("Status: confirmed",{exact:true})).toBeVisible();expect(state.writes[0].requestKey).not.toBe(state.writes[1].requestKey);
