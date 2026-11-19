@@ -347,6 +347,64 @@ test("patient email verification, password reset, and Google authentication", as
       assert.equal(rejectRes.status, 403);
       assert.match(rejectRes.data.error, /Google sign-in is only available for patient accounts/);
     });
+
+    await t.test("patient can choose to change email address and verify the new email", async () => {
+      clearSentEmails();
+      const regRes = await request("/auth/register-patient", {
+        method: "POST",
+        body: {
+          name: "Patient Emilio",
+          email: "old.emilio@example.test",
+          phone: "+639174443333",
+          password: "EmilioPassword123!",
+        },
+      });
+      assert.equal(regRes.status, 201);
+      clearSentEmails();
+
+      const badEmailRes = await request("/auth/change-email", {
+        method: "POST",
+        cookie: regRes.cookie,
+        body: { newEmail: "invalid-email" },
+      });
+      assert.equal(badEmailRes.status, 400);
+
+      const dupEmailRes = await request("/auth/change-email", {
+        method: "POST",
+        cookie: regRes.cookie,
+        body: { newEmail: "pedro@example.test" },
+      });
+      assert.equal(dupEmailRes.status, 409);
+
+      const changeRes = await request("/auth/change-email", {
+        method: "POST",
+        cookie: regRes.cookie,
+        body: { newEmail: "new.emilio@example.test" },
+      });
+      assert.equal(changeRes.status, 200);
+      assert.equal(changeRes.data.updated, true);
+      assert.equal(changeRes.data.email, "new.emilio@example.test");
+
+      const meRes = await request("/auth/me", { cookie: regRes.cookie });
+      assert.equal(meRes.data.user.email, "new.emilio@example.test");
+      assert.equal(meRes.data.user.isEmailVerified, false);
+
+      const sent = getSentEmails();
+      assert.equal(sent.length, 1);
+      assert.equal(sent[0].to, "new.emilio@example.test");
+      const newCode = sent[0].code;
+
+      const verifyRes = await request("/auth/verify-email", {
+        method: "POST",
+        cookie: regRes.cookie,
+        body: { code: newCode },
+      });
+      assert.equal(verifyRes.status, 200);
+      assert.equal(verifyRes.data.verified, true);
+
+      const meAfterVerify = await request("/auth/me", { cookie: regRes.cookie });
+      assert.equal(meAfterVerify.data.user.isEmailVerified, true);
+    });
   } finally {
     server.close();
   }

@@ -362,6 +362,53 @@ function createAccountRouter(pool) {
     }
   });
 
+  router.post("/change-email", requireSession(pool), rateLimit({ limit: 10, windowMs: 15 * 60 * 1000 }), async (req, res, next) => {
+    if (req.user.role !== "patient") {
+      return res.status(403).json({ error: "Only patient accounts can change their verification email." });
+    }
+    const rawEmail = typeof req.body?.newEmail === "string" ? req.body.newEmail.trim().toLowerCase() : "";
+    if (!rawEmail || !email(rawEmail)) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+    try {
+      const existing = await pool.query(
+        "SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2",
+        [rawEmail, req.user.id]
+      );
+      if (existing.rows.length) {
+        return res.status(409).json({ error: "An account already uses this email address. Please choose another email." });
+      }
+
+      await pool.query(
+        "UPDATE users SET email = $1, is_email_verified = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+        [rawEmail, req.user.id]
+      );
+      await pool.query("DELETE FROM verification_tokens WHERE user_id = $1 AND purpose = 'verify_email'", [req.user.id]);
+
+      const creds = createVerificationCredentials();
+      await pool.query(
+        `INSERT INTO verification_tokens (user_id, token_hash, code_hash, purpose, expires_at)
+         VALUES ($1, $2, $3, 'verify_email', CURRENT_TIMESTAMP + INTERVAL '24 hours')`,
+        [req.user.id, creds.tokenHash, creds.codeHash]
+      );
+
+      await sendVerificationEmail({
+        email: rawEmail,
+        name: req.user.name,
+        token: creds.token,
+        code: creds.code,
+      });
+
+      res.json({
+        updated: true,
+        email: rawEmail,
+        message: `Your account email has been updated to ${rawEmail}. A verification code has been sent.`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/forgot-password", rateLimit({ limit: 10, windowMs: 60 * 60 * 1000 }), async (req, res, next) => {
     const rawEmail = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     if (!rawEmail || !email(rawEmail)) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { CheckCircle2, AlertCircle, ArrowRight, Mail, Send } from "lucide-react";
+import { CheckCircle2, AlertCircle, ArrowRight, Mail, Send, Edit3 } from "lucide-react";
 import { PageTitle } from "../components/Shared";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../api";
@@ -17,6 +17,8 @@ export default function VerifyEmail() {
 
   const [code, setCode] = useState("");
   const [emailInput, setEmailInput] = useState(emailFromUrl || loggedInEmail);
+  const [newEmail, setNewEmail] = useState("");
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [busy, setBusy] = useState(false);
   const [autoVerifying, setAutoVerifying] = useState(!!tokenFromUrl);
   const [verified, setVerified] = useState(false);
@@ -97,7 +99,7 @@ export default function VerifyEmail() {
     try {
       if (session) {
         await api("/auth/resend-verification", { method: "POST" });
-        setResendStatus("A new verification code and link have been sent to your email.");
+        setResendStatus(`A new verification code has been sent to ${user?.email || "your email"}.`);
         setCooldown(60);
       } else if (emailInput) {
         await api("/auth/forgot-password", {
@@ -109,6 +111,34 @@ export default function VerifyEmail() {
       }
     } catch (err) {
       setError(err.message || "Failed to resend verification. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeEmail(e) {
+    e.preventDefault();
+    const cleanEmail = newEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setError("Please enter a valid new email address.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setResendStatus("");
+    try {
+      await api("/auth/change-email", {
+        method: "POST",
+        body: { newEmail: cleanEmail },
+      });
+      await refresh({ quiet: true });
+      setEmailInput(cleanEmail);
+      setNewEmail("");
+      setShowChangeEmail(false);
+      setResendStatus(`Your email was updated to ${cleanEmail}. A 6-digit verification code has been sent to your new email.`);
+      setCooldown(60);
+    } catch (err) {
+      setError(err.message || "Failed to change email address.");
     } finally {
       setBusy(false);
     }
@@ -155,13 +185,30 @@ export default function VerifyEmail() {
     <div className="wrap page">
       <div className="account-panel">
         <PageTitle
-          eyebrow="EMAIL VERIFICATION"
+          eyebrow="SECURITY UPDATE"
           title="Verify your email address."
-          text="Enter the 6-digit code sent to your email, or click the link in the email we sent you."
+          text="Due to a recent security update, email verification is required to book appointments. You can verify your email on file or update to a new email address below."
         />
 
         <form className="panel" onSubmit={submitCode}>
-          {!session && (
+          {session ? (
+            <div style={{ marginBottom: 16, padding: "12px", background: "#f8fbff", border: "1px solid #dce6f1", borderRadius: "8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                <div>
+                  <span style={{ fontSize: 12, color: "#657985", display: "block" }}>Current account email:</span>
+                  <strong>{user?.email}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="button small secondary"
+                  onClick={() => setShowChangeEmail(!showChangeEmail)}
+                >
+                  <Edit3 size={14} />
+                  {showChangeEmail ? "Cancel" : "Change email"}
+                </button>
+              </div>
+            </div>
+          ) : (
             <label className="field">
               Your account email address
               <input
@@ -174,6 +221,33 @@ export default function VerifyEmail() {
                 autoComplete="email"
               />
             </label>
+          )}
+
+          {showChangeEmail && session && (
+            <div style={{ marginBottom: 16, padding: "12px", background: "#fff", border: "1px solid #c2c7d0", borderRadius: "8px" }}>
+              <h3 style={{ fontSize: 16, margin: "0 0 8px" }}>Update email address</h3>
+              <p className="field-hint" style={{ marginBottom: 12 }}>
+                Enter your new email address. We will update your account and send a verification code to it.
+              </p>
+              <label className="field" style={{ marginBottom: 12 }}>
+                New email address
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="new.email@example.com"
+                  required
+                />
+              </label>
+              <button
+                type="button"
+                className="button full"
+                onClick={changeEmail}
+                disabled={busy || !newEmail.includes("@")}
+              >
+                {busy ? "Saving & sending code…" : "Update email & send code"}
+              </button>
+            </div>
           )}
 
           <label className="field">
@@ -222,7 +296,7 @@ export default function VerifyEmail() {
                 disabled={busy || cooldown > 0}
               >
                 <Send size={15} />
-                {cooldown > 0 ? `Resend email (${cooldown}s)` : "Resend verification email"}
+                {cooldown > 0 ? `Resend (${cooldown}s)` : "Send verification email"}
               </button>
             )}
           </div>

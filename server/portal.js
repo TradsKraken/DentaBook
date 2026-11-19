@@ -48,7 +48,7 @@ function restrictPortal(req, res, next) {
     (clinic && ["/auth/register-clinic", "/auth/login"].includes(path))
   );
   const authRecovery = req.method === "POST" && ["/auth/forgot-password", "/auth/reset-password", "/auth/verify-email"].includes(path);
-  const patientAuth = patient && req.method === "POST" && ["/auth/resend-verification", "/auth/google"].includes(path);
+  const patientAuth = patient && req.method === "POST" && ["/auth/resend-verification", "/auth/google", "/auth/change-email"].includes(path);
   const patientPayment = patient && ((read && /^\/workspaces\/patient\/appointments\/[^/]+\/payment$/.test(path)) ||
     (req.method === "POST" && /^\/workspaces\/patient\/appointments\/[^/]+\/(payment-choice|payment-reference)$/.test(path)) ||
     (read && /^\/workspaces\/patient\/payments\/[^/]+\/receipt$/.test(path)));

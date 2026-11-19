@@ -1,5 +1,8 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN NOT NULL DEFAULT TRUE;
-UPDATE users SET is_email_verified = TRUE;
+
+-- System update: existing patient accounts are marked unverified so they can choose to verify their existing email or change to a new one
+UPDATE users SET is_email_verified = TRUE WHERE role != 'patient' OR owner_access = TRUE;
+UPDATE users SET is_email_verified = FALSE WHERE role = 'patient' AND NOT owner_access;
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);
 CREATE UNIQUE INDEX IF NOT EXISTS users_google_id_unique ON users(google_id) WHERE google_id IS NOT NULL;
