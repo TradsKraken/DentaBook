@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { api } from "../api";
@@ -11,15 +11,66 @@ export default function GoogleSignInButton({
 }) {
   const { refresh } = useAuth();
   const navigate = useNavigate();
+  const nativeBtnRef = useRef(null);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showDevModal, setShowDevModal] = useState(false);
   const [devEmail, setDevEmail] = useState("patient.juan@gmail.com");
   const [devName, setDevName] = useState("Juan Dela Cruz");
+  const [gisLoaded, setGisLoaded] = useState(false);
 
   const googleClientId =
     typeof window !== "undefined" &&
     (window.DENTABOOK_GOOGLE_CLIENT_ID || import.meta.env?.VITE_GOOGLE_CLIENT_ID);
+
+  // Dynamically load Google Identity Services if a Client ID is provided
+  useEffect(() => {
+    if (!googleClientId) return;
+    if (window.google?.accounts?.id) {
+      setGisLoaded(true);
+      return;
+    }
+    const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existing) {
+      existing.addEventListener("load", () => setGisLoaded(true));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGisLoaded(true);
+    document.head.appendChild(script);
+  }, [googleClientId]);
+
+  // Initialize GIS and render native Google button if client ID is configured
+  useEffect(() => {
+    if (!googleClientId || !gisLoaded || !window.google?.accounts?.id) return;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => {
+          if (response?.credential) {
+            handleCredential(response.credential);
+          }
+        },
+      });
+
+      if (nativeBtnRef.current) {
+        nativeBtnRef.current.innerHTML = "";
+        window.google.accounts.id.renderButton(nativeBtnRef.current, {
+          theme: "outline",
+          size: "large",
+          width: 320,
+          shape: "rectangular",
+          text: text.toLowerCase().includes("up") ? "signup_with" : "signin_with",
+        });
+      }
+    } catch (err) {
+      console.warn("GIS initialization warning:", err);
+    }
+  }, [googleClientId, gisLoaded, text]);
 
   async function handleCredential(credential) {
     setBusy(true);
@@ -46,20 +97,11 @@ export default function GoogleSignInButton({
 
   function handleGoogleClick() {
     setError("");
-    // If real Google Identity is available and client ID is configured
+    // If real Google Identity is available and client ID is configured, trigger One Tap prompt
     if (googleClientId && window.google?.accounts?.id) {
       try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: (response) => {
-            if (response.credential) {
-              handleCredential(response.credential);
-            }
-          },
-        });
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback to dev modal if prompt couldn't display
             setShowDevModal(true);
           }
         });
@@ -69,7 +111,7 @@ export default function GoogleSignInButton({
       }
     }
 
-    // Otherwise, in development or without Google Client ID, open the test modal
+    // In development or when no Client ID is provided yet, open dev modal
     setShowDevModal(true);
   }
 
@@ -86,16 +128,22 @@ export default function GoogleSignInButton({
 
   return (
     <div className="google-auth-container">
-      <button
-        type="button"
-        className="google-sign-in-btn"
-        onClick={handleGoogleClick}
-        disabled={busy}
-        aria-busy={busy}
-      >
-        <GoogleIcon />
-        <span>{busy ? "Signing in with Google…" : text}</span>
-      </button>
+      {googleClientId && gisLoaded ? (
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: 44 }}>
+          <div ref={nativeBtnRef} style={{ width: "100%", display: "flex", justifyContent: "center" }} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="google-sign-in-btn"
+          onClick={handleGoogleClick}
+          disabled={busy}
+          aria-busy={busy}
+        >
+          <GoogleIcon />
+          <span>{busy ? "Connecting to Google…" : text}</span>
+        </button>
+      )}
 
       {error && (
         <p className="form-error" role="alert" style={{ marginTop: 8 }}>
