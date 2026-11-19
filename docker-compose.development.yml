@@ -28,6 +28,8 @@ x-development-environment: &development-environment
   DB_NAME: dentabook_development
   DB_PASSWORD: ${DEV_DB_PASSWORD:?Set DEV_DB_PASSWORD in .env.development.local}
   TRUST_PROXY: ""
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  EMAIL_FROM: ${EMAIL_FROM:-}
 
 services:
   client:

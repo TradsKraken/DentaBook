@@ -5,7 +5,9 @@ function getClientUrl() {
 }
 
 function getSender() {
-  return process.env.EMAIL_FROM || "DentaBook <no-reply@dentabook.forgroup.space>";
+  if (process.env.EMAIL_FROM) return process.env.EMAIL_FROM;
+  if (process.env.RESEND_API_KEY) return "DentaBook <onboarding@resend.dev>";
+  return "DentaBook <no-reply@dentabook.forgroup.space>";
 }
 
 async function deliverEmail({ to, subject, text, html, meta = {} }) {
@@ -41,6 +43,9 @@ async function deliverEmail({ to, subject, text, html, meta = {} }) {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("[Email:Resend] Delivery failed:", response.status, errorText);
+      } else {
+        const resData = await response.json();
+        console.log(`[Email:Resend] Delivered successfully to <${to}> (id: ${resData.id})`);
       }
     } catch (err) {
       console.error("[Email:Resend] Network error:", err.message);
