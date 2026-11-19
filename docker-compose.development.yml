@@ -30,6 +30,7 @@ x-development-environment: &development-environment
   TRUST_PROXY: ""
   RESEND_API_KEY: ${RESEND_API_KEY:-}
   EMAIL_FROM: ${EMAIL_FROM:-}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
 
 services:
   client:
@@ -43,6 +44,7 @@ services:
       args:
         VITE_PATIENT_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}
         VITE_CLINIC_URL: http://${DEV_BIND_IP:?Set the LAN IP}:${DEV_PUBLIC_PORT:-3013}
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     command: ["nginx", "-c", "/etc/nginx/portals/nginx.conf", "-g", "daemon off;"]
     restart: unless-stopped
     security_opt: ["no-new-privileges:true"]

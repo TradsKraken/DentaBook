@@ -21,8 +21,9 @@ export default function GoogleSignInButton({
   const [gisLoaded, setGisLoaded] = useState(false);
 
   const googleClientId =
-    typeof window !== "undefined" &&
-    (window.DENTABOOK_GOOGLE_CLIENT_ID || import.meta.env?.VITE_GOOGLE_CLIENT_ID);
+    (typeof window !== "undefined" && window.DENTABOOK_GOOGLE_CLIENT_ID) ||
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "";
 
   // Dynamically load Google Identity Services if a Client ID is provided
   useEffect(() => {
@@ -59,10 +60,14 @@ export default function GoogleSignInButton({
 
       if (nativeBtnRef.current) {
         nativeBtnRef.current.innerHTML = "";
+        const buttonWidth = Math.min(
+          320,
+          Math.max(240, typeof window !== "undefined" && window.innerWidth ? window.innerWidth - 64 : 280)
+        );
         window.google.accounts.id.renderButton(nativeBtnRef.current, {
           theme: "outline",
           size: "large",
-          width: 320,
+          width: buttonWidth,
           shape: "rectangular",
           text: text.toLowerCase().includes("up") ? "signup_with" : "signin_with",
         });

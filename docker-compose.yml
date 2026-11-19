@@ -6,6 +6,8 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     container_name: dentabook_client
     restart: unless-stopped
     security_opt:
@@ -46,6 +48,9 @@ services:
       DB_NAME: ${DB_NAME:-dentabook_db}
       TRUST_PROXY: ${TRUST_PROXY:-}
       CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     depends_on:
       db:
         condition: service_healthy
